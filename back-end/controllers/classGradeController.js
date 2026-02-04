@@ -235,3 +235,45 @@ export const getAllAvailableSections = async (req, res) => {
     res.status(500).json({ message: "Server Error", error: error.message });
   }
 }
+
+// Get student count by class grade for dashboard chart
+export const getStudentsByClassStats = async (req, res) => {
+  try {
+    const grades = ['kg1', 'kg2', 'grade1', 'grade2', 'grade3', 'grade4',
+      'grade5', 'grade6', 'grade7', 'grade8', 'grade9',
+      'grade10', 'grade11', 'grade12'];
+
+    // Aggregate student count per class grade
+    const stats = await ClassGradeModel.aggregate([
+      {
+        $match: { student: { $exists: true, $ne: null } }
+      },
+      {
+        $group: {
+          _id: '$classGrade',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // Create a map for quick lookup
+    const statsMap = {};
+    stats.forEach(item => {
+      statsMap[item._id] = item.count;
+    });
+
+    // Build result with all grades (0 for empty grades)
+    const result = grades.map(grade => ({
+      grade: grade,
+      label: grade.replace('kg', 'KG').replace('grade', 'Grade '),
+      count: statsMap[grade] || 0
+    }));
+
+    res.status(200).json({
+      message: "Student stats by class fetched successfully",
+      data: result
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+}

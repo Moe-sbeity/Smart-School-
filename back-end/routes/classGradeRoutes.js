@@ -6,7 +6,8 @@ import {
     getTeacherClassGrades,
     removeTeacherClassGrade,
     getAllAvailableGrades,
-    getAllAvailableSections
+    getAllAvailableSections,
+    getStudentsByClassStats
 } from '../controllers/classGradeController.js';
 import { protectRoute } from '../middleware/auth.js';
 
@@ -16,6 +17,7 @@ const router = express.Router();
 // Available options (must be first) - public for admin use
 router.get('/available-grades', getAllAvailableGrades);
 router.get('/available-sections', getAllAvailableSections);
+router.get('/students-by-class', protectRoute, getStudentsByClassStats);
 
 // Teacher routes (specific paths first)
 router.post('/assign-teacherclass', protectRoute, assignTeacherClassGrade);

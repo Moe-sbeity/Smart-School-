@@ -838,6 +838,238 @@ const initDashboard = async () => {
   await fetchUsers();
   await fetchAdmissions();
   await fetchAnnouncements();
+  await initCharts();
+};
+
+// Initialize Charts
+const initCharts = async () => {
+  await initStudentsByClassChart();
+  await initAdmissionsChart();
+};
+
+// Students by Class Bar Chart
+const initStudentsByClassChart = async () => {
+  const ctx = document.getElementById('studentsByClassChart');
+  if (!ctx) return;
+
+  try {
+    const token = localStorage.getItem("token");
+    const res = await axios.get(`${API_URL}/class-grades/students-by-class`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const classData = res.data.data || [];
+    
+    // Separate into categories for better visualization
+    const labels = classData.map(item => item.label);
+    const counts = classData.map(item => item.count);
+    
+    // Color gradient from light to dark blue
+    const colors = [
+      '#90caf9', '#90caf9',  // KG1, KG2
+      '#64b5f6', '#64b5f6', '#64b5f6',  // Grade 1-3
+      '#42a5f5', '#42a5f5', '#42a5f5',  // Grade 4-6
+      '#2196f3', '#2196f3', '#2196f3',  // Grade 7-9
+      '#1e88e5', '#1976d2', '#1565c0'   // Grade 10-12
+    ];
+
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Students',
+          data: counts,
+          backgroundColor: colors,
+          borderColor: colors.map(c => c),
+          borderWidth: 0,
+          borderRadius: 6,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            backgroundColor: '#1e293b',
+            titleFont: { size: 13, weight: '600' },
+            bodyFont: { size: 12 },
+            padding: 12,
+            cornerRadius: 8,
+            callbacks: {
+              title: function(context) {
+                return context[0].label;
+              },
+              label: function(context) {
+                return `${context.raw} Students`;
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: 'rgba(0, 0, 0, 0.05)',
+              drawBorder: false
+            },
+            ticks: {
+              font: { size: 11 },
+              color: '#64748b',
+              stepSize: 5
+            }
+          },
+          x: {
+            grid: {
+              display: false
+            },
+            ticks: {
+              font: { size: 10 },
+              color: '#64748b',
+              maxRotation: 45,
+              minRotation: 45
+            }
+          }
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Failed to load students by class chart:', error);
+    // Fallback with sample data
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['KG1', 'KG2', 'G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'G7', 'G8', 'G9', 'G10', 'G11', 'G12'],
+        datasets: [{
+          label: 'Students',
+          data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          backgroundColor: '#1e88e5',
+          borderRadius: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } }
+      }
+    });
+  }
+};
+
+// Admissions Overview Doughnut Chart
+const initAdmissionsChart = async () => {
+  const ctx = document.getElementById('admissionsChart');
+  if (!ctx) return;
+
+  try {
+    const token = localStorage.getItem("token");
+    const res = await axios.get(`${API_URL}/admissions/stats`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const stats = res.data.stats || { total: 0, byStatus: {} };
+    const byStatus = stats.byStatus;
+
+    // Get counts for each status
+    const pending = byStatus.pending || 0;
+    const reviewed = byStatus.reviewed || 0;
+    const approved = byStatus.approved || 0;
+    const rejected = byStatus.rejected || 0;
+
+    // Update stats display
+    const statsContainer = document.getElementById('admissionStats');
+    if (statsContainer) {
+      statsContainer.innerHTML = `
+        <div class="stat-row">
+          <span class="stat-dot pending"></span>
+          <span class="stat-label">Pending</span>
+          <span class="stat-value">${pending}</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-dot reviewed"></span>
+          <span class="stat-label">Reviewed</span>
+          <span class="stat-value">${reviewed}</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-dot approved"></span>
+          <span class="stat-label">Approved</span>
+          <span class="stat-value">${approved}</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-dot rejected"></span>
+          <span class="stat-label">Rejected</span>
+          <span class="stat-value">${rejected}</span>
+        </div>
+      `;
+    }
+
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Pending', 'Reviewed', 'Approved', 'Rejected'],
+        datasets: [{
+          data: [pending, reviewed, approved, rejected],
+          backgroundColor: [
+            '#f59e0b',  // Pending - amber
+            '#3b82f6',  // Reviewed - blue
+            '#10b981',  // Approved - green
+            '#ef4444'   // Rejected - red
+          ],
+          borderColor: '#ffffff',
+          borderWidth: 3,
+          hoverOffset: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '70%',
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            backgroundColor: '#1e293b',
+            titleFont: { size: 13, weight: '600' },
+            bodyFont: { size: 12 },
+            padding: 12,
+            cornerRadius: 8,
+            callbacks: {
+              label: function(context) {
+                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                const percentage = total > 0 ? ((context.raw / total) * 100).toFixed(1) : 0;
+                return `${context.label}: ${context.raw} (${percentage}%)`;
+              }
+            }
+          }
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Failed to load admissions chart:', error);
+    // Fallback empty chart
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['No Data'],
+        datasets: [{
+          data: [1],
+          backgroundColor: ['#e2e8f0'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '70%',
+        plugins: { legend: { display: false } }
+      }
+    });
+  }
 };
 
 // Make functions globally accessible for onclick handlers

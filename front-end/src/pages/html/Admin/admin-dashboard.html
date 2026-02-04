@@ -177,24 +177,28 @@
       </div>
 
       <div class="right-column">
-        <div class="card system-health-card">
+        <!-- Students by Class Bar Chart -->
+        <div class="card chart-card">
           <div class="card-header">
-            <h3>System Health</h3>
-            <button class="icon-btn" title="System Status"><i class="fas fa-chart-line"></i></button>
+            <h3>Students by Class</h3>
+            <button class="icon-btn" title="Class Stats"><i class="fas fa-graduation-cap"></i></button>
           </div>
-          <div class="health-list">
-            <div class="health-item">
-              <span>API Uptime <small>99.99% last 30 days</small></span>
-              <span class="tag tag-health-ok">OK</span>
-            </div>
-            <div class="health-item">
-              <span>Email Queue <small>154 pending</small></span>
-              <span class="tag tag-health-high">High</span>
-            </div>
-            <div class="health-item">
-              <span>Storage <small>78% used</small></span>
-              <span class="tag tag-health-alert">Alert</span>
-            </div>
+          <div class="chart-container" style="height: 280px;">
+            <canvas id="studentsByClassChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Admissions Overview Doughnut Chart -->
+        <div class="card chart-card">
+          <div class="card-header">
+            <h3>Admissions Overview</h3>
+            <button class="icon-btn" title="Admission Stats"><i class="fas fa-user-graduate"></i></button>
+          </div>
+          <div class="chart-container" style="height: 250px;">
+            <canvas id="admissionsChart"></canvas>
+          </div>
+          <div class="chart-stats" id="admissionStats">
+            <!-- Stats will be populated by JS -->
           </div>
         </div>
       </div>
@@ -206,6 +210,7 @@
 
 
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="admin-dashboard.js"></script>
 </body>
 
