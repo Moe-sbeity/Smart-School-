@@ -95,3 +95,7 @@ export const isParent = (req, res, next) => {
     res.status(500).json({ message: "Internal server error" });
   }
 }
+
+// Aliases for cleaner route definitions
+export const protect = protectRoute;
+export const adminOnly = isAdmin;

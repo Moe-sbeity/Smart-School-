@@ -7,10 +7,17 @@
         }
 
         function showAlert(type, message) {
-            const alertBox = document.getElementById('alertBox');
-            alertBox.className = `alert alert-${type} show`;
-            alertBox.innerHTML = `<i class="fas fa-${type === 'error' ? 'exclamation-circle' : 'check-circle'}"></i> ${message}`;
-            setTimeout(() => alertBox.classList.remove('show'), 5000);
+            if (typeof Toast !== 'undefined') {
+                if (type === 'error') {
+                    Toast.error(message);
+                } else if (type === 'success') {
+                    Toast.success(message);
+                } else {
+                    Toast.info(message);
+                }
+                return;
+            }
+            console.log(`[${type.toUpperCase()}]: ${message}`);
         }
 
         function getInitials(name) {

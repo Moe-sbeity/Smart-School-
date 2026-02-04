@@ -263,9 +263,67 @@
             document.body.appendChild(modal);
         }
 
+        // Load site settings
+        async function loadSiteSettings() {
+            try {
+                const response = await fetch(`${API_URL}/settings`);
+                const settings = await response.json();
+                updateHomePageContent(settings);
+            } catch (error) {
+                console.error('Error loading site settings:', error);
+            }
+        }
+
+        // Update home page content with settings
+        function updateHomePageContent(settings) {
+            // Update school name in various places
+            if (settings.schoolInfo) {
+                // Update logo text
+                const logoTexts = document.querySelectorAll('.logo span:last-child, .logo-text');
+                logoTexts.forEach(el => {
+                    el.textContent = settings.schoolInfo.name || 'Smart School';
+                });
+                
+                // Update page title slogan in hero section if exists
+                const sloganEl = document.querySelector('.hero-slogan, .school-slogan');
+                if (sloganEl && settings.schoolInfo.slogan) {
+                    sloganEl.textContent = settings.schoolInfo.slogan;
+                }
+            }
+
+            // Update footer
+            updateFooter(settings);
+        }
+
+        // Update footer content
+        function updateFooter(settings) {
+            const schoolInfo = settings.schoolInfo;
+            
+            // Update school name in footer
+            const footerLogo = document.querySelector('.footer .logo-text, .footer-brand .logo-text, footer .logo span');
+            if (footerLogo && schoolInfo) {
+                footerLogo.textContent = schoolInfo.name || 'Smart School';
+            }
+            
+            // Update slogan in footer
+            const footerSlogan = document.querySelector('.footer-brand p, footer .footer-about p');
+            if (footerSlogan && schoolInfo?.slogan) {
+                footerSlogan.textContent = schoolInfo.slogan;
+            }
+            
+            // Update copyright year
+            const copyrightP = document.querySelector('.footer-bottom p, footer .footer-bottom p');
+            if (copyrightP) {
+                const year = settings.footer?.copyrightYear || new Date().getFullYear();
+                const schoolName = schoolInfo?.name || 'Smart School';
+                copyrightP.textContent = `© ${year} ${schoolName}. All rights reserved.`;
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             checkAuth();
             loadAnnouncements();
+            loadSiteSettings();
         });
 
         setInterval(loadAnnouncements, 5 * 60 * 1000);

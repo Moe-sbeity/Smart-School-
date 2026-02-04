@@ -12,6 +12,7 @@ import admissionRoutes from './routes/admissionRoutes.js';
 import announcmentRoutes from './routes/announcmentRoutes.js';
 import attendanceRoutes from './routes/attendanceRoutes.js'
 import classGradeRoutes from './routes/classGradeRoutes.js';
+import settingsRoutes from './routes/settingsRoutes.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 import dotenv from "dotenv";
 
@@ -83,6 +84,7 @@ app.use('/api/admissions', admissionRoutes);
 app.use('/api/announcements', announcmentRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/classGrade', classGradeRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

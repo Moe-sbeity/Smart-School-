@@ -1252,3 +1252,78 @@
   padding: 20px;
   color: #999;
 }
+
+/* ===== Quick Actions Section ===== */
+.quick-actions-section {
+  margin: 2rem 0;
+}
+
+.quick-actions-section h3 {
+  font-size: 1.25rem;
+  color: var(--text-dark);
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.quick-action-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem 1rem;
+  background: var(--bg-white);
+  border-radius: 12px;
+  text-decoration: none;
+  box-shadow: var(--shadow);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.quick-action-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.quick-action-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.25rem;
+}
+
+.quick-action-card span {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-dark);
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .quick-actions-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .quick-action-card {
+    padding: 1rem;
+  }
+  
+  .quick-action-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+  
+  .quick-action-card span {
+    font-size: 0.8rem;
+  }
+}

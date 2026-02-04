@@ -4,179 +4,219 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact Us - Smart School</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/contacts.css">
     <link rel="stylesheet" href="../css/header.css">
     <script src="js/toast.js"></script>
-    <script src="js/searchable-select.js"></script>
 </head>
 <body>
-
     <div id="site-header"></div>
     <script src="js/load-header.js" defer></script>
 
-    <main id="content" class="container">
-        <div class="page-title-section">
-            <div class="page-heading">
-                <h1>Contact Us</h1>
-                <p>We're here to help students, parents, and the community</p>
-            </div>
-                <nav class="breadcrumb" aria-label="breadcrumb">
-                    <a href="index.html">Home</a> &nbsp;>&nbsp; Contact
-                </nav>
-        </div>
-
-        <section class="grid contact-grid">
-            <div class="card contact-form-card">
-                <h3>Send us a message</h3>
-                <form id="contactForm">
-                    <div class="form-group">
-                        <label for="fullName">Full name</label>
-                        <input type="text" id="fullName" class="form-control" placeholder="Enter your name" required>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="email">Email</label>
-                            <input type="email" id="email" class="form-control" placeholder="you@example.com" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="phone">Phone (optional)</label>
-                            <input type="tel" id="phone" class="form-control" placeholder="(123) 456-7890">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="topic">Topic</label>
-                        <select id="topic" class="form-control" required>
-                            <option>Admissions / Academics / General</option>
-                            <option>Technical Support</option>
-                            <option>Feedback</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="message">Your message</label>
-                        <textarea id="message" class="form-control" rows="5" placeholder="Write your message..." required></textarea>
-                    </div>
-                    <div class="form-actions">
-                        <span class="response-time-tag">Avg. response time: 24h</span>
-                        <div class="buttons">
-                            <button type="button" class="btn btn-secondary">Save Draft</button>
-                            <button type="submit" class="btn btn-primary">Send Message</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-
-            <div class="card school-contacts-card">
-                <h3>School Contacts</h3>
-                <div class="contact-list">
-                    <div class="contact-item">
-                        <h4>Main Office</h4>
-                        <p>Mon-Fri, 8:00am-4:00pm</p>
-                    </div>
-                    <div class="contact-item">
-                        <h4>Admissions</h4>
-                        <p>admissions@smartschool.edu • (555) 010-1111</p>
-                    </div>
-                    <div class="contact-item">
-                        <h4>Student Services</h4>
-                        <p>support@smartschool.edu • (555) 010-2222</p>
-                    </div>
-                    <div class="contact-item">
-                        <h4>Counseling</h4>
-                        <p>counsel@smartschool.edu • (555) 010-3333</p>
-                    </div>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <i class="fas fa-envelope"></i> Get in Touch
                 </div>
-                <div class="action-list">
-                    <div class="action-item">
-                        <span>Book a Campus Tour</span>
-                        <a href="admission.html#visit" class="btn btn-secondary action-btn">Schedule</a>
-                    </div>
-                    <div class="action-item">
-                        <span>Help Center</span>
-                        <a href="admission.html#visit" class="btn btn-secondary action-btn">Visit</a>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="grid location-connect-grid">
-            <div class="card location-card">
-                <h3>Our Location</h3>
-                <img src="https://i.imgur.com/3Z2S5Xm.png" alt="Map showing school location" class="map-image">
-                <div class="address-section">
-                    <p>Smart School, 123 Learning Ave<br>Springfield, ST 12345</p>
-                        <a href="contact.html#directions" class="btn btn-secondary action-btn">Get Directions</a>
-                </div>
-            </div>
-
-            <div class="card connect-card">
-                <h3>Connect With Us</h3>
-                <div class="connect-list">
-                    <div class="connect-item">
-                        <span>Website<br><small>smartschool.edu</small></span>
-                            <a href="https://smartschool.edu" class="btn btn-secondary action-btn">Open</a>
-                    </div>
-                    <div class="connect-item">
-                        <span>X (Twitter)<br><small>@smartschool</small></span>
-                            <a href="https://twitter.com/smartschool" class="btn btn-secondary action-btn">Follow</a>
-                    </div>
-                    <div class="connect-item">
-                        <span>Instagram<br><small>@smartschool</small></span>
-                            <a href="https://instagram.com/smartschool" class="btn btn-secondary action-btn">Follow</a>
-                    </div>
-                    <div class="connect-item">
-                        <span>Facebook<br><small>/smartschool</small></span>
-                            <a href="https://facebook.com/smartschool" class="btn btn-secondary action-btn">Like</a>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <div class="container">
-        <div class="cta-banner">
-            <div class="cta-text">
-                <h4>Visit our Admissions page for application timelines</h4>
-                <p>Find requirements, key dates, and financial aid information.</p>
-            </div>
-            <div class="cta-buttons">
-                    <a href="contact.html#faqs" class="btn btn-secondary action-btn">View FAQs</a>
-                    <a href="admission.html" class="btn btn-primary action-btn">Go to Admissions</a>
+                <h1>We'd Love to <span class="highlight">Hear From You</span></h1>
+                <p>Have questions about admissions, academics, or just want to say hello? Our team is here to help students, parents, and the community.</p>
             </div>
         </div>
-    </div>
+    </section>
 
+    <!-- Contact Section -->
+    <section class="contact-section">
+        <div class="container">
+            <div class="contact-layout">
+                <!-- Contact Form -->
+                <div class="form-card">
+                    <h2>Send us a Message</h2>
+                    <p>Fill out the form below and we'll get back to you as soon as possible.</p>
+                    
+                    <form id="contactForm">
+                        <div class="form-group">
+                            <label for="fullName">Full Name</label>
+                            <input type="text" id="fullName" class="form-control" placeholder="Enter your full name" required>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="email">Email Address</label>
+                                <input type="email" id="email" class="form-control" placeholder="you@example.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">Phone (Optional)</label>
+                                <input type="tel" id="phone" class="form-control" placeholder="(123) 456-7890">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="topic">Topic</label>
+                            <select id="topic" class="form-control" required>
+                                <option value="">Select a topic...</option>
+                                <option value="admissions">Admissions Inquiry</option>
+                                <option value="academics">Academic Information</option>
+                                <option value="support">Technical Support</option>
+                                <option value="feedback">Feedback & Suggestions</option>
+                                <option value="general">General Question</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="message">Your Message</label>
+                            <textarea id="message" class="form-control" placeholder="Write your message here..." required></textarea>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <span class="response-tag">Avg. response: 24 hours</span>
+                            <div class="btn-group">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane"></i> Send Message
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="contact-sidebar">
+                    <!-- School Contacts Card -->
+                    <div class="info-card">
+                        <h3><span class="icon"><i class="fas fa-building"></i></span> School Contacts</h3>
+                        <div class="contact-list">
+                            <div class="contact-item">
+                                <div class="icon-circle blue">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="contact-info">
+                                    <h4>Main Office</h4>
+                                    <p>Mon-Fri, 8:00am - 4:00pm</p>
+                                </div>
+                            </div>
+                            <div class="contact-item">
+                                <div class="icon-circle green">
+                                    <i class="fas fa-graduation-cap"></i>
+                                </div>
+                                <div class="contact-info">
+                                    <h4>Admissions</h4>
+                                    <p>admissions@smartschool.edu</p>
+                                </div>
+                            </div>
+                            <div class="contact-item">
+                                <div class="icon-circle purple">
+                                    <i class="fas fa-headset"></i>
+                                </div>
+                                <div class="contact-info">
+                                    <h4>Student Services</h4>
+                                    <p>support@smartschool.edu</p>
+                                </div>
+                            </div>
+                            <div class="contact-item">
+                                <div class="icon-circle orange">
+                                    <i class="fas fa-heart"></i>
+                                </div>
+                                <div class="contact-info">
+                                    <h4>Counseling</h4>
+                                    <p>counsel@smartschool.edu</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Connect Card -->
+                    <div class="info-card">
+                        <h3><span class="icon"><i class="fas fa-share-alt"></i></span> Connect With Us</h3>
+                        <div class="social-links">
+                            <a href="https://smartschool.edu" class="social-link">
+                                <div class="social-icon website"><i class="fas fa-globe"></i></div>
+                                <span>Website</span>
+                            </a>
+                            <a href="https://twitter.com/smartschool" class="social-link">
+                                <div class="social-icon twitter"><i class="fab fa-twitter"></i></div>
+                                <span>Twitter</span>
+                            </a>
+                            <a href="https://instagram.com/smartschool" class="social-link">
+                                <div class="social-icon instagram"><i class="fab fa-instagram"></i></div>
+                                <span>Instagram</span>
+                            </a>
+                            <a href="https://facebook.com/smartschool" class="social-link">
+                                <div class="social-icon facebook"><i class="fab fa-facebook-f"></i></div>
+                                <span>Facebook</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Location Section -->
+    <section class="location-section">
+        <div class="container">
+            <div class="location-card">
+                <h2><span class="icon"></span> Our Location</h2>
+                <div class="map-container">
+                    <img src="https://i.imgur.com/3Z2S5Xm.png" alt="Map showing Smart School location">
+                </div>
+                <div class="location-info">
+                    <div class="address">
+                        <div class="icon"></div>
+                        <div class="address-text">
+                            <h4>Smart School Campus</h4>
+                            <p>123 Learning Avenue, Springfield, ST 12345</p>
+                        </div>
+                    </div>
+                    <a href="#directions" class="btn btn-secondary">
+                        <i class="fas fa-directions"></i> Get Directions
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
     <footer class="main-footer">
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-about">
-                     <div class="logo">
-                        <a href="index.html" class="logo-link"><span class="logo-icon" aria-hidden="true">SS</span> <span class="logo-text">Smart School</span></a>
+                    <div class="logo">
+                        <a href="Home.html" class="logo-link">
+                            <span class="logo-icon">SS</span>
+                            <span class="logo-text">Smart School</span>
+                        </a>
                     </div>
                     <p>Educational, trustworthy, and innovative. Connecting the whole school community.</p>
                 </div>
                 <div class="footer-links">
                     <h5>Explore</h5>
                     <ul>
-                        <li><a href="about.html">About</a></li>
+                        <li><a href="about.html">About Us</a></li>
                         <li><a href="admission.html">Admissions</a></li>
                         <li><a href="academics.html">Academics</a></li>
                         <li><a href="contact.html">Contact</a></li>
                     </ul>
                 </div>
-                 
-                 <div class="footer-links">
+                <div class="footer-links">
                     <h5>Support</h5>
                     <ul>
-                        <li><a href="contact.html">Contact</a></li>
-                        <li><a href="contact.html#privacy">Privacy Policy</a></li>
-                        <li><a href="contact.html#terms">Terms of Use</a></li>
-                        <li><a href="contact.html#help">Support</a></li>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Use</a></li>
+                        <li><a href="#">FAQs</a></li>
                     </ul>
                 </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Smart School. All rights reserved.</p>
             </div>
         </div>
     </footer>
 
-    <script src="../js/contact.js"></script>
+    <script src="js/contact.js"></script>
 </body>
 </html>

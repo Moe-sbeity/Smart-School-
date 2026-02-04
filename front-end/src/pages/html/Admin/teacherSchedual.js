@@ -323,18 +323,17 @@ function previewSettingsChange() {
 // ============================================================================
 
 function showAlert(type, message) {
-  const alertId = type === 'success' ? 'successAlert' : 'errorAlert';
-  const messageId = type === 'success' ? 'successMessage' : 'errorMessage';
-  
-  const alert = document.getElementById(alertId);
-  const messageEl = document.getElementById(messageId);
-  
-  messageEl.textContent = message;
-  alert.style.display = 'flex';
-  
-  setTimeout(() => {
-    alert.style.display = 'none';
-  }, 5000);
+  if (typeof Toast !== 'undefined') {
+    if (type === 'success') {
+      Toast.success(message);
+    } else if (type === 'error') {
+      Toast.error(message);
+    } else {
+      Toast.info(message);
+    }
+    return;
+  }
+  console.log(`[${type.toUpperCase()}]: ${message}`);
 }
 
 function closeAlert(type) {

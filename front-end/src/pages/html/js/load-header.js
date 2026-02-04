@@ -38,7 +38,7 @@
             if(!container) return;
             container.innerHTML = html;
 
-            const path = window.location.pathname.split('/').pop() || 'home.html';
+            const path = window.location.pathname.split('/').pop().toLowerCase() || 'home.html';
             const mapping = {
                 'home.html':'.nav-home',
                 '':'.nav-home',

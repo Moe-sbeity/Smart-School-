@@ -7,25 +7,19 @@ let allStudents = [];
 
 // Show alert
 function showAlert(type, message) {
-    const alertId = type + 'Alert';
-    const messageId = type + 'Message';
-
-    const alertEl = document.getElementById(alertId);
-    const messageEl = document.getElementById(messageId);
-
-    if (alertEl && messageEl) {
-        messageEl.textContent = message;
-        alertEl.style.display = 'flex';
-
-        setTimeout(() => {
-            alertEl.style.display = 'none';
-        }, 5000);
-    } else {
-        console.log('[' + type + ']: ' + message);
-        if (typeof Toast !== 'undefined') {
+    if (typeof Toast !== 'undefined') {
+        if (type === 'success') {
+            Toast.success(message);
+        } else if (type === 'error') {
+            Toast.error(message);
+        } else if (type === 'info') {
+            Toast.info(message);
+        } else {
             Toast[type](message);
         }
+        return;
     }
+    console.log(`[${type.toUpperCase()}]: ${message}`);
 }
 
 // Format grade display

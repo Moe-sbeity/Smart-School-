@@ -4,298 +4,251 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Academics - Smart School</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/academics.css">
     <link rel="stylesheet" href="../css/header.css">
     <script src="js/toast.js"></script>
-    <script src="js/searchable-select.js"></script>
 </head>
 <body>
-
     <div id="site-header"></div>
     <script src="js/load-header.js" defer></script>
 
-    <main id="content" class="container">
-        <nav class="breadcrumb" aria-label="breadcrumb">
-            <a href="index.html">Home</a> &nbsp;>&nbsp; Academics
-        </nav>
-
-        <section class="page-heading">
-            <h1>Academics</h1>
-            <p>Programs, curriculum, departments, and faculty</p>
-        </section>
-
-        <section class="grid stats-grid">
-            <div class="stat-card">
-                <div class="stat-value">K-12</div>
-                <div class="stat-label">Grades taught</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value">28</div>
-                <div class="stat-label">Avg. class sizes</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value">15:1</div>
-                <div class="stat-label">Student-teacher ratio</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value">95%</div>
-                <div class="stat-label">College acceptance</div>
-            </div>
-        </section>
-
-        <section class="grid academic-level-grid">
-            <div class="card academic-level-card">
-                <h3>Elementary (K-5)</h3>
-                <p class="subtitle">Daily guided reading and phonics</p>
-                <ul class="curriculum-list">
-                    <li>
-                        <h4>Literacy & Reading</h4>
-                        <p>Daily guided reading and phonics</p>
-                    </li>
-                    <li>
-                        <h4>Math Fundamentals</h4>
-                        <p>Focus on critical thinking and problem solving</p>
-                    </li>
-                    <li>
-                        <h4>Science & Discovery</h4>
-                        <p>Hands-on experiments weekly</p>
-                    </li>
-                </ul>
-                <a href="academics.html#elementary-curriculum" class="btn btn-ghost curriculum-btn">View Curriculum</a>
-            </div>
-
-            <div class="card academic-level-card">
-                <h3>Middle School (6-8)</h3>
-                <p class="subtitle">Integrated STEM, humanities, coding, arts</p>
-                <ul class="curriculum-list">
-                    <li>
-                        <h4>Integrated STEM</h4>
-                        <p>Robotics, coding, data</p>
-                    </li>
-                    <li>
-                        <h4>Word Languages</h4>
-                        <p>French, Spanish</p>
-                    </li>
-                    <li>
-                        <h4>Humanities</h4>
-                        <p>Writing, world history, civics</p>
-                    </li>
-                </ul>
-                <a href="academics.html#middle-curriculum" class="btn btn-ghost curriculum-btn">View Curriculum</a>
-            </div>
-
-            <div class="card academic-level-card">
-                <h3>High School (9-12)</h3>
-                <p class="subtitle">AP & Honors, Dual Enrollment Courses</p>
-                <ul class="curriculum-list">
-                    <li>
-                        <h4>AP & Honors</h4>
-                        <p>20 advanced courses</p>
-                    </li>
-                    <li>
-                        <h4>Career Pathways</h4>
-                        <p>Internships, capstones</p>
-                    </li>
-                    <li>
-                        <h4>Capstone & Research</h4>
-                        <p>Faculty-mentored projects</p>
-                    </li>
-                </ul>
-                <a href="academics.html#high-curriculum" class="btn btn-ghost curriculum-btn">View Curriculum</a>
-            </div>
-        </section>
-
-        <section class="grid departments-resources-grid">
-            <div class="card department-card">
-                <h3>Departments</h3>
-                <div class="department-list-grid">
-                    <div>
-                        <h4>Mathematics</h4>
-                        <p>Calculus, Algebra, Geometry, Statistics</p>
-                    </div>
-                    <div>
-                        <h4>Science</h4>
-                        <p>Biology, Chemistry, Physics</p>
-                    </div>
-                    <div>
-                        <h4>Social Studies</h4>
-                        <p>History, Government</p>
-                    </div>
-                    <div>
-                        <h4>Computer Science</h4>
-                        <p>Python, Web, Data</p>
-                    </div>
-                     <div>
-                        <h4>English</h4>
-                        <p>Literature, Composition</p>
-                    </div>
-                     <div>
-                        <h4>Arts</h4>
-                        <p>Visual, Music, Theatre</p>
-                    </div>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <i class="fas fa-graduation-cap"></i>
+                    Academic Programs
                 </div>
-            </div>
-
-            <div class="card academic-resources-card">
-                <h3>Academic Resources</h3>
-                <div class="resource-item">
-                    <span>Student Handbook</span>
-                    <span class="resource-description">Policies and procedures</span>
-                    <a href="academics.html#handbook" class="btn btn-ghost resource-link" data-action="View Handbook">View</a>
+                <h1>Excellence in <span class="highlight">Education</span></h1>
+                <p>Our comprehensive curriculum is designed to challenge, inspire, and prepare students for success. From foundational skills to advanced studies, we nurture every student's potential.</p>
+                <div class="hero-buttons">
+                    <a href="admission.html" class="btn btn-primary">
+                        <i class="fas fa-user-plus"></i>
+                        Apply Now
+                    </a>
+                    <a href="contact.html" class="btn btn-secondary">
+                        <i class="fas fa-info-circle"></i>
+                        Learn More
+                    </a>
                 </div>
-                <div class="resource-item">
-                    <span>Course Catalog</span>
-                    <span class="resource-description">Full list of course offerings</span>
-                    <a href="academics.html#catalog" class="btn btn-ghost resource-link" data-action="Download Catalog">Download</a>
-                </div>
-                <div class="resource-item">
-                    <span>Academic Calendar</span>
-                    <span class="resource-description">Key dates and deadlines</span>
-                    <a href="academics.html#calendar" class="btn btn-ghost resource-link" data-action="Open Calendar">Open</a>
-                </div>
-            </div>
-        </section>
-
-        <section class="featured-faculty-section">
-            <h2>Featured Faculty</h2>
-            <div class="grid faculty-grid">
-                <div class="card faculty-member-card">
-                    <img src="https://via.placeholder.com/60" alt="Dr. Maya Chen" class="faculty-avatar">
-                    <div class="faculty-info">
-                        <h4>Dr. Maya Chen</h4>
-                        <p class="faculty-title">Department Chair</p>
-                        <span class="tag tag-blue">Research (Ph.D)</span>
-                        <p class="faculty-description">PhD in Biophysics. Leads student research projects and initiatives.</p>
-                    </div>
-                </div>
-                <div class="card faculty-member-card">
-                    <img src="https://via.placeholder.com/60" alt="Alex Jonson" class="faculty-avatar">
-                    <div class="faculty-info">
-                        <h4>Alex Jonson</h4>
-                        <p class="faculty-title">Mathematics Coach</p>
-                        <span class="tag tag-orange">Coding Coach</span>
-                        <p class="faculty-description">Focus on problem solving and computational mathematics.</p>
-                    </div>
-                </div>
-                <div class="card faculty-member-card">
-                    <img src="https://via.placeholder.com/60" alt="Sofia Nguyen" class="faculty-avatar">
-                    <div class="faculty-info">
-                        <h4>Sofia Nguyen</h4>
-                        <p class="faculty-title">Data Science Lead</p>
-                        <span class="tag tag-green">AI & Robotics</span>
-                        <p class="faculty-description">Industry experience in data science and web development.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="grid enrichment-advising-grid">
-            <div class="card enrichment-card">
-                <h3>Enrichment Programs</h3>
-                <div class="enrichment-item">
-                    <h4>After-School Clubs</h4>
-                    <p>Robotics, Debate, Art, Music</p>
-                </div>
-                <div class="enrichment-item">
-                    <h4>Tutoring & Support</h4>
-                    <p>One-on-one and group sessions</p>
-                </div>
-                <div class="enrichment-item">
-                    <h4>Dual Enrollment</h4>
-                    <p>Partner college credits</p>
-                </div>
-            </div>
-
-            <div class="card advising-card">
-                <h3>Advising & Counselling</h3>
-                <div class="advising-item">
-                    <h4>Academic Advising</h4>
-                    <p>Course planning and study skills</p>
-                    <a href="academics.html#advising" class="btn btn-ghost advising-btn" data-action="Book Advising">Book</a>
-                </div>
-                <div class="advising-item">
-                    <h4>College Counseling</h4>
-                    <p>Application guidance</p>
-                    <a href="academics.html#counseling" class="btn btn-ghost advising-btn" data-action="Meet Counseling">Meet</a>
-                </div>
-                <div class="advising-item">
-                    <h4>Wellness Support</h4>
-                    <p>Mental health and well-being</p>
-                    <a href="academics.html#wellness" class="btn btn-ghost advising-btn" data-action="Log in">Log in</a>
-                </div>
-            </div>
-        </section>
-
-        <section class="faq-section">
-            <h2>Frequently Asked Questions</h2>
-            <div class="faq-grid">
-                <div class="faq-item">
-                    <h4>How is homework assigned?</h4>
-                    <p>Homework is kept to a daily limit and focuses on practice, not busywork.</p>
-                </div>
-                 <div class="faq-item">
-                    <h4>What is the grading policy?</h4>
-                    <p>Standardized across K-8 and GPA scale in high school.</p>
-                </div>
-                 <div class="faq-item">
-                    <h4>Do you offer AP classes?</h4>
-                    <p>Yes, a broad selection across STEM, Humanities, and Arts.</p>
-                </div>
-                 <div class="faq-item">
-                    <h4>Support for diverse learners</h4>
-                    <p>Individualized supports and enrichment options available.</p>
-                </div>
-            </div>
-        </section>
-
-    </main>
-    
-    <div class="container explore-catalog-cta">
-        <div class="card cta-card">
-            <div class="cta-content">
-                <h2>Explore Our Course Catalog</h2>
-                <p>Discover detailed course descriptions, samples, and sample projects.</p>
-            </div>
-            <div class="cta-buttons">
-                <a href="academics.html#catalog-pdf" class="btn btn-secondary catalog-btn" data-action="Download PDF">Download PDF</a>
-                <a href="academics.html#catalog-online" class="btn btn-primary catalog-btn" data-action="Browse Online">Browse Online</a>
             </div>
         </div>
-    </div>
+    </section>
 
+    <!-- Programs Section -->
+    <section class="programs-section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge">
+                    <i class="fas fa-book-open"></i>
+                    Our Programs
+                </div>
+                <h2>Academic <span class="highlight">Levels</span></h2>
+                <p>Tailored education for every stage of your child's development</p>
+            </div>
+            <div class="programs-grid">
+                <div class="program-card">
+                    <div class="program-icon blue">
+                        <i class="fas fa-child"></i>
+                    </div>
+                    <div class="program-badge">Ages 5-10</div>
+                    <h3>Elementary School</h3>
+                    <p>Building strong foundations in literacy, numeracy, and critical thinking through engaging, hands-on learning experiences.</p>
+                    <ul class="program-features">
+                        <li><i class="fas fa-check"></i> Core academics</li>
+                        <li><i class="fas fa-check"></i> Arts & music</li>
+                        <li><i class="fas fa-check"></i> Physical education</li>
+                    </ul>
+                </div>
+                <div class="program-card">
+                    <div class="program-icon green">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <div class="program-badge">Ages 11-14</div>
+                    <h3>Middle School</h3>
+                    <p>Expanding horizons with challenging academics, diverse electives, and opportunities for personal growth.</p>
+                    <ul class="program-features">
+                        <li><i class="fas fa-check"></i> Advanced subjects</li>
+                        <li><i class="fas fa-check"></i> STEM programs</li>
+                        <li><i class="fas fa-check"></i> Leadership activities</li>
+                    </ul>
+                </div>
+                <div class="program-card">
+                    <div class="program-icon purple">
+                        <i class="fas fa-university"></i>
+                    </div>
+                    <div class="program-badge">Ages 15-18</div>
+                    <h3>High School</h3>
+                    <p>Preparing students for college and beyond with rigorous academics, AP courses, and career guidance.</p>
+                    <ul class="program-features">
+                        <li><i class="fas fa-check"></i> AP & honors courses</li>
+                        <li><i class="fas fa-check"></i> College prep</li>
+                        <li><i class="fas fa-check"></i> Career counseling</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Departments Section -->
+    <section class="departments-section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge">
+                    <i class="fas fa-building"></i>
+                    Departments
+                </div>
+                <h2>Areas of <span class="highlight">Study</span></h2>
+                <p>Comprehensive departments staffed by expert educators</p>
+            </div>
+            <div class="departments-grid">
+                <div class="department-card">
+                    <div class="dept-icon blue"><i class="fas fa-calculator"></i></div>
+                    <h4>Mathematics</h4>
+                    <p>From algebra to calculus</p>
+                </div>
+                <div class="department-card">
+                    <div class="dept-icon green"><i class="fas fa-flask"></i></div>
+                    <h4>Sciences</h4>
+                    <p>Biology, chemistry, physics</p>
+                </div>
+                <div class="department-card">
+                    <div class="dept-icon purple"><i class="fas fa-book"></i></div>
+                    <h4>Language Arts</h4>
+                    <p>Literature & writing</p>
+                </div>
+                <div class="department-card">
+                    <div class="dept-icon orange"><i class="fas fa-globe-americas"></i></div>
+                    <h4>Social Studies</h4>
+                    <p>History & geography</p>
+                </div>
+                <div class="department-card">
+                    <div class="dept-icon pink"><i class="fas fa-language"></i></div>
+                    <h4>World Languages</h4>
+                    <p>Spanish, French, more</p>
+                </div>
+                <div class="department-card">
+                    <div class="dept-icon teal"><i class="fas fa-palette"></i></div>
+                    <h4>Arts</h4>
+                    <p>Visual & performing arts</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge">
+                    <i class="fas fa-star"></i>
+                    Why Choose Us
+                </div>
+                <h2>Academic <span class="highlight">Advantages</span></h2>
+                <p>What sets our education apart</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon blue">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>Small Class Sizes</h3>
+                    <p>Average 18 students per class for personalized attention and engagement.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon green">
+                        <i class="fas fa-laptop-code"></i>
+                    </div>
+                    <h3>Modern Technology</h3>
+                    <p>State-of-the-art facilities and digital tools enhance learning.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon purple">
+                        <i class="fas fa-award"></i>
+                    </div>
+                    <h3>Expert Faculty</h3>
+                    <p>Highly qualified teachers dedicated to student success.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon orange">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Proven Results</h3>
+                    <p>98% college acceptance rate and outstanding test scores.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-card">
+                <div class="cta-content">
+                    <h2>Ready to Start Your Academic Journey?</h2>
+                    <p>Join a community where excellence in education meets personalized support.</p>
+                </div>
+                <div class="cta-buttons">
+                    <a href="admission.html" class="btn btn-primary">
+                        Apply Now
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                    <a href="contact.html" class="btn btn-secondary">
+                        Contact Us
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
     <footer class="main-footer">
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-about">
-                     <div class="logo">
-                        <a href="index.html" class="logo-link"><span class="logo-icon" aria-hidden="true">SS</span> <span class="logo-text">Smart School</span></a>
+                    <div class="logo">
+                        <a href="Home.html" class="logo-link">
+                            <div class="logo-icon">SS</div>
+                            <span class="logo-text">Smart School</span>
+                        </a>
                     </div>
-                    <p>Educational, trustworthy, and innovative. Connecting the whole school community.</p>
+                    <p>Empowering minds, shaping futures. Providing quality education since 1985.</p>
                 </div>
                 <div class="footer-links">
-                    <h5>Explore</h5>
+                    <h5>Quick Links</h5>
                     <ul>
-                        <li><a href="about.html">About</a></li>
-                        <li><a href="admission.html">Admissions</a></li>
+                        <li><a href="Home.html">Home</a></li>
+                        <li><a href="about.html">About Us</a></li>
                         <li><a href="academics.html">Academics</a></li>
-                        <li><a href="contact.html">Contact</a></li>
+                        <li><a href="admission.html">Admissions</a></li>
                     </ul>
                 </div>
-          
-                 <div class="footer-links">
-                    <h5>Support</h5>
+                <div class="footer-links">
+                    <h5>Contact</h5>
                     <ul>
-                        <li><a href="contact.html">Contact</a></li>
-                        <li><a href="contact.html#privacy">Privacy Policy</a></li>
-                        <li><a href="contact.html#terms">Terms of Use</a></li>
-                        <li><a href="contact.html#support">Support</a></li>
+                        <li><a href="tel:+1234567890"><i class="fas fa-phone"></i> (123) 456-7890</a></li>
+                        <li><a href="mailto:info@smartschool.edu"><i class="fas fa-envelope"></i> info@smartschool.edu</a></li>
+                        <li><a href="contact.html"><i class="fas fa-map-marker-alt"></i> 123 Education Lane</a></li>
                     </ul>
                 </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Smart School. All rights reserved.</p>
             </div>
         </div>
     </footer>
 
-    <script src="../js/academics.js"></script>
-
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                Toast.info('Explore our academic programs from Elementary to High School!', 5000, 'Academic Programs');
+            }, 500);
+        });
+    </script>
 </body>
 </html>

@@ -3,86 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart School | Home Dashboard</title>
-    <link rel="stylesheet" href="../css/home.css">
-    <link rel="stylesheet" href="../css/header.css">
-    
-    <!-- Google Fonts - Inter for modern typography -->
+    <title>Smart School | Home</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/home.css">
+    <link rel="stylesheet" href="../css/header.css">
     <script src="js/toast.js"></script>
-    <script src="js/searchable-select.js"></script>
-  
 </head>
 <body>
- <div id="site-header"></div>
+    <div id="site-header"></div>
     <script src="js/load-header.js" defer></script>
 
-    <main class="container">
-        <section class="hero-section">
-            <h1>Empowering <span>Learning</span> for Students, Teachers, and Parents</h1>
-            <p>Smart School connects your campus with a modern platform for classes, communication, and progress tracking — all in one place.</p>
-            <div class="cta-buttons">
-                <a class="btn btn-primary" href="admission.html">
-                    <i class="fas fa-rocket"></i>
-                    Get Started
-                </a>
-                <a class="btn btn-secondary" href="about.html">
-                    <i class="fas fa-info-circle"></i>
-                    Learn More
-                </a>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <i class="fas fa-graduation-cap"></i> Welcome to Smart School
+                </div>
+                <h1>Empowering <span class="highlight">Learning</span> for Everyone</h1>
+                <p>Smart School connects your campus with a modern platform for classes, communication, and progress tracking - all in one place.</p>
+                <div class="hero-buttons">
+                    <a href="admission.html" class="btn btn-primary">
+                        <i class="fas fa-rocket"></i> Get Started
+                    </a>
+                    <a href="about.html" class="btn btn-secondary">
+                        <i class="fas fa-info-circle"></i> Learn More
+                    </a>
+                </div>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <section class="announcements-section" id="announcements">
-            <div class="section-title">
-                <h2>Latest Announcements</h2>
-                <span class="tag"><i class="fas fa-bell"></i> &nbsp;School Updates</span>
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge">
+                    <i class="fas fa-star"></i> Why Choose Us
+                </div>
+                <h2>Everything You Need in <span class="highlight">One Place</span></h2>
+                <p>Our platform provides comprehensive tools for students, teachers, and parents.</p>
             </div>
-            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon blue">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </div>
+                    <h3>Smart Classrooms</h3>
+                    <p>Interactive learning environments with modern technology and tools.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon green">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Progress Tracking</h3>
+                    <p>Real-time updates on grades, attendance, and academic performance.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon purple">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h3>Easy Communication</h3>
+                    <p>Connect with teachers, parents, and staff seamlessly.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon orange">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <h3>Schedule Management</h3>
+                    <p>Keep track of classes, events, and important dates.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Announcements Section -->
+    <section class="announcements-section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge">
+                    <i class="fas fa-bell"></i> Stay Updated
+                </div>
+                <h2>Latest <span class="highlight">Announcements</span></h2>
+                <p>Important updates and news from our school community.</p>
+            </div>
             <div id="announcementsContainer">
                 <div class="loading">
                     <i class="fas fa-spinner fa-spin"></i>
                     <p>Loading announcements...</p>
                 </div>
             </div>
-        </section>
-
-        
-          <footer id="footer">
-        <div class="footer-logo">
-            <div><span class="logo-icon">SS</span> Smart School</div>
-            <p>Educational, trustworthy, and innovative. Connecting the whole school community with cutting-edge technology.</p>
         </div>
+    </section>
 
-        <div class="footer-links">
-            <div>
-                <h3>Explore</h3>
-                <ul>
-                    <li><a href="about.html"><i class="fas fa-chevron-right"></i> About</a></li>
-                    <li><a href="admission.html"><i class="fas fa-chevron-right"></i> Admissions</a></li>
-                    <li><a href="academics.html"><i class="fas fa-chevron-right"></i> Academics</a></li>
-                    <li><a href="contact.html"><i class="fas fa-chevron-right"></i> Contact</a></li>
-                </ul>
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-card">
+                <div class="cta-content">
+                    <h2>Ready to Join Our Community?</h2>
+                    <p>Start your journey with Smart School today and experience education like never before.</p>
+                </div>
+                <div class="cta-buttons">
+                    <a href="admission.html" class="btn btn-primary">Apply Now</a>
+                    <a href="contact.html" class="btn btn-secondary">Contact Us</a>
+                </div>
             </div>
-         
-            <div>
-                <h3>Legal</h3>
-                <ul>
-                    <li><a href="contact.html#privacy"><i class="fas fa-chevron-right"></i> Privacy Policy</a></li>
-                    <li><a href="contact.html#terms"><i class="fas fa-chevron-right"></i> Terms of Use</a></li>
-                    <li><a href="contact.html#support"><i class="fas fa-chevron-right"></i> Support</a></li>
-                </ul>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-about">
+                    <div class="logo">
+                        <a href="Home.html" class="logo-link">
+                            <span class="logo-icon">SS</span>
+                            <span class="logo-text">Smart School</span>
+                        </a>
+                    </div>
+                    <p>Educational, trustworthy, and innovative. Connecting the whole school community.</p>
+                </div>
+                <div class="footer-links">
+                    <h5>Explore</h5>
+                    <ul>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="admission.html">Admissions</a></li>
+                        <li><a href="academics.html">Academics</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h5>Support</h5>
+                    <ul>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Use</a></li>
+                        <li><a href="#">FAQs</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Smart School. All rights reserved.</p>
             </div>
         </div>
     </footer>
-    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="js/home.js" defer></script>
-    
 </body>
 </html>

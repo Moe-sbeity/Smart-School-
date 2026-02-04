@@ -24,17 +24,17 @@
         }
 
         function showMessage(message, type = 'success') {
-            const container = document.getElementById('messageContainer');
-            const icon = type === 'success' ? 'check-circle' : 'exclamation-triangle';
-            container.innerHTML = `
-                <div class="${type}">
-                    <i class="fas fa-${icon}"></i>
-                    ${message}
-                </div>
-            `;
-            setTimeout(() => {
-                container.innerHTML = '';
-            }, 5000);
+            if (typeof Toast !== 'undefined') {
+                if (type === 'success') {
+                    Toast.success(message);
+                } else if (type === 'error') {
+                    Toast.error(message);
+                } else {
+                    Toast.info(message);
+                }
+                return;
+            }
+            console.log(`[${type.toUpperCase()}]: ${message}`);
         }
 
         function formatDate(dateString) {
