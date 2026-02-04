@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - Enhanced</title>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <link rel="stylesheet" href="student-dashboard.css">
+    <script src="../js/toast.js"></script>
+    <script src="../js/searchable-select.js"></script>
+
+</head>
+
+<body>
+    <!-- Date of Birth Completion Modal -->
+    <div id="dobModal" class="dob-modal" style="display: none;">
+        <div class="dob-modal-overlay"></div>
+        <div class="dob-modal-content">
+            <div class="dob-modal-header">
+                <div class="dob-modal-icon">🎂</div>
+                <h2>Welcome! Please Complete Your Profile</h2>
+                <p>Please enter your date of birth to continue using the dashboard.</p>
+            </div>
+            <form id="dobForm">
+                <div class="dob-form-group">
+                    <label for="dobInput">Date of Birth</label>
+                    <input type="date" id="dobInput" required max="">
+                    <small>This information helps us personalize your experience</small>
+                </div>
+                <button type="submit" class="dob-btn-primary" id="saveDobBtn">Save & Continue</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <div class="logo">
+            <h1 class="logo-link"><span class="logo-icon" aria-hidden="true">SS</span> <span class="logo-text">Smart
+                    School</span></h1>
+
+
+        </div>
+        <div class="ClassG" id="classGrade">Student</div>
+        <div class="classS" id="classSection">Section</div>
+        <div class="nav-right">
+
+            <button class="icon-btn" id="notificationBtn">
+                <i data-lucide="bell"></i>
+                <span class="notification-badge" id="notificationCount">3</span>
+            </button>
+            <button class="attendance">
+                <a href="./student-attendance.html">Attendance</a>
+            </button>
+            <button class="schedule">
+                <a href="./student-schedule.html">Schedule</a>
+            </button>
+            <div class="user-menu" onclick="toggleUserMenu()" id="userMenuContainer">
+                <div class="user-avatar" id="userAvatar">S</div>
+                <div>
+                    <div style="font-weight: 600; font-size: 0.9rem;" id="userName">Student</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Student</div>
+                </div>
+                <i data-lucide="chevron-down"></i>
+                <!-- Dropdown Menu -->
+                <div class="user-dropdown" id="userDropdown">
+                    <a href="#" onclick="viewProfile(); return false;">
+                        <i data-lucide="user"></i> My Profile
+                    </a>
+                    <a href="./student-schedule.html">
+                        <i data-lucide="calendar"></i> My Schedule
+                    </a>
+                    <a href="./student-attendance.html">
+                        <i data-lucide="clipboard-check"></i> Attendance
+                    </a>
+                    <hr style="margin: 8px 0; border: none; border-top: 1px solid #e5e7eb;">
+                    <a href="#" onclick="logout(); return false;" style="color: #dc2626;">
+                        <i data-lucide="log-out"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Loading State -->
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p style="color: var(--text-secondary);">Loading your dashboard...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="error" class="error-message hidden"></div>
+
+        <!-- Dashboard View -->
+        <div id="dashboardView" class="hidden">
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label">Total Subjects</span>
+                        <div class="stat-icon" style="background: #eef2ff;">
+                            <i data-lucide="book" style="color: var(--primary);"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value" id="totalSubjects">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label">Pending Tasks</span>
+                        <div class="stat-icon" style="background: #fef3c7;">
+                            <i data-lucide="clipboard-list" style="color: var(--warning);"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value" id="pendingTasks">0</div>
+                    <div class="stat-change positive" id="tasksChange">Due this week</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label">Avg Grade</span>
+                        <div class="stat-icon" style="background: #d1fae5;">
+                            <i data-lucide="trending-up" style="color: var(--secondary);"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value" id="avgGrade">--</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label">Completed</span>
+                        <div class="stat-icon" style="background: #dbeafe;">
+                            <i data-lucide="check-circle" style="color: #0284c7;"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value" id="completedTasks">0</div>
+                </div>
+            </div>
+
+            <!-- Main Dashboard Grid -->
+            <div class="dashboard-grid">
+                <!-- Left Column -->
+                <div>
+                    <!-- Today's Schedule -->
+                    <div class="card" style="margin-bottom: 24px;">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i data-lucide="calendar-clock"></i>
+                                Today's Schedule
+                            </h2>
+                            <span style="color: var(--text-secondary); font-size: 0.9rem;" id="todayDate"></span>
+                        </div>
+                        <div id="todaySchedule"></div>
+                    </div>
+
+                    <!-- My Subjects -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i data-lucide="book-open"></i>
+                                My Subjects
+                            </h2>
+                        </div>
+                        <div class="subjects-grid" id="subjectsGrid"></div>
+                    </div>
+                </div>
+
+                <!-- Right Column - Upcoming Tasks -->
+                <div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i data-lucide="alert-circle"></i>
+                                Upcoming Tasks
+                            </h2>
+                            <a href="#" class="view-all-link" onclick="viewAllTasks(); return false;">
+                                View All
+                                <i data-lucide="arrow-right"></i>
+                            </a>
+                        </div>
+                        <div class="filter-bar">
+                            <button class="filter-btn active" onclick="filterTasks('all')">All</button>
+                            <button class="filter-btn" onclick="filterTasks('assignment')">Assignments</button>
+                            <button class="filter-btn" onclick="filterTasks('quiz')">Quizzes</button>
+                        </div>
+                        <div id="upcomingTasks"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subject Detail View (keeping your original structure) -->
+        <div id="subjectView" class="hidden">
+            <button class="back-btn" id="backToDashboard">
+                <i data-lucide="arrow-left"></i>
+                Back to Dashboard
+            </button>
+
+            <div class="card">
+                <h1 id="subjectTitle" style="font-size: 2rem; margin-bottom: 8px;"></h1>
+                <p id="subjectTeacher" style="color: var(--text-secondary); margin-bottom: 24px;"></p>
+
+                <!-- Subject Stats -->
+                <div class="stats-grid" style="margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-label">Grade</div>
+                        <div class="stat-value" id="subjectGrade">--</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Assignments</div>
+                        <div class="stat-value" id="subjectAssignments">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Quizzes</div>
+                        <div class="stat-value" id="subjectQuizzes">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Classes/Week</div>
+                        <div class="stat-value" id="subjectClasses">0</div>
+                    </div>
+                </div>
+
+                <!-- Schedule Info -->
+                <div style="background: var(--bg-secondary); padding: 20px; border-radius: 12px; margin-bottom: 24px;">
+                    <h3 style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+                        <i data-lucide="calendar"></i>
+                        Class Schedule
+                    </h3>
+                    <div id="subjectScheduleGrid"
+                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;">
+                    </div>
+                </div>
+
+                <!-- Tabs for Content -->
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('announcements')">Announcements</button>
+                    <button class="tab" onclick="switchTab('assignments')">Assignments</button>
+                    <button class="tab" onclick="switchTab('quizzes')">Quizzes</button>
+                </div>
+
+                <div id="announcementsTab">
+                    <div id="announcementsList"></div>
+                </div>
+                <div id="assignmentsTab" class="hidden">
+                    <div id="assignmentsList"></div>
+                </div>
+                <div id="quizzesTab" class="hidden">
+                    <div id="quizzesList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detail View (keeping your original) -->
+        <div id="detailView" class="hidden"></div>
+    </div>
+    <script src="student-dashboard.js"></script>
+</body>
+
+</html>

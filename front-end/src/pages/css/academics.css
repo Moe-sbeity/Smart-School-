@@ -1,0 +1,577 @@
+:root {
+    --primary-blue: #2563EB;
+    --light-blue: #EFF6FF;
+    --dark-blue-text: #1E3A8A;
+    --text-primary: #1F2937;
+    --text-secondary: #4B5563;
+    --border-color: #E5E7EB;
+    --background-color: #F9FAFB;
+    --white: #FFFFFF;
+    --green: #10B981;
+    --light-gray: #F3F4F6;
+    --tag-blue: #DBEAFE; 
+    --tag-blue-text: #1E40AF;
+    --tag-orange: #FFEDD5; 
+    --tag-orange-text: #9A3412;
+    --tag-green: #D1FAE5; 
+    --tag-green-text: #065F46;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-primary);
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+
+.main-header {
+    background-color: var(--white);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 0;
+}
+
+.main-header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    font-size: 1.25rem;
+    text-decoration: none;
+    color: var(--text-primary);
+}
+
+.logo-icon {
+    background-color: var(--primary-blue);
+    color: var(--white);
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+}
+
+.main-nav ul {
+    list-style: none;
+    display: flex;
+    gap: 2rem;
+}
+
+.main-nav a {
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.main-nav a.active, .main-nav a:hover {
+    color: var(--primary-blue);
+}
+
+.header-search {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    width: 200px;
+}
+
+
+.breadcrumb {
+    padding: 1.5rem 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.breadcrumb a {
+    color: var(--text-secondary);
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+
+.page-heading h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.page-heading p {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    max-width: 500px;
+}
+
+
+.card {
+    background-color: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+
+.btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    text-align: center;
+}
+
+.btn-primary {
+    background-color: var(--primary-blue);
+    color: var(--white);
+}
+
+.btn-primary:hover {
+    opacity: 0.9;
+}
+
+.btn-secondary {
+    background-color: var(--white);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.btn-secondary:hover {
+    background-color: var(--light-gray);
+}
+
+.btn-ghost {
+    background-color: transparent;
+    color: var(--primary-blue);
+    border-color: transparent;
+    padding: 0.5rem 1rem; 
+}
+
+.btn-ghost:hover {
+    background-color: var(--light-blue);
+}
+
+.grid {
+    display: grid;
+    gap: 1.5rem;
+    margin: 2.5rem 0;
+}
+
+.stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+    text-align: center;
+}
+
+.academic-level-grid {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.departments-resources-grid {
+    grid-template-columns: 2fr 1fr; 
+}
+
+.faculty-grid {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.enrichment-advising-grid {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.stat-card {
+    background-color: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-blue);
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+
+.academic-level-card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.academic-level-card .subtitle {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+}
+
+.curriculum-list {
+    list-style: none;
+    margin-bottom: 1.5rem;
+}
+
+.curriculum-list li {
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.curriculum-list li:last-child {
+    border-bottom: none;
+}
+
+.curriculum-list li h4 {
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.curriculum-list li p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.academic-level-card .curriculum-btn {
+    width: 100%;
+}
+
+
+.department-card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.department-list-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+}
+
+.department-list-grid h4 {
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+}
+
+.department-list-grid p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.academic-resources-card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.resource-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+    gap: 1rem;
+}
+
+.resource-item:last-child {
+    border-bottom: none;
+}
+
+.resource-item > span:first-child {
+    font-weight: 500;
+    flex-grow: 1;
+}
+
+.resource-item .resource-description {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    flex-grow: 2; 
+}
+
+.resource-item .btn-ghost {
+    flex-shrink: 0; 
+    padding: 0.5rem 1rem;
+}
+
+
+.featured-faculty-section h2 {
+    font-size: 1.8rem;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.faculty-member-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; 
+    gap: 1rem;
+    text-align: left;
+}
+
+.faculty-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 0.5rem;
+}
+
+.faculty-member-card .faculty-info {
+    flex-grow: 1;
+}
+
+.faculty-member-card h4 {
+    font-size: 1.2rem;
+    margin-bottom: 0.25rem;
+}
+
+.faculty-member-card .faculty-title {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.faculty-member-card .tag {
+    margin-bottom: 1rem;
+    display: inline-block; 
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+    border-radius: 9999px;
+    font-weight: 600;
+}
+
+.faculty-member-card .tag.tag-blue {
+    background-color: var(--tag-blue);
+    color: var(--tag-blue-text);
+}
+.faculty-member-card .tag.tag-orange {
+    background-color: var(--tag-orange);
+    color: var(--tag-orange-text);
+}
+.faculty-member-card .tag.tag-green {
+    background-color: var(--tag-green);
+    color: var(--tag-green-text);
+}
+
+
+.faculty-member-card .faculty-description {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.enrichment-card h3, .advising-card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.enrichment-item, .advising-item {
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.enrichment-item:last-child, .advising-item:last-child {
+    border-bottom: none;
+}
+
+.enrichment-item h4, .advising-item h4 {
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+    flex-basis: 100%; 
+}
+.enrichment-item p, .advising-item p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    flex-grow: 1; 
+}
+
+.advising-item .advising-btn {
+    flex-shrink: 0;
+    margin-left: 1rem; 
+}
+
+
+.faq-section {
+    margin: 2.5rem 0;
+}
+.faq-section h2 {
+    font-size: 1.8rem;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.faq-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+}
+
+.faq-item h4 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.faq-item p {
+    color: var(--text-secondary);
+}
+
+.explore-catalog-cta {
+    margin: 2.5rem auto;
+}
+
+.cta-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2.5rem; 
+    text-align: left;
+}
+
+.cta-card .cta-content h2 {
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.cta-card .cta-content p {
+    color: var(--text-secondary);
+    font-size: 1rem;
+}
+
+.cta-card .cta-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-shrink: 0; 
+}
+
+.main-footer {
+    padding: 3rem 0;
+    border-top: 1px solid var(--border-color);
+    background-color: var(--white);
+    margin-top: 2.5rem; 
+}
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 2rem;
+}
+
+.footer-about .logo {
+    margin-bottom: 1rem;
+}
+
+.footer-about p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.footer-links h5 {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+}
+
+.footer-links ul {
+    list-style: none;
+}
+
+.footer-links li {
+    margin-bottom: 0.75rem;
+}
+
+.footer-links a {
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.footer-links a:hover {
+    color: var(--primary-blue);
+}
+
+@media (max-width: 992px) {
+    .main-nav { display: none; }
+    .stats-grid, .academic-level-grid, .departments-resources-grid, .faculty-grid, .enrichment-advising-grid, .faq-grid {
+        grid-template-columns: 1fr;
+    }
+    .footer-grid {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    .footer-about {
+        align-items: center;
+        display: flex;
+        flex-direction: column;
+    }
+    .cta-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 1.5rem;
+    }
+    .cta-card .cta-buttons {
+        width: 100%;
+        flex-direction: column;
+    }
+    .department-list-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .header-search { display: none; }
+    .page-heading h1 { font-size: 2rem; }
+    .academic-level-card .curriculum-btn {
+        padding: 0.75rem 1.5rem;
+    }
+    .resource-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    .resource-item .resource-description {
+        margin-bottom: 0.5rem;
+    }
+    .faculty-member-card {
+        align-items: center;
+        text-align: center;
+    }
+    .faculty-avatar {
+        margin: 0 0 1rem 0;
+    }
+    .enrichment-item, .advising-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    .advising-item .advising-btn {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
+

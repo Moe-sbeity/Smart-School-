@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule - Parent Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+   <link rel="stylesheet" href="parent-schedule.css">
+   <script src="../js/toast.js"></script>
+   <script src="../js/searchable-select.js"></script>
+</head>
+
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">SS</div>
+                <span>Smart School</span>
+            </div>
+            <div class="header-info">
+                <span class="user-name" id="userName">Loading...</span>
+                <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="parent-dashboard.html" class="nav-link">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+            <a href="parent-attendance.html" class="nav-link">
+                <i class="fas fa-clipboard-check"></i> Attendance
+            </a>
+            <a href="parent-grades.html" class="nav-link">
+                <i class="fas fa-graduation-cap"></i> Grades
+            </a>
+            <a href="parent-schedule.html" class="nav-link active">
+                <i class="fas fa-calendar-week"></i> Schedule
+            </a>
+             <a href="parent-messages.html" class="nav-link">
+                <i class="fas fa-envelope"></i> Messages
+            </a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="page-title-section">
+            <div class="page-heading">
+                <h2>Weekly Schedule</h2>
+                <p>Complete class schedule for the week</p>
+            </div>
+        </div>
+
+        <div id="alertBox" class="alert"></div>
+
+        <div id="loadingContainer" class="loading">
+            <i class="fas fa-spinner fa-spin"></i> Loading schedule data...
+        </div>
+
+        <div id="childrenSelector" class="" style="display: none;">
+            <div id="childrenTabs" class=""></div>
+        </div>
+
+        <div id="contentContainer" style="display: none;">
+            <div id="scheduleSummary" class="schedule-summary"></div>
+            <div id="weekSchedule" class="week-schedule"></div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+   <script src="parent-schedule.js"></script>
+</body>
+
+</html>

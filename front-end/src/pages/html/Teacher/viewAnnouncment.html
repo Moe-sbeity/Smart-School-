@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Content - Smart School</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+ <link rel="stylesheet" href="viewAnnouncment.css">
+ <script src="../js/toast.js"></script>
+ <script src="../js/searchable-select.js"></script>
+</head>
+
+<body>
+    <nav class="top-nav">
+        <div class="nav-content">
+            <div class="logo">
+                <div class="logo-icon">SS</div>
+                <span>Smart School</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <h1><i class="fas fa-list"></i> My Content</h1>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <a href="teacher-dashboard.html" class="btn btn-back">
+                    <i class="fas fa-arrow-left"></i> Dashboard
+                </a>
+                <a href="teacher-publishAnnouncment.html" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Create New
+                </a>
+            </div>
+        </div>
+
+        <div class="filters">
+            <div class="filter-group">
+                <label>Subject:</label>
+                <select id="filterSubject" onchange="filterContent()">
+                    <option value="">All Subjects</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Type:</label>
+                <select id="filterType" onchange="filterContent()">
+                    <option value="">All Types</option>
+                    <option value="announcement">Announcements</option>
+                    <option value="assignment">Assignments</option>
+                    <option value="quiz">Quizzes</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Status:</label>
+                <select id="filterStatus" onchange="filterContent()">
+                    <option value="">All Status</option>
+                    <option value="published">Published</option>
+                    <option value="draft">Draft</option>
+                    <option value="closed">Closed</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalCount">0</div>
+                <div class="stat-label">Total Items</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="announcementCount">0</div>
+                <div class="stat-label">Announcements</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="assignmentCount">0</div>
+                <div class="stat-label">Assignments</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="quizCount">0</div>
+                <div class="stat-label">Quizzes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="pendingGrading">0</div>
+                <div class="stat-label">Pending Grading</div>
+            </div>
+        </div>
+
+        <div id="contentContainer" class="loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading content...</p>
+        </div>
+    </div>
+
+    <!-- Dialog for viewing content details -->
+    <div class="dialog-overlay" id="contentDialog" onclick="closeDialog(event)">
+        <div class="dialog" onclick="event.stopPropagation()">
+            <div class="dialog-header">
+                <button class="dialog-close" onclick="closeDialog()">
+                    <i class="fas fa-times"></i>
+                </button>
+                <h2 class="dialog-title" id="dialogTitle"></h2>
+                <div class="dialog-tags" id="dialogTags"></div>
+                <div class="content-meta" id="dialogMeta"></div>
+            </div>
+            <div class="dialog-body" id="dialogBody"></div>
+        </div>
+    </div>
+    <script src="viewAnnouncment.js"></script>
+</body>
+</html>

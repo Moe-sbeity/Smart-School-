@@ -1,0 +1,8 @@
+{
+  "name": "Admin User",
+  "email": "admin@admin.com",
+  "password": "admin123",
+  "gender": "male",
+  "role": "admin",
+  "dateOfBirth": "1990-01-01"
+}

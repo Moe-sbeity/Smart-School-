@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard - Smart School</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+ <link rel="stylesheet" href="teacher-dashboard.css">
+ <script src="../js/toast.js"></script>
+ <script src="../js/searchable-select.js"></script>
+</head>
+
+<body>
+    <nav class="top-nav">
+        <div class="nav-content">
+            <div class="logo">
+                <div class="logo-icon">SS</div>
+                <span>Smart School</span>
+            </div>
+            <div class="nav-actions">
+                <a class="btn btn-secondary" href="teacher-publishAnnouncment.html">
+                    <i class="fas fa-bullhorn"></i> Create Content
+                </a>
+                  <a class="btn btn-secondary" href="teacher-attendance.html">
+                    <i class="fas fa-bullhorn"></i> Attendance
+                </a>
+                <a class="btn btn-secondary" href="viewAnnouncment.html">
+                    <i class="fas fa-list"></i> My Content
+                </a>
+                <button class="btn btn-primary" id="logout">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-chalkboard-teacher"></i> Teacher Dashboard</h1>
+            <p id="welcomeMessage">Loading...</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="totalClasses">-</div>
+                    <div class="stat-label">Total Classes</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon"><i class="fas fa-user-graduate"></i></div>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="totalStudents">-</div>
+                    <div class="stat-label">Total Students</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="todayClasses">-</div>
+                    <div class="stat-label">Classes Today</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon"><i class="fas fa-book"></i></div>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="subjects">-</div>
+                    <div class="stat-label">Subjects Teaching</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="summary-section">
+            <div class="summary-header">
+                <div class="summary-header-icon">
+                    <i class="fas fa-calendar-day"></i>
+                </div>
+                <h2>Today's Summary</h2>
+                <span class="summary-date" id="todayDate"></span>
+            </div>
+            <div class="summary-grid">
+                <div class="summary-card classes">
+                    <div class="summary-card-header">
+                        <div class="summary-card-icon">
+                            <i class="fas fa-chalkboard"></i>
+                        </div>
+                        <div class="summary-card-title">Classes</div>
+                        <div class="summary-card-count" id="todayClassesCount">0</div>
+                    </div>
+                    <div class="summary-items" id="todayClassesList">
+                        <div class="loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Loading...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="summary-card assignments">
+                    <div class="summary-card-header">
+                        <div class="summary-card-icon">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <div class="summary-card-title">Assignments Due</div>
+                        <div class="summary-card-count" id="todayAssignmentsCount">0</div>
+                    </div>
+                    <div class="summary-items" id="todayAssignmentsList">
+                        <div class="loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Loading...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="summary-card announcements">
+                    <div class="summary-card-header">
+                        <div class="summary-card-icon">
+                            <i class="fas fa-bullhorn"></i>
+                        </div>
+                        <div class="summary-card-title">Recent Posts</div>
+                        <div class="summary-card-count" id="recentAnnouncementsCount">0</div>
+                    </div>
+                    <div class="summary-items" id="recentAnnouncementsList">
+                        <div class="loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Loading...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-calendar-alt"></i> My Schedule by Subject</h3>
+            </div>
+            <div id="scheduleContainer" class="loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading schedule...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="teacher-dashboard.js">
+       
+    </script>
+</body>
+</html>

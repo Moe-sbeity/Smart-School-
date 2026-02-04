@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register New User - Smart School</title>
+  <link rel="stylesheet" href="admin-registration.css" />
+  <script src="../js/toast.js"></script>
+  <script src="../js/searchable-select.js"></script>
+</head>
+
+<body>
+
+  <div class="container">
+    <div class="card">
+      <div class="header-section">
+        <div class="back-wrapper">
+          <a href="admin-dashboard.html" class="back btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+          </a>
+        </div>
+
+        <div class="icon-wrapper">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+        </div>
+        <h2>Register New User</h2>
+        <p>Admin Panel - User Management</p>
+      </div>
+
+      <form id="adminRegisterForm">
+        <!-- Name -->
+        <div class="form-group">
+          <label for="name">Full Name <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            <input type="text" id="name" class="has-icon" placeholder="Enter full name" required />
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div class="form-group" id="emailContainer">
+          <label for="email">Email Address <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="20" height="16" x="2" y="4" rx="2" />
+              <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+            </svg>
+            <input type="email" id="email" class="has-icon" placeholder="email@example.com" required />
+          </div>
+        </div>
+
+        <!-- Auto-generated Student Email (shown only for students) -->
+        <div class="form-group" id="studentEmailContainer" style="display: none;">
+          <label for="studentEmail">Student Email <span class="auto-badge">Auto-Generated</span></label>
+          <small class="help-text">This email will be automatically assigned to the student</small>
+          <div class="input-wrapper">
+            <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="20" height="16" x="2" y="4" rx="2" />
+              <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+            </svg>
+            <input type="email" id="studentEmail" class="has-icon student-email-display" readonly />
+          </div>
+          <small class="email-note">📧 Student will use this email to login</small>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label for="password">Password <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            <input type="password" id="password" class="has-icon" placeholder="Enter password" required />
+          </div>
+        </div>
+
+        <!-- Role -->
+        <div class="form-group">
+          <label for="role">Role <span class="required">*</span></label>
+          <select id="role" required>
+            <option value="student">Student</option>
+            <option value="teacher">Teacher</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+
+        <!-- Gender -->
+        <div class="form-group">
+          <label>Gender <span class="required">*</span></label>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" name="gender" value="male" required />
+              <span>Male</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="gender" value="female" required />
+              <span>Female</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Date of Birth (hidden for students - they fill it on first login) -->
+        <div class="form-group" id="dobContainer">
+          <label for="dob">Date of Birth <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+              <line x1="16" x2="16" y1="2" y2="6" />
+              <line x1="8" x2="8" y1="2" y2="6" />
+              <line x1="3" x2="21" y1="10" y2="10" />
+            </svg>
+            <input type="date" id="dob" class="has-icon" required />
+          </div>
+        </div>
+
+        <!-- Parent Email (for students only - Auto-generated) -->
+        <div id="parentEmailContainer" style="display: none;">
+          <div class="form-group">
+            <label for="parentEmail">Parent Email <span class="auto-badge">Auto-Generated</span></label>
+            <small class="help-text">Parent account will be created automatically with the same password</small>
+            <div class="input-wrapper">
+              <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="20" height="16" x="2" y="4" rx="2" />
+                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+              </svg>
+              <input type="email" id="parentEmail" class="has-icon parent-email-display" readonly />
+            </div>
+            <small class="email-note">👨‍👩‍👧 Parent will use this email to login and view child's progress</small>
+          </div>
+        </div>
+
+        <!-- Class Grade & Section (for students only) -->
+        <div id="classGradeContainer" style="display: none;">
+          <div class="form-group">
+            <label for="classGrade">Class Grade <span class="required">*</span></label>
+            <select id="classGrade">
+              <option value="">Select Grade</option>
+              <option value="kg1">KG1</option>
+              <option value="kg2">KG2</option>
+              <option value="grade1">Grade 1</option>
+              <option value="grade2">Grade 2</option>
+              <option value="grade3">Grade 3</option>
+              <option value="grade4">Grade 4</option>
+              <option value="grade5">Grade 5</option>
+              <option value="grade6">Grade 6</option>
+              <option value="grade7">Grade 7</option>
+              <option value="grade8">Grade 8</option>
+              <option value="grade9">Grade 9</option>
+              <option value="grade10">Grade 10</option>
+              <option value="grade11">Grade 11</option>
+              <option value="grade12">Grade 12</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Subjects (for teachers only) -->
+        <div id="subjectsContainer" style="display: none;">
+          <div class="form-group">
+            <label>Subjects <span class="required">*</span> (Select at least one)</label>
+            <div class="subjects-section loading" id="subjectsSection">
+              <p style="color: var(--text-secondary); font-size: 0.875rem;">Loading subjects...</p>
+            </div>
+            <div id="selectedSubjectsDisplay" class="selected-subjects" style="display: none;"></div>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="form-group">
+          <button type="submit" id="submitBtn" class="btn-primary">
+            Register User
+          </button>
+        </div>
+      </form>
+
+      <div class="back-link">
+        <a href="admin-dashboard.html">← Return to Dashboard</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="admin-register.js"></script>
+</body>
+
+</html>

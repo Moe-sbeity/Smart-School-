@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Schedule Assignment - Smart School</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+        }
+
+        .header h1 i {
+            color: #667eea;
+            margin-right: 10px;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .card h2 i {
+            color: #667eea;
+            margin-right: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .student-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .student-info h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .student-info p {
+            color: #666;
+            margin: 8px 0;
+            font-size: 14px;
+        }
+
+        .student-info i {
+            margin-right: 8px;
+            color: #667eea;
+            width: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+
+        .no-schedules {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .no-schedules i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #ddd;
+        }
+
+        .current-schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .current-schedule-table th,
+        .current-schedule-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .current-schedule-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .current-schedule-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .tag-monday { background: #e3f2fd; color: #1976d2; }
+        .tag-tuesday { background: #f3e5f5; color: #7b1fa2; }
+        .tag-wednesday { background: #e8f5e9; color: #388e3c; }
+        .tag-thursday { background: #fff3e0; color: #f57c00; }
+        .tag-friday { background: #fce4ec; color: #c2185b; }
+        .tag-saturday { background: #e0f2f1; color: #00796b; }
+        .tag-sunday { background: #ffebee; color: #c62828; }
+
+        .info-box {
+            background: #e8f4f8;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+
+        .info-box h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-box ul {
+            margin-left: 20px;
+            color: #555;
+        }
+
+        .info-box li {
+            margin: 5px 0;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+
+        /* Student List Styles */
+        #studentSearch {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        #studentSearch:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        #studentListContainer {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+
+        .student-card {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .student-card:last-child {
+            border-bottom: none;
+        }
+
+        .student-card:hover {
+            background: #f0f4ff;
+        }
+
+        .student-card.selected {
+            background: #667eea;
+            color: white;
+        }
+
+        .student-card.selected .student-info-brief p {
+            color: rgba(255,255,255,0.9);
+        }
+
+        .student-card.selected .student-avatar {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .student-avatar {
+            width: 45px;
+            height: 45px;
+            background: #e8f4ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #667eea;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .student-info-brief h4 {
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .student-info-brief p {
+            font-size: 12px;
+            color: #666;
+            margin: 2px 0;
+        }
+
+        .student-info-brief p i {
+            width: 16px;
+            margin-right: 5px;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 30px;
+            color: #999;
+        }
+
+        .no-results i {
+            font-size: 36px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        /* Student Details Styles */
+        #studentInfoContainer {
+            margin-top: 20px;
+        }
+
+        .student-details {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .student-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .student-avatar-large {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+
+        .student-name-section h2 {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .student-id-badge {
+            background: #667eea;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        .student-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .info-item i {
+            color: #667eea;
+        }
+
+        .assignment-box {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .assignment-box.warning {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+
+        .assignment-box.info {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+        }
+
+        .assignment-box.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+
+        .assignment-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .assignment-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .assignment-fields select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .grade-locked {
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .current-assignment {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .current-assignment p {
+            margin: 5px 0;
+            color: #155724;
+        }
+
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .schedule-table th,
+        .schedule-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .schedule-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .schedule-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .day-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .day-tag.monday { background: #e3f2fd; color: #1976d2; }
+        .day-tag.tuesday { background: #f3e5f5; color: #7b1fa2; }
+        .day-tag.wednesday { background: #e8f5e9; color: #388e3c; }
+        .day-tag.thursday { background: #fff3e0; color: #f57c00; }
+        .day-tag.friday { background: #fce4ec; color: #c2185b; }
+        .day-tag.saturday { background: #e0f2f1; color: #00796b; }
+        .day-tag.sunday { background: #ffebee; color: #c62828; }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                <i class="fas fa-user-graduate"></i>
+                Quick Student Schedule Assignment
+            </h1>
+            <a href="admin-dashboard.html" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <div class="alert alert-success" id="successAlert">
+            <i class="fas fa-check-circle"></i>
+            <span id="successMessage"></span>
+        </div>
+
+        <div class="alert alert-error" id="errorAlert">
+            <i class="fas fa-exclamation-circle"></i>
+            <span id="errorMessage"></span>
+        </div>
+
+        <div class="alert alert-info" id="infoAlert">
+            <i class="fas fa-info-circle"></i>
+            <span id="infoMessage"></span>
+        </div>
+
+        <div class="card">
+            <h2>
+                <i class="fas fa-bolt"></i>
+                Quick Assignment
+            </h2>
+
+            <div class="info-box">
+                <h4>
+                    <i class="fas fa-info-circle"></i>
+                    How it works
+                </h4>
+                <ul>
+                    <li>Search for a student by name, ID, or email</li>
+                    <li>Click on a student to select them</li>
+                    <li>Assign or change their section</li>
+                    <li>Click "Assign & Auto-Enroll" to enroll them in ALL subjects</li>
+                </ul>
+            </div>
+
+            <div class="form-group" style="margin-top: 25px;">
+                <label for="studentSearch"><i class="fas fa-search"></i> Search Student</label>
+                <input type="text" id="studentSearch" placeholder="Search by name, ID (e.g., 10000020), or email..." style="width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px;">
+            </div>
+
+            <div id="studentListContainer" style="max-height: 300px; overflow-y: auto; margin-top: 15px; border: 1px solid #e0e0e0; border-radius: 8px;">
+                <!-- Students will be loaded here -->
+            </div>
+
+            <div id="studentInfoContainer" style="margin-top: 20px;"></div>
+        </div>
+
+        <!-- Current Student Schedule -->
+        <div class="card">
+            <h2>
+                <i class="fas fa-calendar-check"></i>
+                Current Weekly Schedule
+            </h2>
+            <div id="currentScheduleContainer">
+                <div class="no-schedules">
+                    <i class="fas fa-calendar-times"></i>
+                    <p>Select a student to view their schedule</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="../js/toast.js"></script>
+    <script src="../js/searchable-select.js"></script>
+    <script src="student-schedule.js"></script>
+</body>
+
+</html>

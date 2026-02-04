@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parent Dashboard - Smart School</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+   <link rel="stylesheet" href="parent-dashboard.css">
+   <script src="../js/toast.js"></script>
+   <script src="../js/searchable-select.js"></script>
+</head>
+
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">SS</div>
+                <span>Smart School</span>
+            </div>
+            <div class="header-info">
+                <span class="user-name" id="userName">Loading...</span>
+                <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="parent-dashboard.html" class="nav-link active">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+            <a href="parent-attendance.html" class="nav-link">
+                <i class="fas fa-clipboard-check"></i> Attendance
+            </a>
+            <a href="parent-grades.html" class="nav-link">
+                <i class="fas fa-graduation-cap"></i> Grades
+            </a>
+            <a href="parent-schedule.html" class="nav-link">
+                <i class="fas fa-calendar-week"></i> Schedule
+            </a>
+            <a href="parent-messages.html" class="nav-link">
+                <i class="fas fa-envelope"></i> Messages
+            </a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <!-- Child DOB Modal (for children without date of birth) -->
+        <div id="childDobModal" class="modal" style="display: none;">
+            <div class="modal-overlay"></div>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-icon">🎂</div>
+                    <h2>Complete Your Child's Profile</h2>
+                    <p id="childDobMessage">Please enter your child's date of birth to continue.</p>
+                </div>
+                <form id="childDobForm">
+                    <div class="form-group">
+                        <label for="childDobInput">Date of Birth</label>
+                        <input type="date" id="childDobInput" required max="">
+                        <small>This information helps us personalize your child's experience</small>
+                    </div>
+                    <input type="hidden" id="childIdForDob" value="">
+                    <button type="submit" class="btn-primary" id="saveChildDobBtn">Save & Continue</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Password Change Modal -->
+        <div id="passwordChangeModal" class="modal" style="display: none;">
+            <div class="modal-overlay"></div>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-icon">🔐</div>
+                    <h2>Welcome! Please Change Your Password</h2>
+                    <p>For security reasons, you need to set a new password before continuing.</p>
+                </div>
+                <form id="passwordChangeForm">
+                    <div class="form-group">
+                        <label for="currentPassword">Current Password</label>
+                        <input type="password" id="currentPassword" placeholder="Enter current password (same as student)" required>
+                        <small>Use the same password as your child's account</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">New Password</label>
+                        <input type="password" id="newPassword" placeholder="Enter new password" required minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm New Password</label>
+                        <input type="password" id="confirmPassword" placeholder="Confirm new password" required>
+                    </div>
+                    <button type="submit" class="btn-primary" id="changePasswordBtn">Change Password</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="page-title-section">
+            <div class="page-heading">
+                <h2>Overview of your children's education</h2>
+            </div>
+        </div>
+
+        <div id="loadingContainer" class="loading">
+            <i class="fas fa-spinner fa-spin"></i> Loading data...
+        </div>
+
+        <div id="childrenSelector" class="" style="display: none;">
+            <div id="childrenTabs" class=""></div>
+        </div>
+
+        <div id="contentContainer" style="display: none;">
+            <!-- Summary Section -->
+            <div id="summarySection" class="summary-grid"></div>
+
+            <!-- Schedule Section -->
+            <div class="card" style="margin-top: 30px;">
+                <div class="card-header">
+                    <h3><i class="fas fa-calendar-week"></i> Today's Schedule</h3>
+                </div>
+                <div id="scheduleContent" class="schedule-grid"></div>
+            </div>
+        </div>
+
+        <div id="noChildrenMessage" class="empty-state" style="display: none;">
+            <div class="empty-state-icon"><i class="fas fa-user-friends"></i></div>
+            <h3>No Children Found</h3>
+            <p>No students are currently linked to your account.</p>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="parent-dashboard.js"> </script>
+</body>
+
+</html>

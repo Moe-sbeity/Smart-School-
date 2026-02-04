@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Attendance - Smart School</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="student-attendance.css">
+    <script src="../js/toast.js"></script>
+    <script src="../js/searchable-select.js"></script>
+</head>
+<body>
+    <nav class="top-nav">
+        <div class="nav-content">
+            <div class="logo">
+                <div class="logo-icon">SS</div>
+                <span>Smart School</span>
+            </div>
+            <a class="back-btn" href="student-dashboard.html">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-chart-line"></i> My Attendance Record</h1>
+            <p id="studentName">Loading your attendance data...</p>
+        </div>
+
+        <div id="messageContainer"></div>
+
+        <div class="filters">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label for="subjectFilter">Subject</label>
+                    <select id="subjectFilter" title="Filter by subject">
+                        <option value="">All Subjects</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="startDate">Start Date</label>
+                    <input type="date" id="startDate" title="Start date" placeholder="Start date" />
+                </div>
+                <div class="filter-group">
+                    <label for="endDate">End Date</label>
+                    <input type="date" id="endDate" title="End date" placeholder="End date" />
+                </div>
+                <button class="btn-filter" onclick="loadAttendance()">
+                    <i class="fas fa-filter"></i> Apply Filters
+                </button>
+            </div>
+        </div>
+
+        <div class="stats-overview" id="statsOverview">
+            <div class="stat-card overall">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-percentage"></i>
+                    </div>
+                    <div class="stat-label">Attendance Rate</div>
+                </div>
+                <div class="stat-value" id="attendanceRate">0%</div>
+                <div class="stat-subtitle">Overall Performance</div>
+            </div>
+            <div class="stat-card present">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-label">Present</div>
+                </div>
+                <div class="stat-value" id="presentCount">0</div>
+                <div class="stat-subtitle" id="presentDays">0 days</div>
+            </div>
+            <div class="stat-card absent">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <div class="stat-label">Absent</div>
+                </div>
+                <div class="stat-value" id="absentCount">0</div>
+                <div class="stat-subtitle" id="absentDays">0 days</div>
+            </div>
+            <div class="stat-card late">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-label">Late</div>
+                </div>
+                <div class="stat-value" id="lateCount">0</div>
+                <div class="stat-subtitle" id="lateDays">0 days</div>
+            </div>
+            <div class="stat-card excused">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-file-medical"></i>
+                    </div>
+                    <div class="stat-label">Excused</div>
+                </div>
+                <div class="stat-value" id="excusedCount">0</div>
+                <div class="stat-subtitle" id="excusedDays">0 days</div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="fas fa-calendar-alt"></i>
+                    Attendance History
+                </h2>
+                <span id="totalRecords" class="total-records">0 records</span>
+            </div>
+
+            <div id="attendanceContainer">
+                <div class="loading">
+                    <i class="fas fa-spinner"></i>
+                    <p>Loading attendance records...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+<script src="student-attendance.js"></script>
+
+</body>
+</html>

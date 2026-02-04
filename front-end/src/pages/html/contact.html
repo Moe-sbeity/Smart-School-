@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - Smart School</title>
+    <link rel="stylesheet" href="../css/contacts.css">
+    <link rel="stylesheet" href="../css/header.css">
+    <script src="js/toast.js"></script>
+    <script src="js/searchable-select.js"></script>
+</head>
+<body>
+
+    <div id="site-header"></div>
+    <script src="js/load-header.js" defer></script>
+
+    <main id="content" class="container">
+        <div class="page-title-section">
+            <div class="page-heading">
+                <h1>Contact Us</h1>
+                <p>We're here to help students, parents, and the community</p>
+            </div>
+                <nav class="breadcrumb" aria-label="breadcrumb">
+                    <a href="index.html">Home</a> &nbsp;>&nbsp; Contact
+                </nav>
+        </div>
+
+        <section class="grid contact-grid">
+            <div class="card contact-form-card">
+                <h3>Send us a message</h3>
+                <form id="contactForm">
+                    <div class="form-group">
+                        <label for="fullName">Full name</label>
+                        <input type="text" id="fullName" class="form-control" placeholder="Enter your name" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" class="form-control" placeholder="you@example.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone (optional)</label>
+                            <input type="tel" id="phone" class="form-control" placeholder="(123) 456-7890">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="topic">Topic</label>
+                        <select id="topic" class="form-control" required>
+                            <option>Admissions / Academics / General</option>
+                            <option>Technical Support</option>
+                            <option>Feedback</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Your message</label>
+                        <textarea id="message" class="form-control" rows="5" placeholder="Write your message..." required></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <span class="response-time-tag">Avg. response time: 24h</span>
+                        <div class="buttons">
+                            <button type="button" class="btn btn-secondary">Save Draft</button>
+                            <button type="submit" class="btn btn-primary">Send Message</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card school-contacts-card">
+                <h3>School Contacts</h3>
+                <div class="contact-list">
+                    <div class="contact-item">
+                        <h4>Main Office</h4>
+                        <p>Mon-Fri, 8:00am-4:00pm</p>
+                    </div>
+                    <div class="contact-item">
+                        <h4>Admissions</h4>
+                        <p>admissions@smartschool.edu • (555) 010-1111</p>
+                    </div>
+                    <div class="contact-item">
+                        <h4>Student Services</h4>
+                        <p>support@smartschool.edu • (555) 010-2222</p>
+                    </div>
+                    <div class="contact-item">
+                        <h4>Counseling</h4>
+                        <p>counsel@smartschool.edu • (555) 010-3333</p>
+                    </div>
+                </div>
+                <div class="action-list">
+                    <div class="action-item">
+                        <span>Book a Campus Tour</span>
+                        <a href="admission.html#visit" class="btn btn-secondary action-btn">Schedule</a>
+                    </div>
+                    <div class="action-item">
+                        <span>Help Center</span>
+                        <a href="admission.html#visit" class="btn btn-secondary action-btn">Visit</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="grid location-connect-grid">
+            <div class="card location-card">
+                <h3>Our Location</h3>
+                <img src="https://i.imgur.com/3Z2S5Xm.png" alt="Map showing school location" class="map-image">
+                <div class="address-section">
+                    <p>Smart School, 123 Learning Ave<br>Springfield, ST 12345</p>
+                        <a href="contact.html#directions" class="btn btn-secondary action-btn">Get Directions</a>
+                </div>
+            </div>
+
+            <div class="card connect-card">
+                <h3>Connect With Us</h3>
+                <div class="connect-list">
+                    <div class="connect-item">
+                        <span>Website<br><small>smartschool.edu</small></span>
+                            <a href="https://smartschool.edu" class="btn btn-secondary action-btn">Open</a>
+                    </div>
+                    <div class="connect-item">
+                        <span>X (Twitter)<br><small>@smartschool</small></span>
+                            <a href="https://twitter.com/smartschool" class="btn btn-secondary action-btn">Follow</a>
+                    </div>
+                    <div class="connect-item">
+                        <span>Instagram<br><small>@smartschool</small></span>
+                            <a href="https://instagram.com/smartschool" class="btn btn-secondary action-btn">Follow</a>
+                    </div>
+                    <div class="connect-item">
+                        <span>Facebook<br><small>/smartschool</small></span>
+                            <a href="https://facebook.com/smartschool" class="btn btn-secondary action-btn">Like</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div class="container">
+        <div class="cta-banner">
+            <div class="cta-text">
+                <h4>Visit our Admissions page for application timelines</h4>
+                <p>Find requirements, key dates, and financial aid information.</p>
+            </div>
+            <div class="cta-buttons">
+                    <a href="contact.html#faqs" class="btn btn-secondary action-btn">View FAQs</a>
+                    <a href="admission.html" class="btn btn-primary action-btn">Go to Admissions</a>
+            </div>
+        </div>
+    </div>
+
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-about">
+                     <div class="logo">
+                        <a href="index.html" class="logo-link"><span class="logo-icon" aria-hidden="true">SS</span> <span class="logo-text">Smart School</span></a>
+                    </div>
+                    <p>Educational, trustworthy, and innovative. Connecting the whole school community.</p>
+                </div>
+                <div class="footer-links">
+                    <h5>Explore</h5>
+                    <ul>
+                        <li><a href="about.html">About</a></li>
+                        <li><a href="admission.html">Admissions</a></li>
+                        <li><a href="academics.html">Academics</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                 
+                 <div class="footer-links">
+                    <h5>Support</h5>
+                    <ul>
+                        <li><a href="contact.html">Contact</a></li>
+                        <li><a href="contact.html#privacy">Privacy Policy</a></li>
+                        <li><a href="contact.html#terms">Terms of Use</a></li>
+                        <li><a href="contact.html#help">Support</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../js/contact.js"></script>
+</body>
+</html>

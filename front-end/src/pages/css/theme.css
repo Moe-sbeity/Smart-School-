@@ -1,0 +1,79 @@
+/* ============================================
+   School System - Unified Blue Theme
+   ============================================ */
+
+:root {
+    /* Primary Blue Colors */
+    --primary: #1e88e5;
+    --primary-light: #42a5f5;
+    --primary-dark: #1565c0;
+    --primary-gradient: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);
+    --primary-gradient-hover: linear-gradient(135deg, #42a5f5 0%, #1e88e5 100%);
+    
+    /* Secondary Colors */
+    --secondary: #64b5f6;
+    --secondary-dark: #42a5f5;
+    
+    /* Accent Colors */
+    --accent: #0d47a1;
+    --accent-light: #1976d2;
+    
+    /* Status Colors */
+    --success: #2e7d32;
+    --success-light: #4caf50;
+    --warning: #f57c00;
+    --warning-light: #ff9800;
+    --danger: #c62828;
+    --danger-light: #ef5350;
+    --info: #0288d1;
+    --info-light: #03a9f4;
+    
+    /* Background Colors */
+    --bg-primary: #f5f7fa;
+    --bg-secondary: #e3f2fd;
+    --bg-white: #ffffff;
+    --bg-dark: #0d47a1;
+    
+    /* Text Colors */
+    --text-primary: #1a1a2e;
+    --text-secondary: #5a6a85;
+    --text-muted: #8896a4;
+    --text-light: #b0bec5;
+    --text-white: #ffffff;
+    
+    /* Border Colors */
+    --border: #e0e6ed;
+    --border-light: #e3f2fd;
+    --border-primary: #1e88e5;
+    
+    /* Shadow */
+    --shadow-sm: 0 1px 3px rgba(30, 136, 229, 0.08);
+    --shadow: 0 2px 8px rgba(30, 136, 229, 0.12);
+    --shadow-lg: 0 4px 16px rgba(30, 136, 229, 0.16);
+    --shadow-xl: 0 8px 32px rgba(30, 136, 229, 0.2);
+    
+    /* Border Radius */
+    --radius-sm: 6px;
+    --radius: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 20px;
+    
+    /* Transitions */
+    --transition: all 0.3s ease;
+    --transition-fast: all 0.15s ease;
+}
+
+/* Dark mode support (optional) */
+@media (prefers-color-scheme: dark) {
+    :root.dark-mode {
+        --bg-primary: #0d1117;
+        --bg-secondary: #161b22;
+        --bg-white: #21262d;
+        --text-primary: #f0f6fc;
+        --text-secondary: #8b949e;
+        --border: #30363d;
+    }
+}
+
+
+

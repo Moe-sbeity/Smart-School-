@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teacher Schedule Management - Smart School</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="teacherSchedual.css">
+  <script src="../js/toast.js"></script>
+  <script src="../js/searchable-select.js"></script>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>
+        <i class="fas fa-calendar-alt"></i>
+        Teacher Schedule Management
+      </h1>
+      <div class="header-actions">
+        <button class="btn btn-outline" onclick="openSettingsModal()">
+          <i class="fas fa-cog"></i> Session Settings
+        </button>
+        <a href="admin-dashboard.html" class="btn btn-secondary">
+          <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+      </div>
+    </div>
+
+    <!-- Alerts -->
+    <div class="alert alert-success" id="successAlert">
+      <i class="fas fa-check-circle"></i>
+      <span id="successMessage"></span>
+      <button class="alert-close" onclick="closeAlert('success')">&times;</button>
+    </div>
+
+    <div class="alert alert-error" id="errorAlert">
+      <i class="fas fa-exclamation-circle"></i>
+      <span id="errorMessage"></span>
+      <button class="alert-close" onclick="closeAlert('error')">&times;</button>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+      <div class="stat-box stat-schedules">
+        <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+        <div class="stat-content">
+          <h3 id="totalSchedules">0</h3>
+          <p>Total Schedules</p>
+        </div>
+      </div>
+      <div class="stat-box stat-teachers">
+        <div class="stat-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+        <div class="stat-content">
+          <h3 id="totalTeachers">0</h3>
+          <p>Teachers</p>
+        </div>
+      </div>
+      <div class="stat-box stat-subjects">
+        <div class="stat-icon"><i class="fas fa-book"></i></div>
+        <div class="stat-content">
+          <h3 id="totalSubjects">0</h3>
+          <p>Subjects</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search Teacher Section -->
+    <div class="card search-card">
+      <div class="card-header">
+        <h2>
+          <i class="fas fa-search"></i>
+          Search & View Teacher Schedule
+        </h2>
+      </div>
+      
+      <div class="search-container">
+        <div class="search-input-wrapper">
+          <i class="fas fa-search search-icon"></i>
+          <input type="text" id="teacherSearch" placeholder="Search by teacher name, email, or subject..." autocomplete="off">
+          <button class="clear-search" id="clearSearch" style="display: none;">
+            <i class="fas fa-times"></i>
+          </button>
+          <div class="search-results" id="searchResults">
+            <!-- Search results will be populated here -->
+          </div>
+        </div>
+        <div class="search-hint">
+          <i class="fas fa-info-circle"></i>
+          Click on the search box to see all teachers or type to filter
+        </div>
+      </div>
+      
+      <!-- Selected Teacher Info -->
+      <div id="selectedTeacherSection" style="display: none;">
+        <div class="selected-teacher-card">
+          <div class="teacher-avatar" id="teacherAvatar">
+            <i class="fas fa-user"></i>
+          </div>
+          <div class="teacher-details">
+            <h3 id="selectedTeacherName"></h3>
+            <p id="selectedTeacherEmail"></p>
+            <div class="teacher-subjects-list" id="selectedTeacherSubjects"></div>
+          </div>
+          <div class="teacher-actions">
+            <button class="btn btn-primary" onclick="openAddScheduleModal()">
+              <i class="fas fa-plus"></i> Add Schedule
+            </button>
+            <button class="btn btn-outline" onclick="clearSelectedTeacher()">
+              <i class="fas fa-times"></i> Clear
+            </button>
+          </div>
+        </div>
+
+        <!-- Teacher Schedule Table -->
+        <div class="schedule-section">
+          <div class="schedule-header">
+            <h3><i class="fas fa-table"></i> Schedule for <span id="scheduleTeacherName"></span></h3>
+            <div class="schedule-view-options">
+              <button class="view-btn active" data-view="table" onclick="switchView('table')">
+                <i class="fas fa-list"></i> Table
+              </button>
+              <button class="view-btn" data-view="calendar" onclick="switchView('calendar')">
+                <i class="fas fa-calendar-week"></i> Calendar
+              </button>
+            </div>
+          </div>
+          
+          <div id="teacherScheduleContainer">
+            <div class="loading-spinner">
+              <i class="fas fa-spinner fa-spin"></i>
+              <span>Loading schedule...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Schedule Section (Collapsible) -->
+
+
+    <!-- All Schedules Overview -->
+    <div class="card">
+      <div class="card-header">
+        <h2>
+          <i class="fas fa-list-alt"></i>
+          All Teacher Schedules
+        </h2>
+        <div class="filter-controls">
+          <label for="filterDay" class="visually-hidden">Filter by Day</label>
+          <select id="filterDay" onchange="filterSchedules()" aria-label="Filter by Day">
+            <option value="">All Days</option>
+            <option value="Monday">Monday</option>
+            <option value="Tuesday">Tuesday</option>
+            <option value="Wednesday">Wednesday</option>
+            <option value="Thursday">Thursday</option>
+            <option value="Friday">Friday</option>
+          </select>
+          <select id="filterGrade" onchange="filterSchedules()" aria-label="Filter by Grade">
+            <option value="">All Grades</option>
+          </select>
+        </div>
+      </div>
+      
+      <div id="allSchedulesContainer">
+        <div class="loading-spinner">
+          <i class="fas fa-spinner fa-spin"></i>
+          <span>Loading schedules...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Schedule Modal -->
+  <div class="modal" id="editModal">
+    <div class="modal-overlay" onclick="closeEditModal()"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fas fa-edit"></i> Edit Schedule</h3>
+        <button class="modal-close" onclick="closeEditModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="editScheduleForm">
+          <input type="hidden" id="editScheduleId">
+          
+          <div class="form-group">
+            <label>Teacher</label>
+            <input type="text" id="editTeacherName" readonly class="readonly-input" placeholder="Teacher Name" title="Teacher Name">
+          </div>
+          
+          <div class="form-group">
+            <label for="editSubject">Subject *</label>
+            <select id="editSubject" required>
+              <option value="">-- Select Subject --</option>
+            </select>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editClassGrade">Class Grade *</label>
+              <select id="editClassGrade" required>
+                <option value="">-- Select Grade --</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="editSection">Section *</label>
+              <select id="editSection" required>
+                <option value="">-- Select Section --</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="editDayOfWeek">Day of Week *</label>
+            <select id="editDayOfWeek" required>
+              <option value="">-- Select Day --</option>
+              <option value="Monday">Monday</option>
+              <option value="Tuesday">Tuesday</option>
+              <option value="Wednesday">Wednesday</option>
+              <option value="Thursday">Thursday</option>
+              <option value="Friday">Friday</option>
+            </select>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editStartTime">Start Time *</label>
+              <input type="time" id="editStartTime" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="editEndTime">End Time *</label>
+              <input type="time" id="editEndTime" required>
+            </div>
+          </div>
+          
+          <div class="time-presets-row">
+            <span>Quick Set:</span>
+            <button type="button" class="time-preset-btn" onclick="setEditTimeRange('08:00', '09:00')">8-9 AM</button>
+            <button type="button" class="time-preset-btn" onclick="setEditTimeRange('09:00', '10:00')">9-10 AM</button>
+            <button type="button" class="time-preset-btn" onclick="setEditTimeRange('10:00', '11:00')">10-11 AM</button>
+            <button type="button" class="time-preset-btn" onclick="setEditTimeRange('11:00', '12:00')">11-12 PM</button>
+            <button type="button" class="time-preset-btn" onclick="setEditTimeRange('13:00', '14:00')">1-2 PM</button>
+            <button type="button" class="time-preset-btn" onclick="setEditTimeRange('14:00', '15:00')">2-3 PM</button>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveEditSchedule()">
+          <i class="fas fa-save"></i> Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Schedule Modal -->
+  <div class="modal" id="addModal">
+    <div class="modal-overlay" onclick="closeAddModal()"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fas fa-plus-circle"></i> Add New Schedule</h3>
+        <button class="modal-close" onclick="closeAddModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="addScheduleModalForm">
+          <div class="form-group">
+            <label>Teacher</label>
+            <input type="text" id="addTeacherName" readonly class="readonly-input" placeholder="Teacher Name" title="Teacher Name">
+            <input type="hidden" id="addTeacherId">
+          </div>
+          
+          <div class="form-group">
+            <label for="addSubject">Subject *</label>
+            <select id="addSubject" required>
+              <option value="">-- Select Subject --</option>
+            </select>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="addClassGrade">Class Grade *</label>
+              <select id="addClassGrade" required>
+                <option value="">-- Select Grade --</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="addSection">Section *</label>
+              <select id="addSection" required>
+                <option value="">-- Select Section --</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="addDayOfWeek">Day of Week *</label>
+            <select id="addDayOfWeek" required>
+              <option value="">-- Select Day --</option>
+              <option value="Monday">Monday</option>
+              <option value="Tuesday">Tuesday</option>
+              <option value="Wednesday">Wednesday</option>
+              <option value="Thursday">Thursday</option>
+              <option value="Friday">Friday</option>
+            </select>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="addStartTime">Start Time *</label>
+              <input type="time" id="addStartTime" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="addEndTime">End Time *</label>
+              <input type="time" id="addEndTime" required>
+            </div>
+          </div>
+          
+          <div class="session-presets-section">
+            <label><i class="fas fa-clock"></i> Quick Select Session:</label>
+            <div class="session-presets" id="sessionPresetsContainer">
+              <!-- Session presets will be populated dynamically from settings -->
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAddModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveNewSchedule()">
+          <i class="fas fa-save"></i> Add Schedule
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal" id="deleteModal">
+    <div class="modal-overlay" onclick="closeDeleteModal()"></div>
+    <div class="modal-content modal-sm">
+      <div class="modal-header modal-header-danger">
+        <h3><i class="fas fa-exclamation-triangle"></i> Confirm Delete</h3>
+        <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="delete-message">Are you sure you want to delete this schedule?</p>
+        <div class="delete-details" id="deleteDetails"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+        <button class="btn btn-danger" id="confirmDeleteBtn">
+          <i class="fas fa-trash"></i> Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Schedule Settings Modal -->
+  <div class="modal" id="settingsModal">
+    <div class="modal-overlay" onclick="closeSettingsModal()"></div>
+    <div class="modal-content" style="max-width: 650px;">
+      <div class="modal-header">
+        <h3><i class="fas fa-cog"></i> Schedule Session Settings</h3>
+        <button class="modal-close" onclick="closeSettingsModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="settingsForm">
+          <div class="info-box info-box-warning">
+            <i class="fas fa-info-circle"></i>
+            <span>Configure the daily session structure. Changes will affect time slot options when creating new schedules.</span>
+          </div>
+          
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="settingsSessionsPerDay">
+                <i class="fas fa-list-ol"></i> Sessions Per Day
+              </label>
+              <input type="number" id="settingsSessionsPerDay" min="1" max="12" value="7" required>
+              <small class="help-text">Number of class sessions per day (1-12)</small>
+            </div>
+            
+            <div class="form-group">
+              <label for="settingsSessionDuration">
+                <i class="fas fa-hourglass-half"></i> Session Duration (minutes)
+              </label>
+              <input type="number" id="settingsSessionDuration" min="20" max="120" value="50" required>
+              <small class="help-text">Duration of each session (20-120 min)</small>
+            </div>
+            
+            <div class="form-group">
+              <label for="settingsBreakAfterSession">
+                <i class="fas fa-coffee"></i> Break After Session
+              </label>
+              <input type="number" id="settingsBreakAfterSession" min="1" max="11" value="4" required>
+              <small class="help-text">Insert break after this session number</small>
+            </div>
+            
+            <div class="form-group">
+              <label for="settingsBreakDuration">
+                <i class="fas fa-clock"></i> Break Duration (minutes)
+              </label>
+              <input type="number" id="settingsBreakDuration" min="5" max="60" value="30" required>
+              <small class="help-text">Duration of the break (5-60 min)</small>
+            </div>
+            
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label for="settingsDayStartTime">
+                <i class="fas fa-sun"></i> School Day Start Time
+              </label>
+              <input type="time" id="settingsDayStartTime" value="08:00" required>
+              <small class="help-text">When the first session begins</small>
+            </div>
+          </div>
+          
+          <div class="settings-preview-section">
+            <h4><i class="fas fa-eye"></i> Time Slots Preview</h4>
+            <div id="timeSlotsPreview" class="time-slots-preview">
+              <!-- Time slots will be rendered here -->
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="resetScheduleSettings()">
+          <i class="fas fa-undo"></i> Reset to Defaults
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="closeSettingsModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" id="saveSettingsBtn" onclick="saveScheduleSettings()">
+          <i class="fas fa-save"></i> Save Settings
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="teacherSchedual.js"></script>
+</body>
+</html>

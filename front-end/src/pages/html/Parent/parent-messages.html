@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages - Parent Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="parent-dashboard.css">
+    <link rel="stylesheet" href="parent-message.css">
+    <script src="../js/toast.js"></script>
+    <script src="../js/searchable-select.js"></script>
+
+</head>
+
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">SS</div>
+                <span>Smart School</span>
+            </div>
+            <div class="header-info">
+                <span class="user-name" id="userName">Loading...</span>
+                <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="parent-dashboard.html" class="nav-link">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+            <a href="parent-attendance.html" class="nav-link">
+                <i class="fas fa-clipboard-check"></i> Attendance
+            </a>
+            <a href="parent-grades.html" class="nav-link">
+                <i class="fas fa-graduation-cap"></i> Grades
+            </a>
+            <a href="parent-schedule.html" class="nav-link">
+                <i class="fas fa-calendar-week"></i> Schedule
+            </a>
+            <a href="parent-messages.html" class="nav-link active">
+                <i class="fas fa-envelope"></i> Messages
+            </a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="messages-container">
+            <div class="page-title-section">
+                <div class="page-heading">
+                    <h2><i class="fas fa-envelope"></i> School Messages & Announcements</h2>
+                    <p style="color: #6b7280; margin-top: 8px;">View all announcements sent to your children</p>
+                </div>
+            </div>
+
+            <div id="alertBox" class="alert"></div>
+            
+            <div id="loadingContainer" class="loading">
+                <i class="fas fa-spinner fa-spin"></i> Loading messages...
+            </div>
+
+            <div id="contentContainer" style="display: none;">
+               
+                    <div id="childTabs" ></div>
+
+                <div id="statsContainer" class="stats-grid"></div>
+
+                <div class="filter-bar">
+                    <button class="filter-btn active" onclick="filterMessages('all')">
+                        <i class="fas fa-list"></i> All Messages
+                    </button>
+                    <button class="filter-btn" onclick="filterMessages('personal')">
+                        <i class="fas fa-user-check"></i> Personal Only
+                    </button>
+                    <button class="filter-btn" onclick="filterMessages('grade')">
+                        <i class="fas fa-users"></i> Grade/School
+                    </button>
+                    <button class="filter-btn" onclick="filterMessages('unread')">
+                        <i class="fas fa-envelope"></i> Unread
+                    </button>
+                </div>
+
+                <div id="personalSection" class="announcement-section" style="display: none;">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <i class="fas fa-user-check" style="color: #dc2626;"></i>
+                            Personal Messages
+                        </div>
+                        <span id="personalCount" class="badge badge-personal">0</span>
+                    </div>
+                    <div id="personalMessages"></div>
+                </div>
+
+                <div id="gradeSection" class="announcement-section" style="display: none;">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <i class="fas fa-bullhorn" style="color: #2563eb;"></i>
+                            Grade & School Announcements
+                        </div>
+                        <span id="gradeCount" class="badge badge-grade">0</span>
+                    </div>
+                    <div id="gradeMessages"></div>
+                </div>
+
+                <div id="noMessages" class="empty-state" style="display: none;">
+                    <i class="fas fa-inbox"></i>
+                    <h3>No Messages</h3>
+                    <p>There are no announcements for this student at the moment.</p>
+                </div>
+            </div>
+
+            <div id="noChildrenMessage" class="empty-state" style="display: none;">
+                <i class="fas fa-user-friends"></i>
+                <h3>No Children Found</h3>
+                <p>No students are currently linked to your account.</p>
+            </div>
+        </div>
+    </main>
+
+    <div id="announcementModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="modal-close" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div id="modalBadges" class="announcement-badges"></div>
+                <h2 id="modalTitle" style="margin: 12px 0; color: #1f2937;"></h2>
+                <div id="modalMeta" class="announcement-meta"></div>
+            </div>
+            <div class="modal-body">
+                <div id="modalContent" class="announcement-detail-content"></div>
+                <div id="modalAttachments"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="parent-messages.js"></script>
+</body>
+
+</html>

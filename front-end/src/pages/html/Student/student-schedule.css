@@ -1,0 +1,576 @@
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1e88e5;
+            --primary-light: #42a5f5;
+            --primary-dark: #1565c0;
+            --secondary: #64b5f6;
+            --danger: #c62828;
+            --warning: #f57c00;
+            --bg: #f5f7fa;
+            --bg-secondary: #e3f2fd;
+            --bg-hover: #e0e6ed;
+            --text: #1a1a2e;
+            --text-secondary: #5a6a85;
+            --border: #e0e6ed;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* Top Navigation */
+        .top-nav {
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+     .logo-icon {
+    background: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);
+    color: white;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-size: 1em;
+    font-weight: 700;
+}
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 16px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+        }
+.user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+
+       .back-btn {
+            padding: 10px 18px;
+            background: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .page-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .schedule-info {
+            display: flex;
+            gap: 24px;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        /* Loading and Error */
+        .loading, .error-message {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 16px;
+            margin: 2rem 0;
+        }
+
+        .spinner {
+            border: 3px solid var(--bg-secondary);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .error-message {
+            color: var(--danger);
+            background: #fee2e2;
+            border: 2px solid var(--danger);
+        }
+
+        /* Week View Toggle */
+        .view-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .view-tabs {
+            display: flex;
+            gap: 8px;
+            background: var(--bg-secondary);
+            padding: 4px;
+            border-radius: 10px;
+        }
+
+        .view-tab {
+            padding: 8px 20px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .view-tab.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .legend {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+
+        /* Weekly Schedule Grid */
+        .weekly-schedule {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: 100px repeat(5, 1fr);
+            gap: 0;
+            border: 1px solid var(--border);
+        }
+
+        .time-column {
+            border-right: 2px solid var(--border);
+            background: var(--bg-secondary);
+        }
+
+        .time-slot {
+            padding: 1rem 0.75rem;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .day-column {
+            border-right: 1px solid var(--border);
+        }
+
+        .day-column:last-child {
+            border-right: none;
+        }
+
+        .day-header {
+            padding: 1.25rem;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .day-date {
+            font-size: 0.85rem;
+            font-weight: 400;
+            opacity: 0.9;
+            margin-top: 4px;
+        }
+
+        .class-slot {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            min-height: 80px;
+            position: relative;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .class-slot:hover {
+            background: var(--bg-hover);
+        }
+
+        .class-slot.has-class {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            border-left: 4px solid var(--primary);
+        }
+
+        .class-slot.current {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-left: 4px solid var(--secondary);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.9; }
+        }
+
+        .class-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .class-subject {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .class-teacher {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .class-time {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .current-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            background: var(--secondary);
+            color: white;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            position: absolute;
+            top: 8px;
+            right: 8px;
+        }
+
+        .empty-slot {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-align: center;
+            opacity: 0.5;
+        }
+
+        /* Day View (Mobile Friendly) */
+        .day-view {
+            display: none;
+        }
+
+        .day-selector {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 4px;
+            margin-bottom: 1rem;
+        }
+
+        .day-btn {
+            padding: 12px 24px;
+            border: 2px solid var(--border);
+            background: white;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .day-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .day-schedule {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .day-schedule h2 {
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .class-card {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            border-left: 4px solid var(--primary);
+            padding: 1.25rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            transition: all 0.2s;
+        }
+
+        .class-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+        }
+
+        .class-card.current {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-left-color: var(--secondary);
+        }
+
+        .class-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .class-card-subject {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .class-card-time {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .class-card-teacher {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Stats */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.25rem;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-content {
+            flex: 1;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .weekly-schedule {
+                display: none;
+            }
+
+            .day-view {
+                display: block;
+            }
+
+            .legend {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .top-nav {
+                padding: 1rem;
+            }
+
+            .page-header {
+                padding: 1.5rem;
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            .schedule-info {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .stats-bar {
+                grid-template-columns: 1fr;
+            }
+        }
+
+
+

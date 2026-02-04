@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Announcement - Smart School</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="admin-announcments.css" />
+  <script src="../js/toast.js"></script>
+  <script src="../js/searchable-select.js"></script>
+  <style>
+    
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>
+        <i class="fas fa-bullhorn"></i>
+        Announcement Management
+      </h1>
+      <a href="admin-dashboard.html" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+      </a>
+    </div>
+
+    <div class="alert alert-success" id="successAlert">
+      <i class="fas fa-check-circle"></i>
+      <span id="successMessage"></span>
+    </div>
+
+    <div class="alert alert-error" id="errorAlert">
+      <i class="fas fa-exclamation-circle"></i>
+      <span id="errorMessage"></span>
+    </div>
+
+    <div class="card">
+      <h2>
+        <i class="fas fa-plus-circle"></i>
+        Create New Announcement
+      </h2>
+      
+      <form id="announcementForm">
+        <div class="form-group">
+          <label for="title">Title *</label>
+          <input 
+            type="text" 
+            id="title" 
+            placeholder="Enter announcement title..." 
+            required
+            maxlength="200"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="category">Category *</label>
+          <select id="category" required>
+            <option value="">-- Select Category --</option>
+            <option value="general">General</option>
+            <option value="urgent">Urgent</option>
+            <option value="event">Event</option>
+            <option value="academic">Academic</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="content">Content *</label>
+          <textarea 
+            id="content" 
+            placeholder="Write your announcement here..."
+            required
+            maxlength="2000"
+          ></textarea>
+        </div>
+
+        <!-- NEW: Targeting Mode Selection -->
+        <div class="targeting-section">
+          <h3><i class="fas fa-users"></i> Target Audience</h3>
+          
+          <div class="targeting-mode">
+            <button type="button" id="modeGradeSection" class="active">
+              <i class="fas fa-graduation-cap"></i> Grade/Section
+            </button>
+            <button type="button" id="modeSpecificStudents">
+              <i class="fas fa-user-check"></i> Specific Students
+            </button>
+          </div>
+
+          <!-- Grade/Section Targeting (Default) -->
+          <div id="gradeSectionTargeting">
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="allGradesCheck" checked>
+                Send to All Grades
+                <span class="target-info" id="gradeTargetInfo">All Grades</span>
+              </label>
+              
+              <div id="gradeSelectContainer" style="display: none;">
+                <label style="font-weight: 500; margin-bottom: 10px; display: block;">Select Grades:</label>
+                <div class="multi-select-container" id="gradeCheckboxes"></div>
+              </div>
+            </div>
+
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="allSectionsCheck" checked>
+                Send to All Sections
+                <span class="target-info" id="sectionTargetInfo">All Sections</span>
+              </label>
+              
+              <div id="sectionSelectContainer" style="display: none;">
+                <label style="font-weight: 500; margin-bottom: 10px; display: block;">Select Sections:</label>
+                <div class="multi-select-container" id="sectionCheckboxes"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Specific Students Targeting -->
+          <div id="specificStudentsTargeting" style="display: none;">
+            <div class="student-search">
+              <input 
+                type="text" 
+                id="studentSearch" 
+                placeholder="🔍 Search students by name, email, or grade..."
+              >
+              <span class="selected-count" id="selectedCount" style="display: none;">0 selected</span>
+            </div>
+            
+            <div class="student-list" id="studentList">
+              <div class="loading">
+                <i class="fas fa-spinner fa-spin"></i> Loading students...
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="preview-section">
+          <h3><i class="fas fa-eye"></i> Live Preview</h3>
+          <div class="announcement-preview" id="previewCard">
+            <span class="preview-category general" id="previewCategory">general</span>
+            <h3 class="preview-title" id="previewTitle">Announcement Title</h3>
+            <p class="preview-content" id="previewContent">Your announcement content will appear here...</p>
+            <div class="preview-footer">
+              <i class="fas fa-user-circle"></i> Posted by You
+              <span id="previewTargeting" style="margin-left: 10px; color: #666; font-size: 13px;"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" id="resetBtn">
+            <i class="fas fa-redo"></i> Reset
+          </button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-paper-plane"></i> Publish Announcement
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>
+        <i class="fas fa-list"></i>
+        Recent Announcements
+      </h2>
+      
+      <div id="announcementsListContainer" class="announcements-list">
+        <div style="text-align: center; padding: 20px; color: #999;">
+          <i class="fas fa-spinner fa-spin"></i>
+          <p>Loading announcements...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="admin-announcment.js"></script>
+</body>
+</html>

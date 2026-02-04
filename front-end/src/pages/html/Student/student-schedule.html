@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Weekly Schedule</title>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <link rel="stylesheet" href="student-schedule.css">
+    <script src="../js/toast.js"></script>
+    <script src="../js/searchable-select.js"></script>
+
+</head>
+
+<body>
+    <nav class="top-nav">
+        <div class="logo">
+            <div class="logo-icon">SS</div>
+            <span class="logo-text">Smart School</span>
+        </div>
+        <div class="nav-right">
+            <a class="back-btn" href="student-dashboard.html">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">S</div>
+                <div>
+                    <div style="font-weight: 600; font-size: 0.9rem;" id="userName">Student</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);" id="userClass">Loading...</div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Loading State -->
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p style="color: var(--text-secondary); margin-top: 1rem;">Loading your weekly schedule...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="error" class="error-message hidden"></div>
+
+        <!-- Main Content -->
+        <div id="mainContent" class="hidden">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1 class="page-title">
+                    <i data-lucide="calendar-days"></i>
+                    My Weekly Schedule
+                </h1>
+                <p class="page-subtitle" id="currentWeek">Week of January 20 - January 24, 2026</p>
+                <div class="schedule-info">
+                    <div class="info-item">
+                        <i data-lucide="graduation-cap" style="color: var(--primary);"></i>
+                        <span id="gradeSection">Grade 10 - Section A</span>
+                    </div>
+                    <div class="info-item">
+                        <i data-lucide="book-open" style="color: var(--secondary);"></i>
+                        <span id="totalSubjects">0 Subjects</span>
+                    </div>
+                    <div class="info-item">
+                        <i data-lucide="clock" style="color: var(--warning);"></i>
+                        <span id="totalClasses">0 Classes per Week</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="stats-bar">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #eef2ff;">
+                        <i data-lucide="calendar-check" style="color: var(--primary); width: 24px; height: 24px;"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Today's Classes</div>
+                        <div class="stat-value" id="todayClasses">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #d1fae5;">
+                        <i data-lucide="play-circle" style="color: var(--secondary); width: 24px; height: 24px;"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Current Class</div>
+                        <div class="stat-value" id="currentClass">None</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #fef3c7;">
+                        <i data-lucide="arrow-right-circle"
+                            style="color: var(--warning); width: 24px; height: 24px;"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Next Class</div>
+                        <div class="stat-value" id="nextClass">None</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View Controls -->
+            <div class="view-controls">
+                <div class="view-tabs">
+                    <button class="view-tab active" onclick="switchView('week')">
+                        <i data-lucide="calendar-days" style="width: 16px; height: 16px;"></i>
+                        Week View
+                    </button>
+                    <button class="view-tab" onclick="switchView('day')">
+                        <i data-lucide="calendar" style="width: 16px; height: 16px;"></i>
+                        Day View
+                    </button>
+                </div>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(135deg, #eef2ff, #e0e7ff);"></div>
+                        <span>Regular Class</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0);"></div>
+                        <span>Current Class</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weekly Schedule View -->
+            <div class="weekly-schedule" id="weekView">
+                <div class="schedule-grid" id="scheduleGrid">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Day View (Mobile) -->
+            <div class="day-view" id="dayView">
+                <div class="day-selector" id="daySelector">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+                <div class="day-schedule" id="daySchedule">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5001/api';
+        let currentStudent = null;
+        let schedules = [];
+        let currentView = 'week';
+        let selectedDay = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+
+        const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        const TIME_SLOTS = [
+            '08:00', '09:00', '10:00', '11:00', '12:00',
+            '13:00', '14:00', '15:00', '16:00'
+        ];
+
+        // Get token
+        const getToken = () => localStorage.getItem('token');
+
+        // API call function
+        async function apiCall(endpoint, method = 'GET', body = null) {
+            const token = getToken();
+            try {
+                const response = await fetch(`${API_URL}${endpoint}`, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(token && { 'Authorization': `Bearer ${token}` })
+                    },
+                    body: body ? JSON.stringify(body) : null
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    if (response.status === 401 || response.status === 403) {
+                        localStorage.removeItem('token');
+                        window.location.href = '../login.html';
+                    }
+                    throw new Error(error.message || 'API request failed');
+                }
+
+                return response.json();
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+
+        // Format grade label
+        function formatGradeLabel(grade) {
+            if (grade === 'kg1') return 'KG1';
+            if (grade === 'kg2') return 'KG2';
+            return grade.charAt(0).toUpperCase() + grade.slice(1);
+        }
+
+        // Initialize
+        async function init() {
+            const token = getToken();
+            if (!token) {
+                showError('Please log in to view your schedule');
+                setTimeout(() => window.location.href = '../login.html', 2000);
+                return;
+            }
+
+            try {
+                await loadSchedule();
+            } catch (error) {
+                console.error('Initialization error:', error);
+                showError(error.message);
+            }
+        }
+
+        // Load schedule
+        async function loadSchedule() {
+            try {
+                showLoading();
+
+                // Get current user
+                const userData = await apiCall('/users/me');
+                currentStudent = userData.user;
+
+                if (currentStudent.role !== 'student') {
+                    showError('Access denied. This page is for students only.');
+                    setTimeout(() => window.location.href = '../login.html', 2000);
+                    return;
+                }
+
+                // Update user info
+                document.getElementById('userName').textContent = currentStudent.name;
+                document.getElementById('userAvatar').textContent = currentStudent.name.charAt(0).toUpperCase();
+                document.getElementById('userClass').textContent =
+                    `${formatGradeLabel(currentStudent.classGrade || 'N/A')} - Section ${currentStudent.classSection || 'N/A'}`;
+
+                // Load schedules
+                const scheduleData = await apiCall(`/schedules/student/${currentStudent._id}`);
+
+                // Convert grouped schedules to flat array
+                if (scheduleData.schedules) {
+                    schedules = [];
+                    Object.entries(scheduleData.schedules).forEach(([dayOfWeek, daySchedules]) => {
+                        daySchedules.forEach(schedule => {
+                            schedules.push({
+                                ...schedule,
+                                dayOfWeek: dayOfWeek
+                            });
+                        });
+                    });
+                } else {
+                    schedules = [];
+                }
+
+                renderSchedule();
+                updateStats();
+                hideLoading();
+
+            } catch (error) {
+                showError('Failed to load schedule: ' + error.message);
+                hideLoading();
+            }
+        }
+
+        // Render schedule
+        function renderSchedule() {
+            document.getElementById('mainContent').classList.remove('hidden');
+
+            // Update header info
+            const gradeSection = document.getElementById('gradeSection');
+            gradeSection.textContent = `${formatGradeLabel(currentStudent.classGrade || 'N/A')} - Section ${currentStudent.classSection || 'N/A'}`;
+
+            const subjects = [...new Set(schedules.map(s => s.subject))];
+            document.getElementById('totalSubjects').textContent = `${subjects.length} Subject${subjects.length !== 1 ? 's' : ''}`;
+            document.getElementById('totalClasses').textContent = `${schedules.length} Class${schedules.length !== 1 ? 'es' : ''} per Week`;
+
+            // Update current week
+            const now = new Date();
+            const weekStart = new Date(now);
+            weekStart.setDate(now.getDate() - now.getDay() + 1); // Monday
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekStart.getDate() + 4); // Friday
+
+            document.getElementById('currentWeek').textContent =
+                `Week of ${weekStart.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
+
+            renderWeekView();
+            renderDaySelector();
+            renderDayView();
+
+            lucide.createIcons();
+        }
+
+        // Render week view
+        function renderWeekView() {
+            const grid = document.getElementById('scheduleGrid');
+            let html = '';
+
+            // Header row
+            html += '<div class="time-column"></div>';
+            DAYS.forEach(day => {
+                const date = getDateForDay(day);
+                html += `
+                    <div class="day-header">
+                        ${day}
+                        <div class="day-date">${date}</div>
+                    </div>
+                `;
+            });
+
+            // Time slots
+            TIME_SLOTS.forEach(time => {
+                html += `<div class="time-slot">${time}</div>`;
+
+                DAYS.forEach(day => {
+                    const classAtTime = findClassAtTime(day, time);
+                    const isCurrent = isCurrentClass(day, time);
+
+                    if (classAtTime) {
+                        html += `
+                            <div class="class-slot has-class ${isCurrent ? 'current' : ''}">
+                                ${isCurrent ? '<div class="current-indicator"><i data-lucide="play-circle" style="width: 12px; height: 12px;"></i> Now</div>' : ''}
+                                <div class="class-info">
+                                    <div class="class-subject">${classAtTime.subject}</div>
+                                    <div class="class-teacher">
+                                        <i data-lucide="user" style="width: 14px; height: 14px;"></i>
+                                        ${classAtTime.teacher?.name || 'N/A'}
+                                    </div>
+                                    <div class="class-time">
+                                        <i data-lucide="clock" style="width: 12px; height: 12px;"></i>
+                                        ${classAtTime.startTime} - ${classAtTime.endTime}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        html += '<div class="class-slot"><div class="empty-slot">Free</div></div>';
+                    }
+                });
+            });
+
+            grid.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        // Render day selector
+        function renderDaySelector() {
+            const selector = document.getElementById('daySelector');
+            selector.innerHTML = DAYS.map(day => `
+                <button class="day-btn ${day === selectedDay ? 'active' : ''}" 
+                        onclick="selectDay('${day}')">
+                    ${day}
+                </button>
+            `).join('');
+        }
+
+        // Render day view (continued)
+        function renderDayView() {
+            const container = document.getElementById('daySchedule');
+            const dayClasses = schedules.filter(s => s.dayOfWeek === selectedDay)
+                .sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+            let html = `<h2><i data-lucide="calendar"></i> ${selectedDay}</h2>`;
+
+            if (dayClasses.length === 0) {
+                html += `
+                    <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+                        <i data-lucide="calendar-x" style="width: 48px; height: 48px; margin-bottom: 1rem;"></i>
+                        <p>No classes scheduled for ${selectedDay}</p>
+                    </div>
+                `;
+            } else {
+                dayClasses.forEach(classItem => {
+                    const isCurrent = isCurrentClass(selectedDay, classItem.startTime.substring(0, 5));
+                    html += `
+                        <div class="class-card ${isCurrent ? 'current' : ''}">
+                            <div class="class-card-header">
+                                <div class="class-card-subject">${classItem.subject}</div>
+                                <div class="class-card-time">
+                                    <i data-lucide="clock" style="width: 16px; height: 16px;"></i>
+                                    ${classItem.startTime} - ${classItem.endTime}
+                                </div>
+                            </div>
+                            <div class="class-card-teacher">
+                                <i data-lucide="user" style="width: 16px; height: 16px;"></i>
+                                ${classItem.teacher?.name || 'No teacher assigned'}
+                            </div>
+                            ${isCurrent ? `
+                                <div style="margin-top: 12px; padding: 8px; background: rgba(16, 185, 129, 0.1); border-radius: 6px; color: var(--secondary); font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                                    <i data-lucide="play-circle" style="width: 16px; height: 16px;"></i>
+                                    Currently in progress
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+            }
+
+            container.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        // Find class at specific time
+        function findClassAtTime(day, time) {
+            return schedules.find(s => {
+                if (s.dayOfWeek !== day) return false;
+                const startHour = parseInt(s.startTime.split(':')[0]);
+                const timeHour = parseInt(time.split(':')[0]);
+                return startHour === timeHour;
+            });
+        }
+
+        // Check if class is currently active
+        function isCurrentClass(day, time) {
+            const now = new Date();
+            const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' });
+
+            if (day !== currentDay) return false;
+
+            const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+            const classItem = schedules.find(s => {
+                if (s.dayOfWeek !== day) return false;
+                const startHour = parseInt(s.startTime.split(':')[0]);
+                const timeHour = parseInt(time.split(':')[0]);
+                return startHour === timeHour;
+            });
+
+            if (!classItem) return false;
+
+            return currentTime >= classItem.startTime && currentTime <= classItem.endTime;
+        }
+
+        // Get date for day of week
+        function getDateForDay(dayName) {
+            const now = new Date();
+            const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+            const dayIndex = DAYS.indexOf(dayName) + 1; // +1 because Monday = 1
+
+            const diff = dayIndex - currentDay;
+            const targetDate = new Date(now);
+            targetDate.setDate(now.getDate() + diff);
+
+            return targetDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+
+        // Update stats
+        function updateStats() {
+            const now = new Date();
+            const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' });
+            const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+            // Today's classes
+            const todayClasses = schedules.filter(s => s.dayOfWeek === currentDay);
+            document.getElementById('todayClasses').textContent = todayClasses.length;
+
+            // Current class
+            const currentClassItem = todayClasses.find(s =>
+                currentTime >= s.startTime && currentTime <= s.endTime
+            );
+
+            if (currentClassItem) {
+                document.getElementById('currentClass').textContent = currentClassItem.subject;
+                document.getElementById('currentClass').style.fontSize = '1.1rem';
+            } else {
+                document.getElementById('currentClass').textContent = 'None';
+            }
+
+            // Next class
+            const upcomingClasses = todayClasses.filter(s => s.startTime > currentTime)
+                .sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+            if (upcomingClasses.length > 0) {
+                const nextClassItem = upcomingClasses[0];
+                document.getElementById('nextClass').textContent = `${nextClassItem.subject} at ${nextClassItem.startTime}`;
+                document.getElementById('nextClass').style.fontSize = '0.9rem';
+            } else {
+                // Check tomorrow
+                const tomorrow = new Date(now);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const tomorrowDay = tomorrow.toLocaleDateString('en-US', { weekday: 'long' });
+                const tomorrowClasses = schedules.filter(s => s.dayOfWeek === tomorrowDay)
+                    .sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+                if (tomorrowClasses.length > 0) {
+                    document.getElementById('nextClass').textContent = `${tomorrowClasses[0].subject} (Tomorrow)`;
+                    document.getElementById('nextClass').style.fontSize = '0.9rem';
+                } else {
+                    document.getElementById('nextClass').textContent = 'None';
+                }
+            }
+
+            lucide.createIcons();
+        }
+
+        // Switch view
+        function switchView(view) {
+            currentView = view;
+
+            // Update tabs
+            document.querySelectorAll('.view-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.closest('.view-tab').classList.add('active');
+
+            // Toggle views
+            if (view === 'week') {
+                document.getElementById('weekView').style.display = 'block';
+                document.getElementById('dayView').style.display = 'none';
+            } else {
+                document.getElementById('weekView').style.display = 'none';
+                document.getElementById('dayView').style.display = 'block';
+            }
+
+            lucide.createIcons();
+        }
+
+        // Select day
+        function selectDay(day) {
+            selectedDay = day;
+            renderDaySelector();
+            renderDayView();
+        }
+
+        // Utility functions
+        function showLoading() {
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('mainContent').classList.add('hidden');
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').classList.add('hidden');
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+            document.getElementById('loading').classList.add('hidden');
+        }
+
+        // Auto-update current class every minute
+        setInterval(() => {
+            if (schedules.length > 0) {
+                updateStats();
+                renderWeekView();
+                if (currentView === 'day') {
+                    renderDayView();
+                }
+            }
+        }, 60000); // Update every minute
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+
+</html>

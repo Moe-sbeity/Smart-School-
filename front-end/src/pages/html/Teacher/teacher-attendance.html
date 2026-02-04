@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance - Smart School</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+   <link rel="stylesheet" href="teacher-attendance.css">
+   <script src="../js/toast.js"></script>
+   <script src="../js/searchable-select.js"></script>
+</head>
+<body>
+    <nav class="top-nav">
+        <div class="nav-content">
+            <div class="logo">
+                <div class="logo-icon">SS</div>
+                <span>Smart School</span>
+            </div>
+            <a class="back-btn" href="teacher-dashboard.html">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-clipboard-check"></i> Mark Attendance</h1>
+            <div class="date-subject-selector">
+                <div class="selector-group">
+                    <label>Date:</label>
+                    <input type="date" id="attendanceDate" title="Select attendance date" placeholder="YYYY-MM-DD" />
+                </div>
+                <div class="selector-group">
+                    <label>Subject:</label>
+                    <select id="subjectSelect" title="Select Subject">
+                        <option value="">Select Subject</option>
+                    </select>
+                </div>
+                <button class="btn-load" onclick="loadStudents()">
+                    <i class="fas fa-sync-alt"></i> Load Students
+                </button>
+            </div>
+        </div>
+
+        <div id="messageContainer"></div>
+
+        <div class="stats-grid" id="statsGrid" style="display: none;">
+            <div class="stat-card present">
+                <div class="stat-value" id="presentCount">0</div>
+                <div class="stat-label">Present</div>
+            </div>
+            <div class="stat-card absent">
+                <div class="stat-value" id="absentCount">0</div>
+                <div class="stat-label">Absent</div>
+            </div>
+            <div class="stat-card late">
+                <div class="stat-value" id="lateCount">0</div>
+                <div class="stat-label">Late</div>
+            </div>
+            <div class="stat-card excused">
+                <div class="stat-value" id="excusedCount">0</div>
+                <div class="stat-label">Excused</div>
+            </div>
+        </div>
+
+        <div class="attendance-container">
+            <div class="toolbar" id="toolbar" style="display: none;">
+                <div class="quick-actions">
+                    <button class="btn-action" onclick="markAllPresent()">
+                        <i class="fas fa-check-double"></i> Mark All Present
+                    </button>
+                    <button class="btn-action" onclick="clearAll()">
+                        <i class="fas fa-eraser"></i> Clear All
+                    </button>
+                </div>
+                <button class="saveAtt" onclick="saveAttendance()">
+                    <i class="fas fa-save"></i> Save Attendance
+                </button>
+            </div>
+
+            <div id="studentContainer" class="loading">
+                <i class="fas fa-info-circle"></i>
+                <p>Select a date and subject to begin</p>
+            </div>
+        </div>
+    </div>
+<script src="teacher-attendance.js"></script>
+  
+</body>
+</html>
