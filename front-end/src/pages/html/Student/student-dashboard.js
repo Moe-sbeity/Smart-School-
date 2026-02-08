@@ -43,7 +43,7 @@ function showDobModal() {
     const modal = document.getElementById('dobModal');
     const dobInput = document.getElementById('dobInput');
     if (modal) {
-        modal.style.display = 'flex';
+        modal.classList.remove('hidden');
         // Set max date to today
         if (dobInput) {
             const today = new Date().toISOString().split('T')[0];
@@ -56,7 +56,7 @@ function showDobModal() {
 function hideDobModal() {
     const modal = document.getElementById('dobModal');
     if (modal) {
-        modal.style.display = 'none';
+        modal.classList.add('hidden');
     }
 }
 
@@ -161,10 +161,68 @@ function logout() {
     });
 }
 
-// View profile (placeholder)
+// View profile
 function viewProfile() {
-    if (typeof Toast !== 'undefined') {
-        Toast.info('Profile page coming soon!');
+    const modal = document.getElementById('profileModal');
+    if (!modal) return;
+
+    // Populate profile data
+    const student = currentStudent;
+    if (student) {
+        document.getElementById('profileAvatar').textContent = (student.name || 'S').charAt(0).toUpperCase();
+        document.getElementById('profileName').textContent = student.name || '—';
+        document.getElementById('profileEmail').textContent = student.email || '—';
+        document.getElementById('profileGender').textContent = student.gender ? student.gender.charAt(0).toUpperCase() + student.gender.slice(1) : '—';
+        document.getElementById('profileDob').textContent = student.dateOfBirth ? new Date(student.dateOfBirth).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '—';
+        document.getElementById('profileGrade').textContent = student.classGrade ? formatGradeLabel(student.classGrade) : '—';
+        document.getElementById('profileSection').textContent = student.classSection || '—';
+        document.getElementById('profileParentEmail').textContent = student.parent?.email || '—';
+    }
+
+    // Reset password form
+    document.getElementById('changePasswordForm').reset();
+
+    modal.classList.remove('hidden');
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function closeProfileModal() {
+    const modal = document.getElementById('profileModal');
+    if (modal) modal.classList.add('hidden');
+}
+
+async function handleChangePassword(e) {
+    e.preventDefault();
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    if (newPassword !== confirmPassword) {
+        Toast.error('New passwords do not match');
+        return;
+    }
+    if (newPassword.length < 6) {
+        Toast.error('Password must be at least 6 characters');
+        return;
+    }
+
+    const btn = document.getElementById('changePassBtn');
+    btn.disabled = true;
+    btn.textContent = 'Changing...';
+
+    try {
+        const res = await apiCall('/users/change-password', 'PUT', { currentPassword, newPassword });
+        if (res.success !== false) {
+            Toast.success('Password changed successfully!');
+            document.getElementById('changePasswordForm').reset();
+        } else {
+            Toast.error(res.message || 'Failed to change password');
+        }
+    } catch (err) {
+        Toast.error(err.message || 'Failed to change password');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Change Password';
     }
 }
 
@@ -397,8 +455,308 @@ function renderDashboard() {
     // Render admin announcements section
     renderAdminAnnouncementsSection();
 
+    // Render student charts
+    renderStudentCharts();
+
     lucide.createIcons();
 }
+
+// ============================================================================
+// STUDENT CHARTS FUNCTIONS
+// ============================================================================
+
+// Render all student charts
+async function renderStudentCharts() {
+    renderAttendanceChart();
+    renderTasksChart();
+    renderSubjectPerformanceChart();
+}
+
+// Attendance Chart (Doughnut)
+async function renderAttendanceChart() {
+    const ctx = document.getElementById('studentAttendanceChart');
+    if (!ctx) return;
+
+    try {
+        const token = getToken();
+        const response = await fetch(`${API_URL}/attendance/my-stats`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        let stats = { present: 0, absent: 0, late: 0, excused: 0 };
+        if (response.ok) {
+            const data = await response.json();
+            stats = data.stats || stats;
+        }
+
+        const total = stats.present + stats.absent + stats.late + stats.excused;
+
+        if (total === 0) {
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['No Data'],
+                    datasets: [{
+                        data: [1],
+                        backgroundColor: ['#e2e8f0'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: { legend: { display: false } }
+                }
+            });
+            return;
+        }
+
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Present', 'Absent', 'Late', 'Excused'],
+                datasets: [{
+                    data: [stats.present, stats.absent, stats.late, stats.excused],
+                    backgroundColor: ['#10b981', '#ef4444', '#f59e0b', '#3b82f6'],
+                    borderColor: '#ffffff',
+                    borderWidth: 3,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 12,
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            font: { size: 11 }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: '#1e293b',
+                        padding: 10,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: function(context) {
+                                const percentage = ((context.raw / total) * 100).toFixed(1);
+                                return `${context.label}: ${context.raw} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error loading attendance chart:', error);
+    }
+}
+
+// Tasks Progress Chart (Doughnut)
+function renderTasksChart() {
+    const ctx = document.getElementById('studentTasksChart');
+    if (!ctx) return;
+
+    const pendingTasks = allAnnouncements.filter(a =>
+        (a.type === 'assignment' || a.type === 'quiz') && !a.hasSubmitted && !a.isOverdue
+    ).length;
+    
+    const completedTasks = allAnnouncements.filter(a =>
+        (a.type === 'assignment' || a.type === 'quiz') && a.hasSubmitted
+    ).length;
+    
+    const overdueTasks = allAnnouncements.filter(a =>
+        (a.type === 'assignment' || a.type === 'quiz') && !a.hasSubmitted && a.isOverdue
+    ).length;
+
+    const total = pendingTasks + completedTasks + overdueTasks;
+
+    if (total === 0) {
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['No Tasks'],
+                datasets: [{
+                    data: [1],
+                    backgroundColor: ['#e2e8f0'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: { legend: { display: false } }
+            }
+        });
+        return;
+    }
+
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Completed', 'Pending', 'Overdue'],
+            datasets: [{
+                data: [completedTasks, pendingTasks, overdueTasks],
+                backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+                borderColor: '#ffffff',
+                borderWidth: 3,
+                hoverOffset: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 12,
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        font: { size: 11 }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: '#1e293b',
+                    padding: 10,
+                    cornerRadius: 8,
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.label}: ${context.raw} task${context.raw !== 1 ? 's' : ''}`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Subject Performance Chart (Bar)
+function renderSubjectPerformanceChart() {
+    const ctx = document.getElementById('studentSubjectChart');
+    if (!ctx) return;
+
+    // Get all subjects from the student's schedule
+    const scheduleSubjects = [...new Set(schedules.map(s => s.subject))];
+    
+    // Group submissions by subject and calculate average grades
+    const subjectGrades = {};
+    scheduleSubjects.forEach(subject => {
+        subjectGrades[subject] = { total: 0, count: 0, avg: null };
+    });
+    
+    allAnnouncements.forEach(a => {
+        if (a.hasSubmitted && a.submission && a.submission.grade !== undefined && a.totalPoints > 0) {
+            const subject = a.subject;
+            if (!subjectGrades[subject]) {
+                subjectGrades[subject] = { total: 0, count: 0, avg: null };
+            }
+            const percentage = (a.submission.grade / a.totalPoints) * 100;
+            subjectGrades[subject].total += percentage;
+            subjectGrades[subject].count++;
+        }
+    });
+
+    // Calculate averages
+    Object.keys(subjectGrades).forEach(subject => {
+        if (subjectGrades[subject].count > 0) {
+            subjectGrades[subject].avg = Math.round(subjectGrades[subject].total / subjectGrades[subject].count);
+        }
+    });
+
+    const subjects = Object.keys(subjectGrades).slice(0, 6);
+    
+    if (subjects.length === 0) {
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['No Subjects'],
+                datasets: [{
+                    data: [0],
+                    backgroundColor: ['#e2e8f0']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
+            }
+        });
+        return;
+    }
+
+    const averages = subjects.map(s => subjectGrades[s].avg || 0);
+    
+    const colors = subjects.map((s, i) => {
+        // Color based on grade: green for high, yellow for medium, red for low
+        const avg = subjectGrades[s].avg;
+        if (avg === null) return '#e2e8f0'; // No grade yet - gray
+        if (avg >= 80) return '#10b981'; // High - green
+        if (avg >= 60) return '#f59e0b'; // Medium - amber
+        return '#ef4444'; // Low - red
+    });
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: subjects,
+            datasets: [{
+                label: 'Grade %',
+                data: averages,
+                backgroundColor: colors,
+                borderRadius: 6,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#1e293b',
+                    padding: 10,
+                    cornerRadius: 8,
+                    callbacks: {
+                        label: function(context) {
+                            if (context.raw === 0) return 'No grades yet';
+                            return `Grade: ${context.raw}%`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                    ticks: { 
+                        font: { size: 11 }, 
+                        color: '#64748b',
+                        callback: function(value) {
+                            return value + '%';
+                        }
+                    }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { size: 10 }, color: '#64748b' }
+                }
+            }
+        }
+    });
+}
+
+// ============================================================================
+// END STUDENT CHARTS FUNCTIONS
+// ============================================================================
 
 // NEW: Render admin announcements section (keeping your existing implementation)
 function renderAdminAnnouncementsSection() {

@@ -160,6 +160,99 @@ router.post('/mark-bulk', protectRoute, async (req, res) => {
     }
 });
 
+// Get weekly attendance statistics (for admin dashboard)
+router.get('/weekly-stats', protectRoute, async (req, res) => {
+    try {
+        const user = await UserModel.findById(req.userId);
+        if (!user || user.role !== 'admin') {
+            return res.status(403).json({ message: 'Admin access required' });
+        }
+
+        // Get the start of the current week (Monday)
+        const now = new Date();
+        const dayOfWeek = now.getDay();
+        const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+        const monday = new Date(now);
+        monday.setDate(now.getDate() + mondayOffset);
+        monday.setHours(0, 0, 0, 0);
+
+        const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+        const weeklyData = [];
+
+        for (let i = 0; i < 5; i++) {
+            const dayStart = new Date(monday);
+            dayStart.setDate(monday.getDate() + i);
+            const dayEnd = new Date(dayStart);
+            dayEnd.setDate(dayStart.getDate() + 1);
+
+            const presentCount = await AttendanceModel.countDocuments({
+                date: { $gte: dayStart, $lt: dayEnd },
+                status: { $in: ['present', 'late'] }
+            });
+
+            const absentCount = await AttendanceModel.countDocuments({
+                date: { $gte: dayStart, $lt: dayEnd },
+                status: { $in: ['absent', 'excused'] }
+            });
+
+            weeklyData.push({
+                day: dayNames[i],
+                present: presentCount,
+                absent: absentCount
+            });
+        }
+
+        res.json({ data: weeklyData });
+    } catch (error) {
+        console.error('Error fetching weekly stats:', error);
+        res.status(500).json({ message: 'Error fetching weekly stats', error: error.message });
+    }
+});
+
+// Get attendance status statistics (for admin dashboard)
+router.get('/status-stats', protectRoute, async (req, res) => {
+    try {
+        const user = await UserModel.findById(req.userId);
+        if (!user || user.role !== 'admin') {
+            return res.status(403).json({ message: 'Admin access required' });
+        }
+
+        const stats = {
+            present: await AttendanceModel.countDocuments({ status: 'present' }),
+            absent: await AttendanceModel.countDocuments({ status: 'absent' }),
+            late: await AttendanceModel.countDocuments({ status: 'late' }),
+            excused: await AttendanceModel.countDocuments({ status: 'excused' })
+        };
+
+        res.json({ stats });
+    } catch (error) {
+        console.error('Error fetching attendance status stats:', error);
+        res.status(500).json({ message: 'Error fetching attendance stats', error: error.message });
+    }
+});
+
+// Get student's own attendance statistics (for student dashboard)
+router.get('/my-stats', protectRoute, async (req, res) => {
+    try {
+        const user = await UserModel.findById(req.userId);
+        if (!user || user.role !== 'student') {
+            return res.status(403).json({ message: 'Student access required' });
+        }
+
+        const stats = {
+            present: await AttendanceModel.countDocuments({ student: req.userId, status: 'present' }),
+            absent: await AttendanceModel.countDocuments({ student: req.userId, status: 'absent' }),
+            late: await AttendanceModel.countDocuments({ student: req.userId, status: 'late' }),
+            excused: await AttendanceModel.countDocuments({ student: req.userId, status: 'excused' })
+        };
+
+        res.json({ stats });
+    } catch (error) {
+        console.error('Error fetching student attendance stats:', error);
+        res.status(500).json({ message: 'Error fetching attendance stats', error: error.message });
+    }
+});
+
 // Get attendance for a specific date and subject (for teachers)
 router.get('/by-date', protectRoute, async (req, res) => {
     try {
@@ -453,6 +546,41 @@ router.get('/parent/overview', protectRoute, async (req, res) => {
     } catch (error) {
         console.error('Error fetching parent overview:', error);
         res.status(500).json({ message: 'Error fetching attendance overview', error: error.message });
+    }
+});
+
+// Get attendance stats for a specific child (for parent dashboard charts)
+router.get('/parent/child/:childId/stats', protectRoute, async (req, res) => {
+    try {
+        const parentId = req.userId;
+        const { childId } = req.params;
+
+        // Verify parent
+        const parent = await UserModel.findById(parentId);
+        if (!parent || parent.role !== 'parent') {
+            return res.status(403).json({ message: 'Access denied. Parents only.' });
+        }
+
+        // Verify child belongs to parent
+        const isParentChild = parent.children.some(
+            child => child.toString() === childId
+        );
+        
+        if (!isParentChild) {
+            return res.status(403).json({ message: 'Access denied. This is not your child.' });
+        }
+
+        const stats = {
+            present: await AttendanceModel.countDocuments({ student: childId, status: 'present' }),
+            absent: await AttendanceModel.countDocuments({ student: childId, status: 'absent' }),
+            late: await AttendanceModel.countDocuments({ student: childId, status: 'late' }),
+            excused: await AttendanceModel.countDocuments({ student: childId, status: 'excused' })
+        };
+
+        res.json({ stats });
+    } catch (error) {
+        console.error('Error fetching child attendance stats:', error);
+        res.status(500).json({ message: 'Error fetching attendance stats', error: error.message });
     }
 });
 

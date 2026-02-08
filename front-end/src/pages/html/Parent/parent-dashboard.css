@@ -4,6 +4,83 @@
             box-sizing: border-box;
         }
 
+        /* ===== Children Selector Section ===== */
+        #childrenSelector {
+            margin-bottom: 20px;
+        }
+
+        #childrenTabs {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        /* ===== Parent Charts Section ===== */
+        .parent-charts-section {
+            margin-top: 30px;
+        }
+
+        .parent-charts-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 1200px) {
+            .parent-charts-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .parent-charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .parent-chart-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e0e6ed;
+            overflow: hidden;
+            transition: box-shadow 0.2s ease;
+        }
+
+        .parent-chart-card:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        }
+
+        .parent-chart-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e0e6ed;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        }
+
+        .parent-chart-header h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin: 0;
+        }
+
+        .parent-chart-header h3 i {
+            color: #1e88e5;
+        }
+
+        .parent-chart-container {
+            padding: 16px;
+            height: 220px;
+            position: relative;
+        }
+
+        .parent-chart-container canvas {
+            max-height: 100%;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: #f5f7fa;
@@ -218,7 +295,8 @@
             border-color: #1e88e5;
         }
 
-        .child-avatar-small {
+        .child-avatar-small,
+        .child-avatar {
             width: 35px;
             height: 35px;
             border-radius: 50%;
@@ -231,9 +309,27 @@
             font-size: 14px;
         }
 
-        .child-tab.active .child-avatar-small {
+        .child-tab.active .child-avatar-small,
+        .child-tab.active .child-avatar {
             background: white;
             color: #1e88e5;
+        }
+
+        .child-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 2px;
+        }
+
+        .child-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .child-grade {
+            font-size: 0.75rem;
+            opacity: 0.8;
         }
 
         .grid {
@@ -525,6 +621,15 @@
     opacity: 0.6;
     cursor: not-allowed;
     transform: none;
+}
+
+/* Utility */
+.hidden {
+    display: none !important;
+}
+
+.card-schedule {
+    margin-top: 30px;
 }
 
 

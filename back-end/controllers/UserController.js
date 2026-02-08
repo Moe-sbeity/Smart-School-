@@ -42,6 +42,8 @@ export const LoginUser = async (req, res) => {
         dateOfBirth: user.dateOfBirth,
         role: user.role,
         mustChangePassword: user.mustChangePassword || false,
+        ...(user.classGrade && { classGrade: user.classGrade }),
+        ...(user.classSection && { classSection: user.classSection }),
         ...(user.subjects && { subjects: user.subjects }),
         ...(user.parent && { parent: user.parent }),
         ...(user.children && user.children.length > 0 && { children: user.children })

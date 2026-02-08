@@ -843,181 +843,104 @@ const initDashboard = async () => {
 
 // Initialize Charts
 const initCharts = async () => {
-  await initStudentsByClassChart();
-  await initAdmissionsChart();
+  initStudentsByGradeChart();
+  await initAttendanceOverviewChart();
+  initTeachersBySubjectChart();
+  initAdmissionStatusChart();
 };
 
-// Students by Class Bar Chart
-const initStudentsByClassChart = async () => {
-  const ctx = document.getElementById('studentsByClassChart');
+// Students by Grade (Bar Chart)
+const initStudentsByGradeChart = () => {
+  const ctx = document.getElementById('studentsByGradeChart');
   if (!ctx) return;
 
-  try {
-    const token = localStorage.getItem("token");
-    const res = await axios.get(`${API_URL}/class-grades/students-by-class`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+  // Count students by classGrade
+  const students = users.filter(u => u.role === 'student');
+  const gradeOrder = ['kg1', 'kg2', 'grade1', 'grade2', 'grade3', 'grade4', 'grade5', 'grade6', 'grade7', 'grade8', 'grade9', 'grade10', 'grade11', 'grade12'];
+  const gradeLabels = ['KG1', 'KG2', 'G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'G7', 'G8', 'G9', 'G10', 'G11', 'G12'];
+  
+  const gradeCounts = gradeOrder.map(grade => {
+    return students.filter(s => s.classGrade === grade).length;
+  });
 
-    const classData = res.data.data || [];
-    
-    // Separate into categories for better visualization
-    const labels = classData.map(item => item.label);
-    const counts = classData.map(item => item.count);
-    
-    // Color gradient from light to dark blue
-    const colors = [
-      '#90caf9', '#90caf9',  // KG1, KG2
-      '#64b5f6', '#64b5f6', '#64b5f6',  // Grade 1-3
-      '#42a5f5', '#42a5f5', '#42a5f5',  // Grade 4-6
-      '#2196f3', '#2196f3', '#2196f3',  // Grade 7-9
-      '#1e88e5', '#1976d2', '#1565c0'   // Grade 10-12
-    ];
+  // Color gradient from light to dark blue
+  const colors = [
+    '#90caf9', '#90caf9',
+    '#64b5f6', '#64b5f6', '#64b5f6',
+    '#42a5f5', '#42a5f5', '#42a5f5',
+    '#2196f3', '#2196f3', '#2196f3',
+    '#1e88e5', '#1976d2', '#1565c0'
+  ];
 
-    new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: 'Students',
-          data: counts,
-          backgroundColor: colors,
-          borderColor: colors.map(c => c),
-          borderWidth: 0,
-          borderRadius: 6,
-          borderSkipped: false,
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: false
-          },
-          tooltip: {
-            backgroundColor: '#1e293b',
-            titleFont: { size: 13, weight: '600' },
-            bodyFont: { size: 12 },
-            padding: 12,
-            cornerRadius: 8,
-            callbacks: {
-              title: function(context) {
-                return context[0].label;
-              },
-              label: function(context) {
-                return `${context.raw} Students`;
-              }
-            }
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            grid: {
-              color: 'rgba(0, 0, 0, 0.05)',
-              drawBorder: false
-            },
-            ticks: {
-              font: { size: 11 },
-              color: '#64748b',
-              stepSize: 5
-            }
-          },
-          x: {
-            grid: {
-              display: false
-            },
-            ticks: {
-              font: { size: 10 },
-              color: '#64748b',
-              maxRotation: 45,
-              minRotation: 45
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: gradeLabels,
+      datasets: [{
+        label: 'Students',
+        data: gradeCounts,
+        backgroundColor: colors,
+        borderRadius: 6,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1e293b',
+          titleFont: { size: 13, weight: '600' },
+          bodyFont: { size: 12 },
+          padding: 12,
+          cornerRadius: 8,
+          callbacks: {
+            label: function(context) {
+              return `${context.raw} Students`;
             }
           }
         }
-      }
-    });
-  } catch (error) {
-    console.error('Failed to load students by class chart:', error);
-    // Fallback with sample data
-    new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: ['KG1', 'KG2', 'G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'G7', 'G8', 'G9', 'G10', 'G11', 'G12'],
-        datasets: [{
-          label: 'Students',
-          data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-          backgroundColor: '#1e88e5',
-          borderRadius: 6,
-        }]
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } }
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: { color: 'rgba(0, 0, 0, 0.05)' },
+          ticks: { font: { size: 11 }, color: '#64748b', stepSize: 1 }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { font: { size: 10 }, color: '#64748b', maxRotation: 45, minRotation: 45 }
+        }
       }
-    });
-  }
+    }
+  });
 };
 
-// Admissions Overview Doughnut Chart
-const initAdmissionsChart = async () => {
-  const ctx = document.getElementById('admissionsChart');
+// Attendance Overview (Doughnut Chart)
+const initAttendanceOverviewChart = async () => {
+  const ctx = document.getElementById('attendanceOverviewChart');
   if (!ctx) return;
 
   try {
     const token = localStorage.getItem("token");
-    const res = await axios.get(`${API_URL}/admissions/stats`, {
+    const res = await axios.get(`${API_URL}/attendance/status-stats`, {
       headers: { Authorization: `Bearer ${token}` }
     });
-
-    const stats = res.data.stats || { total: 0, byStatus: {} };
-    const byStatus = stats.byStatus;
-
-    // Get counts for each status
-    const pending = byStatus.pending || 0;
-    const reviewed = byStatus.reviewed || 0;
-    const approved = byStatus.approved || 0;
-    const rejected = byStatus.rejected || 0;
-
-    // Update stats display
-    const statsContainer = document.getElementById('admissionStats');
-    if (statsContainer) {
-      statsContainer.innerHTML = `
-        <div class="stat-row">
-          <span class="stat-dot pending"></span>
-          <span class="stat-label">Pending</span>
-          <span class="stat-value">${pending}</span>
-        </div>
-        <div class="stat-row">
-          <span class="stat-dot reviewed"></span>
-          <span class="stat-label">Reviewed</span>
-          <span class="stat-value">${reviewed}</span>
-        </div>
-        <div class="stat-row">
-          <span class="stat-dot approved"></span>
-          <span class="stat-label">Approved</span>
-          <span class="stat-value">${approved}</span>
-        </div>
-        <div class="stat-row">
-          <span class="stat-dot rejected"></span>
-          <span class="stat-label">Rejected</span>
-          <span class="stat-value">${rejected}</span>
-        </div>
-      `;
-    }
+    
+    const stats = res.data.stats || { present: 0, absent: 0, late: 0, excused: 0 };
 
     new Chart(ctx, {
       type: 'doughnut',
       data: {
-        labels: ['Pending', 'Reviewed', 'Approved', 'Rejected'],
+        labels: ['Present', 'Absent', 'Late', 'Excused'],
         datasets: [{
-          data: [pending, reviewed, approved, rejected],
+          data: [stats.present, stats.absent, stats.late, stats.excused],
           backgroundColor: [
-            '#f59e0b',  // Pending - amber
-            '#3b82f6',  // Reviewed - blue
-            '#10b981',  // Approved - green
-            '#ef4444'   // Rejected - red
+            '#10b981',  // Present - green
+            '#ef4444',  // Absent - red
+            '#f59e0b',  // Late - amber
+            '#3b82f6'   // Excused - blue
           ],
           borderColor: '#ffffff',
           borderWidth: 3,
@@ -1027,10 +950,16 @@ const initAdmissionsChart = async () => {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        cutout: '70%',
+        cutout: '60%',
         plugins: {
           legend: {
-            display: false
+            position: 'bottom',
+            labels: {
+              padding: 15,
+              usePointStyle: true,
+              pointStyle: 'circle',
+              font: { size: 11 }
+            }
           },
           tooltip: {
             backgroundColor: '#1e293b',
@@ -1050,7 +979,7 @@ const initAdmissionsChart = async () => {
       }
     });
   } catch (error) {
-    console.error('Failed to load admissions chart:', error);
+    console.error('Failed to load attendance chart:', error);
     // Fallback empty chart
     new Chart(ctx, {
       type: 'doughnut',
@@ -1065,11 +994,159 @@ const initAdmissionsChart = async () => {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        cutout: '70%',
+        cutout: '60%',
         plugins: { legend: { display: false } }
       }
     });
   }
+};
+
+// Teachers by Subject (Horizontal Bar Chart)
+const initTeachersBySubjectChart = () => {
+  const ctx = document.getElementById('teachersBySubjectChart');
+  if (!ctx) return;
+
+  const teachers = users.filter(u => u.role === 'teacher');
+  const subjects = ['Math', 'Physics', 'Chemistry', 'Biology', 'English', 'History', 'Geography', 'Computer', 'Arabic', 'French'];
+  
+  const subjectCounts = subjects.map(subject => {
+    return teachers.filter(t => t.subjects && t.subjects.includes(subject)).length;
+  });
+
+  const colors = [
+    '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+    '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#84cc16'
+  ];
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: subjects,
+      datasets: [{
+        label: 'Teachers',
+        data: subjectCounts,
+        backgroundColor: colors,
+        borderRadius: 6,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1e293b',
+          titleFont: { size: 13, weight: '600' },
+          bodyFont: { size: 12 },
+          padding: 12,
+          cornerRadius: 8,
+          callbacks: {
+            label: function(context) {
+              return `${context.raw} Teacher${context.raw !== 1 ? 's' : ''}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          grid: { color: 'rgba(0, 0, 0, 0.05)' },
+          ticks: { font: { size: 11 }, color: '#64748b', stepSize: 1 }
+        },
+        y: {
+          grid: { display: false },
+          ticks: { font: { size: 11 }, color: '#64748b' }
+        }
+      }
+    }
+  });
+};
+
+// Admission Status (Pie Chart)
+const initAdmissionStatusChart = () => {
+  const ctx = document.getElementById('admissionStatusChart');
+  if (!ctx) return;
+
+  // Count admissions by status
+  const statusCounts = {
+    pending: admissions.filter(a => a.status === 'pending').length,
+    reviewed: admissions.filter(a => a.status === 'reviewed').length,
+    accepted: admissions.filter(a => a.status === 'accepted').length,
+    rejected: admissions.filter(a => a.status === 'rejected').length,
+    missingDocs: admissions.filter(a => a.status === 'missing-docs').length
+  };
+
+  const total = Object.values(statusCounts).reduce((a, b) => a + b, 0);
+
+  if (total === 0) {
+    new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: ['No Applications'],
+        datasets: [{
+          data: [1],
+          backgroundColor: ['#e2e8f0'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } }
+      }
+    });
+    return;
+  }
+
+  new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: ['Pending', 'Reviewed', 'Accepted', 'Rejected', 'Missing Docs'],
+      datasets: [{
+        data: [statusCounts.pending, statusCounts.reviewed, statusCounts.accepted, statusCounts.rejected, statusCounts.missingDocs],
+        backgroundColor: [
+          '#f59e0b',  // Pending - amber
+          '#3b82f6',  // Reviewed - blue
+          '#10b981',  // Accepted - green
+          '#ef4444',  // Rejected - red
+          '#8b5cf6'   // Missing Docs - purple
+        ],
+        borderColor: '#ffffff',
+        borderWidth: 3,
+        hoverOffset: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            padding: 12,
+            usePointStyle: true,
+            pointStyle: 'circle',
+            font: { size: 10 }
+          }
+        },
+        tooltip: {
+          backgroundColor: '#1e293b',
+          titleFont: { size: 13, weight: '600' },
+          bodyFont: { size: 12 },
+          padding: 12,
+          cornerRadius: 8,
+          callbacks: {
+            label: function(context) {
+              const percentage = ((context.raw / total) * 100).toFixed(1);
+              return `${context.label}: ${context.raw} (${percentage}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
 };
 
 // Make functions globally accessible for onclick handlers

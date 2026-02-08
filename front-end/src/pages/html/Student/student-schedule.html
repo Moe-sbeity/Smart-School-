@@ -25,8 +25,8 @@
             <div class="user-info">
                 <div class="user-avatar" id="userAvatar">S</div>
                 <div>
-                    <div style="font-weight: 600; font-size: 0.9rem;" id="userName">Student</div>
-                    <div style="font-size: 0.8rem; color: var(--text-secondary);" id="userClass">Loading...</div>
+                    <div class="user-name" id="userName">Student</div>
+                    <div class="user-class" id="userClass">Loading...</div>
                 </div>
             </div>
         </div>
@@ -36,7 +36,7 @@
         <!-- Loading State -->
         <div id="loading" class="loading">
             <div class="spinner"></div>
-            <p style="color: var(--text-secondary); margin-top: 1rem;">Loading your weekly schedule...</p>
+            <p class="loading-text">Loading your weekly schedule...</p>
         </div>
 
         <!-- Error State -->
@@ -53,15 +53,15 @@
                 <p class="page-subtitle" id="currentWeek">Week of January 20 - January 24, 2026</p>
                 <div class="schedule-info">
                     <div class="info-item">
-                        <i data-lucide="graduation-cap" style="color: var(--primary);"></i>
+                        <i data-lucide="graduation-cap" class="icon-primary"></i>
                         <span id="gradeSection">Grade 10 - Section A</span>
                     </div>
                     <div class="info-item">
-                        <i data-lucide="book-open" style="color: var(--secondary);"></i>
+                        <i data-lucide="book-open" class="icon-secondary"></i>
                         <span id="totalSubjects">0 Subjects</span>
                     </div>
                     <div class="info-item">
-                        <i data-lucide="clock" style="color: var(--warning);"></i>
+                        <i data-lucide="clock" class="icon-warning"></i>
                         <span id="totalClasses">0 Classes per Week</span>
                     </div>
                 </div>
@@ -70,8 +70,8 @@
             <!-- Stats Bar -->
             <div class="stats-bar">
                 <div class="stat-card">
-                    <div class="stat-icon" style="background: #eef2ff;">
-                        <i data-lucide="calendar-check" style="color: var(--primary); width: 24px; height: 24px;"></i>
+                    <div class="stat-icon icon-today">
+                        <i data-lucide="calendar-check"></i>
                     </div>
                     <div class="stat-content">
                         <div class="stat-label">Today's Classes</div>
@@ -79,8 +79,8 @@
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon" style="background: #d1fae5;">
-                        <i data-lucide="play-circle" style="color: var(--secondary); width: 24px; height: 24px;"></i>
+                    <div class="stat-icon icon-current">
+                        <i data-lucide="play-circle"></i>
                     </div>
                     <div class="stat-content">
                         <div class="stat-label">Current Class</div>
@@ -88,9 +88,8 @@
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon" style="background: #fef3c7;">
-                        <i data-lucide="arrow-right-circle"
-                            style="color: var(--warning); width: 24px; height: 24px;"></i>
+                    <div class="stat-icon icon-next">
+                        <i data-lucide="arrow-right-circle"></i>
                     </div>
                     <div class="stat-content">
                         <div class="stat-label">Next Class</div>
@@ -103,21 +102,21 @@
             <div class="view-controls">
                 <div class="view-tabs">
                     <button class="view-tab active" onclick="switchView('week')">
-                        <i data-lucide="calendar-days" style="width: 16px; height: 16px;"></i>
+                        <i data-lucide="calendar-days"></i>
                         Week View
                     </button>
                     <button class="view-tab" onclick="switchView('day')">
-                        <i data-lucide="calendar" style="width: 16px; height: 16px;"></i>
+                        <i data-lucide="calendar"></i>
                         Day View
                     </button>
                 </div>
                 <div class="legend">
                     <div class="legend-item">
-                        <div class="legend-color" style="background: linear-gradient(135deg, #eef2ff, #e0e7ff);"></div>
+                        <div class="legend-color regular"></div>
                         <span>Regular Class</span>
                     </div>
                     <div class="legend-item">
-                        <div class="legend-color" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0);"></div>
+                        <div class="legend-color current"></div>
                         <span>Current Class</span>
                     </div>
                 </div>

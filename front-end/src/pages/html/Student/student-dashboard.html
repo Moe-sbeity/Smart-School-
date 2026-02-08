@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Dashboard - Enhanced</title>
     <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="student-dashboard.css">
     <script src="../js/toast.js"></script>
     <script src="../js/searchable-select.js"></script>
@@ -14,7 +15,7 @@
 
 <body>
     <!-- Date of Birth Completion Modal -->
-    <div id="dobModal" class="dob-modal" style="display: none;">
+    <div id="dobModal" class="dob-modal hidden">
         <div class="dob-modal-overlay"></div>
         <div class="dob-modal-content">
             <div class="dob-modal-header">
@@ -30,6 +31,71 @@
                 </div>
                 <button type="submit" class="dob-btn-primary" id="saveDobBtn">Save & Continue</button>
             </form>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profileModal" class="profile-modal hidden">
+        <div class="profile-modal-overlay" onclick="closeProfileModal()"></div>
+        <div class="profile-modal-content">
+            <div class="profile-modal-header">
+                <h2><i data-lucide="user"></i> My Profile</h2>
+                <button class="profile-close-btn" onclick="closeProfileModal()">&times;</button>
+            </div>
+            <div class="profile-modal-body">
+                <!-- Profile Info -->
+                <div class="profile-avatar-section">
+                    <div class="profile-avatar-large" id="profileAvatar">S</div>
+                    <h3 id="profileName">Student</h3>
+                    <span class="profile-role-badge">Student</span>
+                </div>
+                <div class="profile-info-grid">
+                    <div class="profile-info-item">
+                        <label>Email</label>
+                        <span id="profileEmail">—</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <label>Gender</label>
+                        <span id="profileGender">—</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <label>Date of Birth</label>
+                        <span id="profileDob">—</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <label>Grade</label>
+                        <span id="profileGrade">—</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <label>Section</label>
+                        <span id="profileSection">—</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <label>Parent Email</label>
+                        <span id="profileParentEmail">—</span>
+                    </div>
+                </div>
+
+                <!-- Change Password Section -->
+                <div class="profile-section">
+                    <h4><i data-lucide="lock"></i> Change Password</h4>
+                    <form id="changePasswordForm" onsubmit="handleChangePassword(event)">
+                        <div class="profile-form-group">
+                            <label for="currentPassword">Current Password</label>
+                            <input type="password" id="currentPassword" required placeholder="Enter current password">
+                        </div>
+                        <div class="profile-form-group">
+                            <label for="newPassword">New Password</label>
+                            <input type="password" id="newPassword" required minlength="6" placeholder="Min 6 characters">
+                        </div>
+                        <div class="profile-form-group">
+                            <label for="confirmPassword">Confirm New Password</label>
+                            <input type="password" id="confirmPassword" required minlength="6" placeholder="Confirm new password">
+                        </div>
+                        <button type="submit" class="profile-save-btn" id="changePassBtn">Change Password</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -49,17 +115,13 @@
                 <i data-lucide="bell"></i>
                 <span class="notification-badge" id="notificationCount">3</span>
             </button>
-            <button class="attendance">
-                <a href="./student-attendance.html">Attendance</a>
-            </button>
-            <button class="schedule">
-                <a href="./student-schedule.html">Schedule</a>
-            </button>
+            <a class="attendance" href="./student-attendance.html">Attendance</a>
+            <a class="schedule" href="./student-schedule.html">Schedule</a>
             <div class="user-menu" onclick="toggleUserMenu()" id="userMenuContainer">
                 <div class="user-avatar" id="userAvatar">S</div>
                 <div>
-                    <div style="font-weight: 600; font-size: 0.9rem;" id="userName">Student</div>
-                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Student</div>
+                    <div class="user-name" id="userName">Student</div>
+                    <div class="user-role">Student</div>
                 </div>
                 <i data-lucide="chevron-down"></i>
                 <!-- Dropdown Menu -->
@@ -73,8 +135,8 @@
                     <a href="./student-attendance.html">
                         <i data-lucide="clipboard-check"></i> Attendance
                     </a>
-                    <hr style="margin: 8px 0; border: none; border-top: 1px solid #e5e7eb;">
-                    <a href="#" onclick="logout(); return false;" style="color: #dc2626;">
+                    <hr>
+                    <a href="#" onclick="logout(); return false;" class="logout-link">
                         <i data-lucide="log-out"></i> Logout
                     </a>
                 </div>
@@ -86,7 +148,7 @@
         <!-- Loading State -->
         <div id="loading" class="loading">
             <div class="spinner"></div>
-            <p style="color: var(--text-secondary);">Loading your dashboard...</p>
+            <p class="loading-text">Loading your dashboard...</p>
         </div>
 
         <!-- Error State -->
@@ -99,8 +161,8 @@
                 <div class="stat-card">
                     <div class="stat-header">
                         <span class="stat-label">Total Subjects</span>
-                        <div class="stat-icon" style="background: #eef2ff;">
-                            <i data-lucide="book" style="color: var(--primary);"></i>
+                        <div class="stat-icon icon-subjects">
+                            <i data-lucide="book"></i>
                         </div>
                     </div>
                     <div class="stat-value" id="totalSubjects">0</div>
@@ -108,8 +170,8 @@
                 <div class="stat-card">
                     <div class="stat-header">
                         <span class="stat-label">Pending Tasks</span>
-                        <div class="stat-icon" style="background: #fef3c7;">
-                            <i data-lucide="clipboard-list" style="color: var(--warning);"></i>
+                        <div class="stat-icon icon-tasks">
+                            <i data-lucide="clipboard-list"></i>
                         </div>
                     </div>
                     <div class="stat-value" id="pendingTasks">0</div>
@@ -118,8 +180,8 @@
                 <div class="stat-card">
                     <div class="stat-header">
                         <span class="stat-label">Avg Grade</span>
-                        <div class="stat-icon" style="background: #d1fae5;">
-                            <i data-lucide="trending-up" style="color: var(--secondary);"></i>
+                        <div class="stat-icon icon-grade">
+                            <i data-lucide="trending-up"></i>
                         </div>
                     </div>
                     <div class="stat-value" id="avgGrade">--</div>
@@ -127,11 +189,46 @@
                 <div class="stat-card">
                     <div class="stat-header">
                         <span class="stat-label">Completed</span>
-                        <div class="stat-icon" style="background: #dbeafe;">
-                            <i data-lucide="check-circle" style="color: #0284c7;"></i>
+                        <div class="stat-icon icon-completed">
+                            <i data-lucide="check-circle"></i>
                         </div>
                     </div>
                     <div class="stat-value" id="completedTasks">0</div>
+                </div>
+            </div>
+
+            <!-- Student Charts Section -->
+            <div class="student-charts-section">
+                <div class="student-charts-grid">
+                    <!-- Attendance Chart -->
+                    <div class="student-chart-card">
+                        <div class="student-chart-header">
+                            <h3><i data-lucide="calendar-check"></i> My Attendance</h3>
+                        </div>
+                        <div class="student-chart-container">
+                            <canvas id="studentAttendanceChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Tasks Progress Chart -->
+                    <div class="student-chart-card">
+                        <div class="student-chart-header">
+                            <h3><i data-lucide="clipboard-list"></i> Tasks Progress</h3>
+                        </div>
+                        <div class="student-chart-container">
+                            <canvas id="studentTasksChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Subject Performance Chart -->
+                    <div class="student-chart-card">
+                        <div class="student-chart-header">
+                            <h3><i data-lucide="bar-chart-2"></i> Subject Performance</h3>
+                        </div>
+                        <div class="student-chart-container">
+                            <canvas id="studentSubjectChart"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -140,13 +237,13 @@
                 <!-- Left Column -->
                 <div>
                     <!-- Today's Schedule -->
-                    <div class="card" style="margin-bottom: 24px;">
+                    <div class="card card-mb-24">
                         <div class="card-header">
                             <h2 class="card-title">
                                 <i data-lucide="calendar-clock"></i>
                                 Today's Schedule
                             </h2>
-                            <span style="color: var(--text-secondary); font-size: 0.9rem;" id="todayDate"></span>
+                            <span class="today-date" id="todayDate"></span>
                         </div>
                         <div id="todaySchedule"></div>
                     </div>
@@ -195,11 +292,11 @@
             </button>
 
             <div class="card">
-                <h1 id="subjectTitle" style="font-size: 2rem; margin-bottom: 8px;"></h1>
-                <p id="subjectTeacher" style="color: var(--text-secondary); margin-bottom: 24px;"></p>
+                <h1 id="subjectTitle" class="subject-title"></h1>
+                <p id="subjectTeacher" class="subject-teacher"></p>
 
                 <!-- Subject Stats -->
-                <div class="stats-grid" style="margin-bottom: 24px;">
+                <div class="stats-grid subject-stats">
                     <div class="stat-card">
                         <div class="stat-label">Grade</div>
                         <div class="stat-value" id="subjectGrade">--</div>
@@ -219,13 +316,12 @@
                 </div>
 
                 <!-- Schedule Info -->
-                <div style="background: var(--bg-secondary); padding: 20px; border-radius: 12px; margin-bottom: 24px;">
-                    <h3 style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+                <div class="subject-schedule-section">
+                    <h3 class="subject-schedule-heading">
                         <i data-lucide="calendar"></i>
                         Class Schedule
                     </h3>
-                    <div id="subjectScheduleGrid"
-                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;">
+                    <div id="subjectScheduleGrid" class="subject-schedule-grid">
                     </div>
                 </div>
 

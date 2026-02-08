@@ -30,7 +30,7 @@
         function showPasswordChangeModal() {
             const modal = document.getElementById('passwordChangeModal');
             if (modal) {
-                modal.style.display = 'flex';
+                modal.classList.remove('hidden');
             }
         }
 
@@ -38,7 +38,7 @@
         function hidePasswordChangeModal() {
             const modal = document.getElementById('passwordChangeModal');
             if (modal) {
-                modal.style.display = 'none';
+                modal.classList.add('hidden');
             }
         }
 
@@ -146,7 +146,7 @@
                     const today = new Date().toISOString().split('T')[0];
                     dobInput.max = today;
                 }
-                modal.style.display = 'flex';
+                modal.classList.remove('hidden');
             }
         }
 
@@ -154,7 +154,7 @@
         function hideChildDobModal() {
             const modal = document.getElementById('childDobModal');
             if (modal) {
-                modal.style.display = 'none';
+                modal.classList.add('hidden');
             }
         }
 
@@ -277,7 +277,13 @@
                 const isActive = child.student._id === getSelectedChild();
 
                 return `
-                    
+                    <button class="child-tab ${isActive ? 'active' : ''}" onclick="setSelectedChild('${child.student._id}')">
+                        <div class="child-avatar">${initials}</div>
+                        <div class="child-info">
+                            <span class="child-name">${child.student.name}</span>
+                            <span class="child-grade">Grade ${child.student.classGrade || 'N/A'} - Section ${child.student.classSection || 'N/A'}</span>
+                        </div>
+                    </button>
                 `;
             }).join('');
         }
@@ -386,7 +392,15 @@
                 renderSummary(summary.summary);
                 renderSchedule(schedule.schedules);
 
-                document.getElementById('contentContainer').style.display = 'block';
+                document.getElementById('contentContainer').classList.remove('hidden');
+
+                // Render charts with child data (non-blocking)
+                try {
+                    await renderParentCharts(childId, summary.summary);
+                } catch (chartError) {
+                    console.error('Error rendering charts:', chartError);
+                }
+
             } catch (error) {
                 console.error('Error loading child data:', error);
                 showAlert('error', 'Failed to load student data. Please try again.');
@@ -400,6 +414,303 @@
             localStorage.removeItem('mustChangePassword');
             window.location.href = '../login.html';
         }
+
+        // ============================================================================
+        // PARENT CHARTS FUNCTIONS
+        // ============================================================================
+
+        // Store chart instances for cleanup
+        let parentChartInstances = {
+            attendance: null,
+            tasks: null,
+            subjects: null
+        };
+
+        // Destroy existing chart if exists
+        function destroyChart(chartKey) {
+            if (parentChartInstances[chartKey]) {
+                parentChartInstances[chartKey].destroy();
+                parentChartInstances[chartKey] = null;
+            }
+        }
+
+        // Render all parent charts
+        async function renderParentCharts(childId, summary) {
+            await renderParentAttendanceChart(childId);
+            renderParentTasksChart(summary);
+            await renderParentSubjectChart(childId);
+        }
+
+        // Child's Attendance Chart (Doughnut)
+        async function renderParentAttendanceChart(childId) {
+            const ctx = document.getElementById('parentAttendanceChart');
+            if (!ctx) return;
+
+            destroyChart('attendance');
+
+            try {
+                const token = getAuthToken();
+                const response = await axios.get(`${API_URL}/attendance/parent/child/${childId}/stats`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                
+                const stats = response.data.stats || { present: 0, absent: 0, late: 0, excused: 0 };
+                const total = stats.present + stats.absent + stats.late + stats.excused;
+
+                if (total === 0) {
+                    parentChartInstances.attendance = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['No Data'],
+                            datasets: [{
+                                data: [1],
+                                backgroundColor: ['#e2e8f0'],
+                                borderWidth: 0
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: '65%',
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+                    return;
+                }
+
+                parentChartInstances.attendance = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Present', 'Absent', 'Late', 'Excused'],
+                        datasets: [{
+                            data: [stats.present, stats.absent, stats.late, stats.excused],
+                            backgroundColor: ['#10b981', '#ef4444', '#f59e0b', '#3b82f6'],
+                            borderColor: '#ffffff',
+                            borderWidth: 3,
+                            hoverOffset: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '65%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 12,
+                                    usePointStyle: true,
+                                    pointStyle: 'circle',
+                                    font: { size: 11 }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: '#1e293b',
+                                padding: 10,
+                                cornerRadius: 8,
+                                callbacks: {
+                                    label: function(context) {
+                                        const percentage = ((context.raw / total) * 100).toFixed(1);
+                                        return `${context.label}: ${context.raw} (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading attendance chart:', error);
+            }
+        }
+
+        // Child's Tasks Progress Chart (Doughnut)
+        function renderParentTasksChart(summary) {
+            const ctx = document.getElementById('parentTasksChart');
+            if (!ctx) return;
+
+            destroyChart('tasks');
+
+            const completed = summary.totalSubmissions || 0;
+            const pending = summary.pendingAssignments || 0;
+            const total = completed + pending;
+
+            if (total === 0) {
+                parentChartInstances.tasks = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['No Tasks'],
+                        datasets: [{
+                            data: [1],
+                            backgroundColor: ['#e2e8f0'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '65%',
+                        plugins: { legend: { display: false } }
+                    }
+                });
+                return;
+            }
+
+            parentChartInstances.tasks = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Completed', 'Pending'],
+                    datasets: [{
+                        data: [completed, pending],
+                        backgroundColor: ['#10b981', '#f59e0b'],
+                        borderColor: '#ffffff',
+                        borderWidth: 3,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 12,
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                font: { size: 11 }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            padding: 10,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.label}: ${context.raw} task${context.raw !== 1 ? 's' : ''}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Child's Subject Performance Chart (Bar)
+        async function renderParentSubjectChart(childId) {
+            const ctx = document.getElementById('parentSubjectChart');
+            if (!ctx) return;
+
+            destroyChart('subjects');
+
+            try {
+                const token = getAuthToken();
+                const response = await axios.get(`${API_URL}/announcements/parent/child/${childId}/grades`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                
+                const bySubject = response.data.bySubject || {};
+                const subjects = Object.keys(bySubject).slice(0, 6);
+                
+                if (subjects.length === 0) {
+                    parentChartInstances.subjects = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['No Grades Yet'],
+                            datasets: [{
+                                data: [0],
+                                backgroundColor: ['#e2e8f0']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+                    return;
+                }
+
+                const averages = subjects.map(s => parseFloat(bySubject[s].average) || 0);
+                
+                const colors = averages.map(avg => {
+                    if (avg >= 80) return '#10b981';
+                    if (avg >= 60) return '#f59e0b';
+                    return '#ef4444';
+                });
+
+                parentChartInstances.subjects = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: subjects,
+                        datasets: [{
+                            label: 'Grade %',
+                            data: averages,
+                            backgroundColor: colors,
+                            borderRadius: 6,
+                            borderSkipped: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: '#1e293b',
+                                padding: 10,
+                                cornerRadius: 8,
+                                callbacks: {
+                                    label: function(context) {
+                                        return `Grade: ${context.raw}%`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                                ticks: { 
+                                    font: { size: 11 }, 
+                                    color: '#64748b',
+                                    callback: function(value) {
+                                        return value + '%';
+                                    }
+                                }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { font: { size: 10 }, color: '#64748b' }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading subject chart:', error);
+                // Fallback chart
+                parentChartInstances.subjects = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['No Data'],
+                        datasets: [{
+                            data: [0],
+                            backgroundColor: ['#e2e8f0']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+        }
+
+        // ============================================================================
+        // END PARENT CHARTS FUNCTIONS
+        // ============================================================================
 
         async function init() {
             try {
@@ -439,10 +750,10 @@
                 }
 
                 const data = await fetchParentOverview();
-                document.getElementById('loadingContainer').style.display = 'none';
+                document.getElementById('loadingContainer').classList.add('hidden');
 
                 if (!data.children || data.children.length === 0) {
-                    document.getElementById('noChildrenMessage').style.display = 'block';
+                    document.getElementById('noChildrenMessage').classList.remove('hidden');
                     return;
                 }
 
@@ -454,7 +765,7 @@
                     localStorage.setItem('selectedChildId', currentChildId);
                 }
 
-                document.getElementById('childrenSelector').style.display = 'block';
+                document.getElementById('childrenSelector').classList.remove('hidden');
                 renderChildrenTabs(allChildren);
                 await loadChildData();
 

@@ -6,6 +6,7 @@
     <title>Teacher Dashboard - Smart School</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
  <link rel="stylesheet" href="teacher-dashboard.css">
+ <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
  <script src="../js/toast.js"></script>
  <script src="../js/searchable-select.js"></script>
 </head>
@@ -41,40 +42,75 @@
         </div>
 
         <div class="stats-grid">
-            <div class="stat-card">
+            <div class="stat-card stat-clickable" onclick="showStatDetail('totalClasses')">
                 <div class="stat-header">
                     <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+                    <div class="stat-click-hint"><i class="fas fa-chevron-right"></i></div>
                 </div>
                 <div class="stat-content">
                     <div class="stat-value" id="totalClasses">-</div>
                     <div class="stat-label">Total Classes</div>
                 </div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card stat-clickable" onclick="showStatDetail('totalStudents')">
                 <div class="stat-header">
                     <div class="stat-icon"><i class="fas fa-user-graduate"></i></div>
+                    <div class="stat-click-hint"><i class="fas fa-chevron-right"></i></div>
                 </div>
                 <div class="stat-content">
                     <div class="stat-value" id="totalStudents">-</div>
                     <div class="stat-label">Total Students</div>
                 </div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card stat-clickable" onclick="showStatDetail('classesToday')">
                 <div class="stat-header">
                     <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                    <div class="stat-click-hint"><i class="fas fa-chevron-right"></i></div>
                 </div>
                 <div class="stat-content">
                     <div class="stat-value" id="todayClasses">-</div>
                     <div class="stat-label">Classes Today</div>
                 </div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card stat-clickable" onclick="showStatDetail('subjects')">
                 <div class="stat-header">
                     <div class="stat-icon"><i class="fas fa-book"></i></div>
+                    <div class="stat-click-hint"><i class="fas fa-chevron-right"></i></div>
                 </div>
                 <div class="stat-content">
                     <div class="stat-value" id="subjects">-</div>
                     <div class="stat-label">Subjects Teaching</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-row">
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <i class="fas fa-user-graduate"></i>
+                    <h3>Students by Section</h3>
+                </div>
+                <div class="chart-card-body">
+                    <canvas id="studentsByGradeChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <i class="fas fa-clipboard-check"></i>
+                    <h3>Attendance Overview</h3>
+                </div>
+                <div class="chart-card-body">
+                    <canvas id="attendanceChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <i class="fas fa-calendar-week"></i>
+                    <h3>Classes per Day</h3>
+                </div>
+                <div class="chart-card-body">
+                    <canvas id="classesPerDayChart"></canvas>
                 </div>
             </div>
         </div>
@@ -142,9 +178,83 @@
             <div class="card-header">
                 <h3><i class="fas fa-calendar-alt"></i> My Schedule by Subject</h3>
             </div>
+            <div class="schedule-filters">
+                <div class="filter-group">
+                    <label><i class="fas fa-graduation-cap"></i> Grade</label>
+                    <select id="gradeFilter" title="Filter by grade" onchange="applyScheduleFilters()">
+                        <option value="">All Grades</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label><i class="fas fa-layer-group"></i> Section</label>
+                    <select id="sectionFilter" title="Filter by section" onchange="applyScheduleFilters()">
+                        <option value="">All Sections</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label><i class="fas fa-calendar-day"></i> Day</label>
+                    <select id="dayFilter" title="Filter by day" onchange="applyScheduleFilters()">
+                        <option value="">All Days</option>
+                        <option value="Monday">Monday</option>
+                        <option value="Tuesday">Tuesday</option>
+                        <option value="Wednesday">Wednesday</option>
+                        <option value="Thursday">Thursday</option>
+                        <option value="Friday">Friday</option>
+                    </select>
+                </div>
+                <button class="filter-reset-btn" onclick="resetScheduleFilters()">
+                    <i class="fas fa-undo"></i> Reset
+                </button>
+            </div>
             <div id="scheduleContainer" class="loading">
                 <i class="fas fa-spinner fa-spin"></i>
                 <p>Loading schedule...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stat Detail Modal -->
+    <div id="statDetailModal" class="stat-detail-overlay hidden-modal">
+        <div class="stat-detail-modal">
+            <div class="stat-detail-header">
+                <div class="stat-detail-title">
+                    <div class="stat-detail-icon" id="statDetailIcon"><i class="fas fa-list"></i></div>
+                    <div>
+                        <h3 id="statDetailTitle">Details</h3>
+                        <p id="statDetailSubtitle"></p>
+                    </div>
+                </div>
+                <button class="student-modal-close" title="Close" onclick="closeStatDetail()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="stat-detail-search hidden-modal" id="statDetailSearchWrap">
+                <i class="fas fa-search"></i>
+                <input type="text" id="statDetailSearch" placeholder="Search..." oninput="filterStatDetail()">
+            </div>
+            <div class="stat-detail-body" id="statDetailBody">
+            </div>
+        </div>
+    </div>
+
+    <!-- Student List Modal -->
+    <div id="studentListModal" class="student-modal-overlay hidden-modal">
+        <div class="student-modal">
+            <div class="student-modal-header">
+                <div class="student-modal-title">
+                    <h3 id="modalTitle">Students</h3>
+                    <p id="modalSubtitle"></p>
+                </div>
+                <button class="student-modal-close" title="Close" onclick="closeStudentModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="student-modal-search">
+                <i class="fas fa-search"></i>
+                <input type="text" id="studentSearchInput" placeholder="Search students..." oninput="filterStudentList()">
+            </div>
+            <div class="student-modal-count" id="modalStudentCount"></div>
+            <div class="student-modal-body" id="studentListContainer">
             </div>
         </div>
     </div>

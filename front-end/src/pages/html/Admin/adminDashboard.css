@@ -1261,9 +1261,64 @@
   color: #999;
 }
 
-/* ===== Charts Section ===== */
-.chart-card {
+/* ===== Charts Section - Horizontal Layout ===== */
+.charts-section {
   margin-bottom: 1.5rem;
+}
+
+.charts-grid-horizontal {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+}
+
+@media (max-width: 1400px) {
+  .charts-grid-horizontal {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .charts-grid-horizontal {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chart-card {
+  margin-bottom: 0;
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
+  transition: box-shadow 0.2s ease;
+}
+
+.main-content-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.bottom-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+@media (max-width: 992px) {
+  .bottom-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
+  transition: box-shadow 0.2s ease;
+}
+
+.chart-card:hover {
+  box-shadow: var(--shadow-md);
 }
 
 .chart-container {
@@ -1477,6 +1532,22 @@
   justify-content: center;
   color: white;
   font-size: 1.25rem;
+}
+
+.quick-action-icon.icon-register {
+  background: linear-gradient(135deg, #4CAF50, #2E7D32);
+}
+
+.quick-action-icon.icon-announce {
+  background: linear-gradient(135deg, #FF9800, #F57C00);
+}
+
+.quick-action-icon.icon-schedule {
+  background: linear-gradient(135deg, #2196F3, #1565C0);
+}
+
+.quick-action-icon.icon-settings {
+  background: linear-gradient(135deg, #9C27B0, #6A1B9A);
 }
 
 .quick-action-card span {

@@ -83,25 +83,25 @@
       <h3>Quick Actions</h3>
       <div class="quick-actions-grid">
         <a href="admin-register.html" class="quick-action-card">
-          <div class="quick-action-icon" style="background: linear-gradient(135deg, #4CAF50, #2E7D32);">
+          <div class="quick-action-icon icon-register">
             <i class="fas fa-user-plus"></i>
           </div>
           <span>Register User</span>
         </a>
         <a href="admin-announcment.html" class="quick-action-card">
-          <div class="quick-action-icon" style="background: linear-gradient(135deg, #FF9800, #F57C00);">
+          <div class="quick-action-icon icon-announce">
             <i class="fas fa-bullhorn"></i>
           </div>
           <span>Create Announcement</span>
         </a>
         <a href="teacherSchedual.html" class="quick-action-card">
-          <div class="quick-action-icon" style="background: linear-gradient(135deg, #2196F3, #1565C0);">
+          <div class="quick-action-icon icon-schedule">
             <i class="fas fa-calendar-alt"></i>
           </div>
           <span>Manage Schedules</span>
         </a>
         <a href="admin-settings.html" class="quick-action-card">
-          <div class="quick-action-icon" style="background: linear-gradient(135deg, #9C27B0, #6A1B9A);">
+          <div class="quick-action-icon icon-settings">
             <i class="fas fa-cog"></i>
           </div>
           <span>Site Settings</span>
@@ -109,46 +109,96 @@
       </div>
     </section>
 
-    <section class="grid main-dashboard-grid">
-      <div class="left-column">
-        <div class="card">
+    <!-- Charts Section - Horizontal Row -->
+    <section class="charts-section">
+      <div class="charts-grid-horizontal">
+        <!-- Students by Grade -->
+        <div class="card chart-card">
           <div class="card-header">
-            <h3>User Management</h3>
-            <button class="icon-btn" title="Filter users"><i class="fas fa-users-cog"></i></button>
+            <h3>Students by Grade</h3>
+            <button class="icon-btn" title="Grade Stats"><i class="fas fa-graduation-cap"></i></button>
           </div>
-          <div class="controls">
-            <div class="filters">
-              <input type="search" id="searchInput" placeholder="Search by name or email..." />
-              <select id="roleFilter" title="Filter by role">
-                <option value="all">All Roles</option>
-                <option value="student">Students</option>
-                <option value="teacher">Teachers</option>
-                <option value="parent">Parents</option>
-                <option value="admin">Admins</option>
-              </select>
-              <a href="admin-register.html" class="btn btn-primary">+ Add User</a>
-            </div>
+          <div class="chart-container">
+            <canvas id="studentsByGradeChart"></canvas>
           </div>
-          <table class="users-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Gender</th>
-                <th>Date of Birth</th>
-                <th>Subjects</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="usersBody">
-              <tr>
-                <td colspan="7" class="loading">Loading users...</td>
-              </tr>
-            </tbody>
-          </table>
         </div>
 
+        <!-- Attendance Overview -->
+        <div class="card chart-card">
+          <div class="card-header">
+            <h3>Attendance Overview</h3>
+            <button class="icon-btn" title="Attendance Stats"><i class="fas fa-calendar-check"></i></button>
+          </div>
+          <div class="chart-container">
+            <canvas id="attendanceOverviewChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Teachers by Subject -->
+        <div class="card chart-card">
+          <div class="card-header">
+            <h3>Teachers by Subject</h3>
+            <button class="icon-btn" title="Subject Stats"><i class="fas fa-chalkboard-teacher"></i></button>
+          </div>
+          <div class="chart-container">
+            <canvas id="teachersBySubjectChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Admission Status -->
+        <div class="card chart-card">
+          <div class="card-header">
+            <h3>Admission Applications</h3>
+            <button class="icon-btn" title="Admission Stats"><i class="fas fa-user-graduate"></i></button>
+          </div>
+          <div class="chart-container">
+            <canvas id="admissionStatusChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Content Section -->
+    <section class="main-content-section">
+      <div class="card">
+        <div class="card-header">
+          <h3>User Management</h3>
+          <button class="icon-btn" title="Filter users"><i class="fas fa-users-cog"></i></button>
+        </div>
+        <div class="controls">
+          <div class="filters">
+            <input type="search" id="searchInput" placeholder="Search by name or email..." />
+            <select id="roleFilter" title="Filter by role">
+              <option value="all">All Roles</option>
+              <option value="student">Students</option>
+              <option value="teacher">Teachers</option>
+              <option value="parent">Parents</option>
+              <option value="admin">Admins</option>
+            </select>
+            <a href="admin-register.html" class="btn btn-primary">+ Add User</a>
+          </div>
+        </div>
+        <table class="users-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Gender</th>
+              <th>Date of Birth</th>
+              <th>Subjects</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="usersBody">
+            <tr>
+              <td colspan="7" class="loading">Loading users...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="bottom-cards-grid">
         <div class="card">
           <div class="card-header">
             <h3>Admissions Overview</h3>
@@ -172,33 +222,6 @@
             <div class="loading-placeholder">
               Loading announcements...
             </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="right-column">
-        <!-- Students by Class Bar Chart -->
-        <div class="card chart-card">
-          <div class="card-header">
-            <h3>Students by Class</h3>
-            <button class="icon-btn" title="Class Stats"><i class="fas fa-graduation-cap"></i></button>
-          </div>
-          <div class="chart-container" style="height: 280px;">
-            <canvas id="studentsByClassChart"></canvas>
-          </div>
-        </div>
-
-        <!-- Admissions Overview Doughnut Chart -->
-        <div class="card chart-card">
-          <div class="card-header">
-            <h3>Admissions Overview</h3>
-            <button class="icon-btn" title="Admission Stats"><i class="fas fa-user-graduate"></i></button>
-          </div>
-          <div class="chart-container" style="height: 250px;">
-            <canvas id="admissionsChart"></canvas>
-          </div>
-          <div class="chart-stats" id="admissionStats">
-            <!-- Stats will be populated by JS -->
           </div>
         </div>
       </div>

@@ -162,6 +162,18 @@
             font-weight: 500;
         }
 
+        .info-item i.icon-primary {
+            color: var(--primary);
+        }
+
+        .info-item i.icon-secondary {
+            color: var(--secondary);
+        }
+
+        .info-item i.icon-warning {
+            color: var(--warning);
+        }
+
         /* Loading and Error */
         .loading, .error-message {
             text-align: center;
@@ -514,6 +526,36 @@
             justify-content: center;
         }
 
+        .stat-icon.icon-today {
+            background: #eef2ff;
+        }
+
+        .stat-icon.icon-today i {
+            color: var(--primary);
+            width: 24px;
+            height: 24px;
+        }
+
+        .stat-icon.icon-current {
+            background: #d1fae5;
+        }
+
+        .stat-icon.icon-current i {
+            color: var(--secondary);
+            width: 24px;
+            height: 24px;
+        }
+
+        .stat-icon.icon-next {
+            background: #fef3c7;
+        }
+
+        .stat-icon.icon-next i {
+            color: var(--warning);
+            width: 24px;
+            height: 24px;
+        }
+
         .stat-content {
             flex: 1;
         }
@@ -570,6 +612,38 @@
             .stats-bar {
                 grid-template-columns: 1fr;
             }
+        }
+
+        /* User info text */
+        .user-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .user-class {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* Loading text */
+        .loading-text {
+            color: var(--text-secondary);
+            margin-top: 1rem;
+        }
+
+        /* View tab icon size */
+        .view-tab i {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Legend color variants */
+        .legend-color.regular {
+            background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+        }
+
+        .legend-color.current {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
         }
 
 

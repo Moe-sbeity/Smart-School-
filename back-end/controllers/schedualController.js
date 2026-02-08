@@ -556,7 +556,7 @@ export const getTeacherSchedule = async (req, res) => {
     const { teacherId } = req.params;
 
     const schedules = await Schedule.find({ teacher: teacherId })
-      .populate('student', 'name email')
+      .populate('student', 'name email classGrade classSection')
       .sort({ dayOfWeek: 1, startTime: 1 });
 
     // Group by day and class
