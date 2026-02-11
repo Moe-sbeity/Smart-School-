@@ -113,20 +113,63 @@ export const submitAssignment = async (req, res) => {
       }
     }
 
-    if (announcement.type === 'quiz' && processedAnswers) {
+    // Check if quiz can be auto-graded (only MCQ and true-false questions)
+    const isQuiz = announcement.type === 'quiz';
+    let hasManualQuestions = false;
+    
+    if (isQuiz && announcement.questions) {
+      hasManualQuestions = announcement.questions.some(q => 
+        q.type === 'short-answer' || q.type === 'essay'
+      );
+    }
+
+    if (isQuiz && processedAnswers) {
       processedAnswers = processedAnswers.map((ans, index) => {
         const question = announcement.questions[index];
-        const isCorrect = question.correctAnswer === ans.answer;
-        const pointsEarned = isCorrect ? question.points : 0;
-        totalPoints += pointsEarned;
-
-        return {
-          questionId: question._id,
-          answer: ans.answer,
-          isCorrect,
-          pointsEarned
-        };
+        
+        if (!question) {
+          return {
+            questionId: ans.questionId,
+            answer: ans.answer,
+            isCorrect: false,
+            pointsEarned: 0
+          };
+        }
+        
+        // Only auto-grade MCQ and true-false questions
+        if (question.type === 'multiple-choice' || question.type === 'true-false') {
+          const isCorrect = question.correctAnswer === ans.answer;
+          const pointsEarned = isCorrect ? question.points : 0;
+          totalPoints += pointsEarned;
+          
+          return {
+            questionId: question._id,
+            answer: ans.answer,
+            isCorrect,
+            pointsEarned
+          };
+        } else {
+          // Short-answer and essay need manual grading
+          return {
+            questionId: question._id,
+            answer: ans.answer,
+            isCorrect: null, // Null means not yet graded
+            pointsEarned: 0 // Will be set by teacher
+          };
+        }
       });
+    }
+
+    // Determine status: auto-grade only pure MCQ quizzes, otherwise needs manual grading
+    let submissionStatus = 'submitted';
+    let submissionGrade = undefined;
+    let gradedAt = undefined;
+    
+    if (isQuiz && !hasManualQuestions) {
+      // Pure MCQ/true-false quiz - auto-grade
+      submissionStatus = 'graded';
+      submissionGrade = totalPoints;
+      gradedAt = new Date();
     }
 
     const submission = new Submission({
@@ -136,9 +179,9 @@ export const submitAssignment = async (req, res) => {
       answers: processedAnswers,
       attachments: attachments,
       isLate,
-      status: announcement.type === 'quiz' ? 'graded' : 'submitted',
-      grade: announcement.type === 'quiz' ? totalPoints : undefined,
-      gradedAt: announcement.type === 'quiz' ? new Date() : undefined
+      status: submissionStatus,
+      grade: submissionGrade,
+      gradedAt: gradedAt
     });
 
     await submission.save();
@@ -691,6 +734,132 @@ export const getChildGrades = async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching child grades:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+// Get all school-wide announcements for year schedule (teacher view)
+export const getYearScheduleData = async (req, res) => {
+  try {
+    const { academicYear } = req.query;
+    
+    // Parse academic year to get date range (e.g., "2025-2026" -> Sep 2025 to Aug 2026)
+    let startYear = 2025;
+    let endYear = 2026;
+    if (academicYear) {
+      const parts = academicYear.split('-');
+      startYear = parseInt(parts[0]);
+      endYear = parseInt(parts[1]);
+    }
+    
+    const yearStart = new Date(`${startYear}-09-01`);
+    const yearEnd = new Date(`${endYear}-08-31`);
+    
+    // Get all announcements for the academic year
+    const announcements = await Announcement.find({
+      status: 'published',
+      $or: [
+        { dueDate: { $gte: yearStart, $lte: yearEnd } },
+        { createdAt: { $gte: yearStart, $lte: yearEnd } }
+      ]
+    })
+      .populate('teacher', 'name email subjects')
+      .populate('targetStudents', 'name classGrade classSection')
+      .sort({ dueDate: 1 });
+    
+    // Get submission stats for each announcement
+    const announcementsWithStats = await Promise.all(
+      announcements.map(async (announcement) => {
+        const submissionCount = await Submission.countDocuments({
+          announcement: announcement._id
+        });
+        const gradedCount = await Submission.countDocuments({
+          announcement: announcement._id,
+          status: 'graded'
+        });
+        
+        // Extract unique grades from target students
+        const grades = [...new Set(
+          announcement.targetStudents
+            .map(s => s.classGrade)
+            .filter(g => g)
+        )];
+        
+        return {
+          _id: announcement._id,
+          title: announcement.title,
+          description: announcement.description,
+          type: announcement.type,
+          subject: announcement.subject,
+          dueDate: announcement.dueDate,
+          createdAt: announcement.createdAt,
+          totalPoints: announcement.totalPoints,
+          priority: announcement.priority,
+          status: announcement.status,
+          teacher: announcement.teacher,
+          targetGrades: grades,
+          submissionCount,
+          gradedCount,
+          totalStudents: announcement.targetStudents.length
+        };
+      })
+    );
+    
+    // Group by grade
+    const byGrade = {};
+    announcementsWithStats.forEach(a => {
+      a.targetGrades.forEach(grade => {
+        if (!byGrade[grade]) {
+          byGrade[grade] = {
+            exams: [],
+            quizzes: [],
+            assignments: []
+          };
+        }
+        if (a.type === 'quiz' && a.totalPoints >= 50) {
+          byGrade[grade].exams.push(a);
+        } else if (a.type === 'quiz') {
+          byGrade[grade].quizzes.push(a);
+        } else if (a.type === 'assignment') {
+          byGrade[grade].assignments.push(a);
+        }
+      });
+    });
+    
+    // Group by subject
+    const bySubject = {};
+    announcementsWithStats.forEach(a => {
+      if (!bySubject[a.subject]) {
+        bySubject[a.subject] = { exams: 0, quizzes: 0, assignments: 0 };
+      }
+      if (a.type === 'quiz' && a.totalPoints >= 50) {
+        bySubject[a.subject].exams++;
+      } else if (a.type === 'quiz') {
+        bySubject[a.subject].quizzes++;
+      } else if (a.type === 'assignment') {
+        bySubject[a.subject].assignments++;
+      }
+    });
+    
+    // Count totals
+    const exams = announcementsWithStats.filter(a => a.type === 'quiz' && a.totalPoints >= 50);
+    const quizzes = announcementsWithStats.filter(a => a.type === 'quiz' && a.totalPoints < 50);
+    const assignments = announcementsWithStats.filter(a => a.type === 'assignment');
+    
+    res.status(200).json({
+      academicYear: `${startYear}-${endYear}`,
+      totals: {
+        exams: exams.length,
+        quizzes: quizzes.length,
+        assignments: assignments.length,
+        total: announcementsWithStats.length
+      },
+      byGrade,
+      bySubject,
+      announcements: announcementsWithStats
+    });
+  } catch (error) {
+    console.error('Error fetching year schedule data:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };

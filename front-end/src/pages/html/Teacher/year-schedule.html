@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Year Schedule - Smart School</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="year-schedule.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../js/toast.js"></script>
+</head>
+
+<body>
+    <nav class="top-nav">
+        <div class="nav-content">
+            <div class="logo">
+                <div class="logo-icon">SS</div>
+                <span>Smart School</span>
+            </div>
+            <div class="nav-actions">
+                <a class="btn btn-secondary" href="teacher-dashboard.html">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+                <a class="btn btn-secondary" href="teacher-publishAnnouncment.html">
+                    <i class="fas fa-bullhorn"></i> Create Content
+                </a>
+                <a class="btn btn-secondary" href="teacher-attendance.html">
+                    <i class="fas fa-clipboard-check"></i> Attendance
+                </a>
+                <button class="btn btn-primary" id="logout">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <div class="header-left">
+                <h1><i class="fas fa-calendar-alt"></i> Academic Year Schedule</h1>
+                <p id="welcomeMessage">Overview of the current academic year</p>
+            </div>
+            <div class="header-right">
+                <div class="filter-group">
+                    <div class="year-selector">
+                        <label for="gradeFilter">Grade:</label>
+                        <select id="gradeFilter" onchange="changeGradeFilter()">
+                            <option value="all" selected>All Grades</option>
+                        </select>
+                    </div>
+                    <div class="year-selector">
+                        <label for="academicYear">Academic Year:</label>
+                        <select id="academicYear" onchange="changeAcademicYear()">
+                            <option value="2025-2026" selected>2025 - 2026</option>
+                            <option value="2024-2025">2024 - 2025</option>
+                            <option value="2026-2027">2026 - 2027</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grade Stats Summary -->
+        <div class="grade-summary" id="gradeSummary">
+            <div class="grade-summary-header">
+                <h3><i class="fas fa-graduation-cap"></i> Data by Grade</h3>
+            </div>
+            <div class="grade-cards" id="gradeCards">
+                <!-- Grade cards will be populated dynamically -->
+            </div>
+        </div>
+
+        <!-- Year Overview Stats -->
+        <div class="year-overview">
+            <div class="overview-card">
+                <div class="overview-icon exams"><i class="fas fa-file-alt"></i></div>
+                <div class="overview-content">
+                    <span class="overview-value" id="totalExams">0</span>
+                    <span class="overview-label">Total Exams</span>
+                </div>
+            </div>
+            <div class="overview-card">
+                <div class="overview-icon quizzes"><i class="fas fa-question-circle"></i></div>
+                <div class="overview-content">
+                    <span class="overview-value" id="totalQuizzes">0</span>
+                    <span class="overview-label">Total Quizzes</span>
+                </div>
+            </div>
+            <div class="overview-card">
+                <div class="overview-icon assignments"><i class="fas fa-tasks"></i></div>
+                <div class="overview-content">
+                    <span class="overview-value" id="totalAssignments">0</span>
+                    <span class="overview-label">Total Assignments</span>
+                </div>
+            </div>
+            <div class="overview-card">
+                <div class="overview-icon attendance"><i class="fas fa-user-check"></i></div>
+                <div class="overview-content">
+                    <span class="overview-value" id="avgAttendance">0%</span>
+                    <span class="overview-label">Avg Attendance</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Term Navigation -->
+        <div class="term-tabs">
+            <button class="term-tab active" data-term="1" onclick="selectTerm(1)">
+                <i class="fas fa-calendar-week"></i>
+                <span>Term 1</span>
+                <small>Sep - Oct</small>
+            </button>
+            <button class="term-tab" data-term="2" onclick="selectTerm(2)">
+                <i class="fas fa-calendar-week"></i>
+                <span>Term 2</span>
+                <small>Nov - Dec</small>
+            </button>
+            <button class="term-tab" data-term="3" onclick="selectTerm(3)">
+                <i class="fas fa-calendar-week"></i>
+                <span>Term 3</span>
+                <small>Jan - Feb</small>
+            </button>
+            <button class="term-tab" data-term="4" onclick="selectTerm(4)">
+                <i class="fas fa-calendar-week"></i>
+                <span>Term 4</span>
+                <small>Mar - Apr</small>
+            </button>
+            <button class="term-tab" data-term="5" onclick="selectTerm(5)">
+                <i class="fas fa-calendar-week"></i>
+                <span>Term 5</span>
+                <small>May - Jun</small>
+            </button>
+            <button class="term-tab" data-term="6" onclick="selectTerm(6)">
+                <i class="fas fa-calendar-week"></i>
+                <span>Term 6</span>
+                <small>Jul - Aug</small>
+            </button>
+        </div>
+
+        <!-- Term Content -->
+        <div class="term-content" id="termContent">
+            <div class="term-header">
+                <h2 id="termTitle">Term 1: September - October 2025</h2>
+                <div class="term-progress">
+                    <span class="progress-label">Progress:</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="termProgress"></div>
+                    </div>
+                    <span class="progress-percent" id="termProgressPercent">0%</span>
+                </div>
+            </div>
+
+            <!-- Term Stats Cards -->
+            <div class="term-stats-grid">
+                <!-- Exams Section -->
+                <div class="term-section exams-section">
+                    <div class="section-header">
+                        <div class="section-icon"><i class="fas fa-file-alt"></i></div>
+                        <h3>Exams</h3>
+                        <span class="section-count" id="termExamsCount">0</span>
+                    </div>
+                    <div class="section-body">
+                        <div class="mini-stats">
+                            <div class="mini-stat">
+                                <span class="mini-value" id="examsPending">0</span>
+                                <span class="mini-label">Pending</span>
+                            </div>
+                            <div class="mini-stat">
+                                <span class="mini-value" id="examsCompleted">0</span>
+                                <span class="mini-label">Completed</span>
+                            </div>
+                            <div class="mini-stat">
+                                <span class="mini-value" id="examsAvgScore">-</span>
+                                <span class="mini-label">Avg Score</span>
+                            </div>
+                        </div>
+                        <div class="section-list" id="examsList">
+                            <div class="empty-state">
+                                <i class="fas fa-inbox"></i>
+                                <p>No exams scheduled</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quizzes Section -->
+                <div class="term-section quizzes-section">
+                    <div class="section-header">
+                        <div class="section-icon"><i class="fas fa-question-circle"></i></div>
+                        <h3>Quizzes</h3>
+                        <span class="section-count" id="termQuizzesCount">0</span>
+                    </div>
+                    <div class="section-body">
+                        <div class="mini-stats">
+                            <div class="mini-stat">
+                                <span class="mini-value" id="quizzesPending">0</span>
+                                <span class="mini-label">Pending</span>
+                            </div>
+                            <div class="mini-stat">
+                                <span class="mini-value" id="quizzesCompleted">0</span>
+                                <span class="mini-label">Completed</span>
+                            </div>
+                            <div class="mini-stat">
+                                <span class="mini-value" id="quizzesAvgScore">-</span>
+                                <span class="mini-label">Avg Score</span>
+                            </div>
+                        </div>
+                        <div class="section-list" id="quizzesList">
+                            <div class="empty-state">
+                                <i class="fas fa-inbox"></i>
+                                <p>No quizzes scheduled</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Assignments Section -->
+                <div class="term-section assignments-section">
+                    <div class="section-header">
+                        <div class="section-icon"><i class="fas fa-tasks"></i></div>
+                        <h3>Assignments</h3>
+                        <span class="section-count" id="termAssignmentsCount">0</span>
+                    </div>
+                    <div class="section-body">
+                        <div class="mini-stats">
+                            <div class="mini-stat">
+                                <span class="mini-value" id="assignmentsPending">0</span>
+                                <span class="mini-label">Pending</span>
+                            </div>
+                            <div class="mini-stat">
+                                <span class="mini-value" id="assignmentsCompleted">0</span>
+                                <span class="mini-label">Completed</span>
+                            </div>
+                            <div class="mini-stat">
+                                <span class="mini-value" id="assignmentsSubmission">0%</span>
+                                <span class="mini-label">Submission Rate</span>
+                            </div>
+                        </div>
+                        <div class="section-list" id="assignmentsList">
+                            <div class="empty-state">
+                                <i class="fas fa-inbox"></i>
+                                <p>No assignments posted</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Attendance Section -->
+                <div class="term-section attendance-section">
+                    <div class="section-header">
+                        <div class="section-icon"><i class="fas fa-user-check"></i></div>
+                        <h3>Attendance</h3>
+                        <span class="section-count" id="termAttendanceRate">0%</span>
+                    </div>
+                    <div class="section-body">
+                        <div class="mini-stats">
+                            <div class="mini-stat">
+                                <span class="mini-value" id="attendancePresent">0</span>
+                                <span class="mini-label">Present</span>
+                            </div>
+                            <div class="mini-stat">
+                                <span class="mini-value" id="attendanceAbsent">0</span>
+                                <span class="mini-label">Absent</span>
+                            </div>
+                            <div class="mini-stat">
+                                <span class="mini-value" id="attendanceLate">0</span>
+                                <span class="mini-label">Late</span>
+                            </div>
+                        </div>
+                        <div class="attendance-chart-container">
+                            <canvas id="termAttendanceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="charts-row">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-line"></i> Performance Overview</h3>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-bar"></i> Subject-wise Distribution</h3>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="subjectChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upcoming Deadlines -->
+            <div class="deadlines-section">
+                <div class="section-header-bar">
+                    <h3><i class="fas fa-clock"></i> Upcoming Deadlines</h3>
+                    <span class="deadline-count" id="upcomingCount">0 items</span>
+                </div>
+                <div class="deadlines-list" id="deadlinesList">
+                    <div class="empty-state">
+                        <i class="fas fa-calendar-check"></i>
+                        <p>No upcoming deadlines</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loader"></div>
+    </div>
+
+    <script src="year-schedule.js"></script>
+</body>
+</html>

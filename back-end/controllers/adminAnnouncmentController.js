@@ -425,6 +425,59 @@ export const getAdminAnnouncementsForStudent = async (req, res) => {
   }
 };
 
+// Get admin announcements for teacher
+export const getAdminAnnouncementsForTeacher = async (req, res) => {
+  try {
+    const teacherId = req.userId;
+
+    // Get teacher info
+    const teacher = await UserModel.findById(teacherId);
+
+    if (!teacher || teacher.role !== 'teacher') {
+      return res.status(403).json({ message: 'Access denied. Teachers only.' });
+    }
+
+    // Find all active announcements for teachers (announcements where targetAudience includes teachers or is for all)
+    const announcements = await Announcement.find({
+      isActive: true,
+      $or: [
+        { targetAudience: 'all' },
+        { targetAudience: 'teachers' },
+        { targetAudience: { $in: ['teachers', 'all'] } }
+      ]
+    })
+      .populate('author', 'name email')
+      .sort({ createdAt: -1 });
+
+    // If no targetAudience filter, get all active announcements for now
+    let result = announcements;
+    
+    // If no announcements found with targetAudience, get all announcements
+    if (announcements.length === 0) {
+      result = await Announcement.find({ isActive: true })
+        .populate('author', 'name email')
+        .sort({ createdAt: -1 });
+    }
+
+    // Add isViewed field
+    const announcementsWithViewStatus = result.map(announcement => {
+      const announcementObj = announcement.toObject();
+      announcementObj.isViewed = announcement.viewedBy && announcement.viewedBy.some(
+        id => id.toString() === teacherId.toString()
+      );
+      return announcementObj;
+    });
+
+    res.status(200).json({
+      announcements: announcementsWithViewStatus,
+      count: announcementsWithViewStatus.length
+    });
+  } catch (error) {
+    console.error('Error fetching admin announcements for teacher:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Mark admin announcement as viewed by student
 export const markAnnouncementAsViewed = async (req, res) => {
   try {

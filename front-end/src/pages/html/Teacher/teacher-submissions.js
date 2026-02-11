@@ -419,7 +419,16 @@
                 `;
             }
 
+            // Determine if this quiz can be auto-graded (only if all questions are multiple-choice or true-false)
             const isQuiz = currentAnnouncement.type === 'quiz';
+            let isAutoGradableQuiz = false;
+            
+            if (isQuiz && currentAnnouncement.questions && currentAnnouncement.questions.length > 0) {
+                isAutoGradableQuiz = currentAnnouncement.questions.every(q => 
+                    q.type === 'multiple-choice' || q.type === 'true-false'
+                );
+            }
+
             contentHTML += `
                 <div class="grading-form">
                     <div class="section-title">
@@ -427,7 +436,25 @@
                         ${isGraded ? 'Update Grade' : 'Grade Submission'}
                     </div>
                     <form onsubmit="submitGrade(event)">
-                        ${!isQuiz ? `
+                        ${isAutoGradableQuiz ? `
+                        <div class="form-group">
+                            <label class="form-label">
+                                Grade (Auto-calculated for MCQ Quiz)
+                            </label>
+                            <input 
+                                type="number" 
+                                class="form-input" 
+                                id="gradeInput"
+                                value="${currentSubmission.grade || 0}"
+                                readonly
+                                disabled
+                            />
+                            <p style="font-size: 12px; color: #6c757d; margin-top: 8px;">
+                                <i class="fas fa-info-circle"></i> 
+                                This quiz only has multiple-choice questions and is auto-graded.
+                            </p>
+                        </div>
+                        ` : `
                         <div class="form-group">
                             <label class="form-label">
                                 Grade (out of ${currentAnnouncement.totalPoints})
@@ -456,20 +483,6 @@
                                 <button type="button" class="quick-grade-btn" onclick="setQuickGrade(1)">100%</button>
                             </div>
                             <input type="hidden" id="gradeInput" value="${currentSubmission.grade || 0}" />
-                        </div>
-                        ` : `
-                        <div class="form-group">
-                            <label class="form-label">
-                                Grade (Auto-calculated for Quiz)
-                            </label>
-                            <input 
-                                type="number" 
-                                class="form-input" 
-                                id="gradeInput"
-                                value="${currentSubmission.grade || 0}"
-                                readonly
-                                disabled
-                            />
                         </div>
                         `}
                         <div class="form-group">

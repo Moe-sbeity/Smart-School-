@@ -9,6 +9,7 @@ import {
   getUserAnnouncements,
   getAnnouncementsForStudent,
   getAdminAnnouncementsForStudent,
+  getAdminAnnouncementsForTeacher,
   markAnnouncementAsViewed
 } from '../controllers/adminAnnouncmentController.js';
 import { protectRoute } from '../middleware/auth.js';
@@ -22,6 +23,9 @@ router.get('/:id', getAnnouncementById);
 
 // NEW: Get admin announcements for logged-in student
 router.get('/student/my-announcements', protectRoute, getAdminAnnouncementsForStudent);
+
+// NEW: Get admin announcements for logged-in teacher
+router.get('/teacher/my-announcements', protectRoute, getAdminAnnouncementsForTeacher);
 
 // Mark announcement as viewed
 router.post('/:id/view', protectRoute, markAnnouncementAsViewed);

@@ -434,13 +434,12 @@ function renderDashboard() {
     document.getElementById('avgGrade').textContent = avgGrade;
     document.getElementById('completedTasks').textContent = completedTasks.length;
 
-    // Update notification count with admin announcements
+    // Update notification count - only count unread admin announcements
     const unreadAdminAnnouncements = adminAnnouncements.filter(a => !a.isViewed).length;
     const notificationCount = document.getElementById('notificationCount');
     if (notificationCount) {
-        const totalNotifications = unreadAdminAnnouncements + pendingTasks.length;
-        notificationCount.textContent = totalNotifications;
-        notificationCount.style.display = totalNotifications > 0 ? 'flex' : 'none';
+        notificationCount.textContent = unreadAdminAnnouncements;
+        notificationCount.style.display = unreadAdminAnnouncements > 0 ? 'flex' : 'none';
     }
 
     // Render today's schedule
@@ -1932,16 +1931,42 @@ function toggleTheme() {
 
 // Show notifications panel
 function showNotifications() {
-    // Get all unread notifications
-    const unreadAdminAnnouncements = adminAnnouncements.filter(a => !a.isViewed);
-    const pendingTasks = allAnnouncements.filter(a =>
-        (a.type === 'assignment' || a.type === 'quiz') && !a.hasSubmitted && !a.isOverdue
-    );
+    // Get all unread notifications - sorted from newest to oldest
+    const unreadAdminAnnouncements = adminAnnouncements
+        .filter(a => !a.isViewed)
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    
+    // Get non-submitted assignments and quizzes - sorted by due date (soonest first)
+    const nonSubmittedAssignments = allAnnouncements
+        .filter(a => a.type === 'assignment' && !a.hasSubmitted)
+        .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+    
+    const nonSubmittedQuizzes = allAnnouncements
+        .filter(a => a.type === 'quiz' && !a.hasSubmitted)
+        .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+    
+    // Get recently graded submissions (within last 7 days) - sorted from newest to oldest
+    const recentlyGraded = allAnnouncements.filter(a => {
+        if (!a.hasSubmitted || !a.submission || a.submission.status !== 'graded') return false;
+        const gradedAt = new Date(a.submission.gradedAt);
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        return gradedAt > sevenDaysAgo;
+    }).sort((a, b) => new Date(b.submission.gradedAt) - new Date(a.submission.gradedAt));
+
+    // Get newly posted tasks (created within last 24 hours)
+    const oneDayAgo = new Date();
+    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+    const newlyPostedTasks = allAnnouncements
+        .filter(a => (a.type === 'assignment' || a.type === 'quiz') && !a.hasSubmitted && new Date(a.createdAt) > oneDayAgo)
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    const totalNotifications = unreadAdminAnnouncements.length + nonSubmittedAssignments.length + nonSubmittedQuizzes.length + recentlyGraded.length + newlyPostedTasks.length;
 
     // Create notification panel content
     let notificationContent = '';
 
-    if (unreadAdminAnnouncements.length === 0 && pendingTasks.length === 0) {
+    if (totalNotifications === 0) {
         notificationContent = `
             <div class="notification-empty">
                 <i data-lucide="bell-off"></i>
@@ -1950,10 +1975,26 @@ function showNotifications() {
         `;
     } else {
         notificationContent = `
+            ${newlyPostedTasks.length > 0 ? `
+                <div class="notification-section new-tasks-section">
+                    <h4><i data-lucide="sparkles"></i> New Tasks (Today)</h4>
+                    ${newlyPostedTasks.map(t => `
+                        <div class="notification-item new-task" onclick="viewTaskDetail('${t._id}', '${t.subject}'); closeNotificationPanel();">
+                            <div class="notification-icon" style="background: #dcfce7;">
+                                <i data-lucide="${t.type === 'quiz' ? 'award' : 'file-text'}" style="color: #16a34a;"></i>
+                            </div>
+                            <div class="notification-content">
+                                <p class="notification-title">${t.title} <span style="background: #16a34a; color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">NEW</span></p>
+                                <p class="notification-time">${t.subject} (${t.type}) - Due: ${new Date(t.dueDate).toLocaleDateString()}</p>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : ''}
             ${unreadAdminAnnouncements.length > 0 ? `
                 <div class="notification-section">
                     <h4><i data-lucide="megaphone"></i> New Announcements</h4>
-                    ${unreadAdminAnnouncements.slice(0, 5).map(a => `
+                    ${unreadAdminAnnouncements.map(a => `
                         <div class="notification-item" onclick="viewAdminAnnouncement('${a._id}'); closeNotificationPanel();">
                             <div class="notification-icon" style="background: ${a.category === 'urgent' ? '#fee2e2' : '#eef2ff'};">
                                 <i data-lucide="${a.category === 'urgent' ? 'alert-circle' : 'bell'}" 
@@ -1967,20 +2008,56 @@ function showNotifications() {
                     `).join('')}
                 </div>
             ` : ''}
-            ${pendingTasks.length > 0 ? `
+            ${nonSubmittedAssignments.length > 0 ? `
                 <div class="notification-section">
-                    <h4><i data-lucide="clipboard-list"></i> Pending Tasks</h4>
-                    ${pendingTasks.slice(0, 5).map(t => `
-                        <div class="notification-item" onclick="viewTaskDetail('${t._id}', '${t.subject}'); closeNotificationPanel();">
-                            <div class="notification-icon" style="background: #fef3c7;">
-                                <i data-lucide="${t.type === 'quiz' ? 'award' : 'file-text'}" style="color: #d97706;"></i>
+                    <h4><i data-lucide="file-text"></i> Non-Submitted Assignments</h4>
+                    ${nonSubmittedAssignments.map(t => `
+                        <div class="notification-item ${t.isOverdue ? 'overdue' : ''}" onclick="viewTaskDetail('${t._id}', '${t.subject}'); closeNotificationPanel();">
+                            <div class="notification-icon" style="background: ${t.isOverdue ? '#fee2e2' : '#fef3c7'};">
+                                <i data-lucide="file-text" style="color: ${t.isOverdue ? '#dc2626' : '#d97706'};"></i>
                             </div>
                             <div class="notification-content">
                                 <p class="notification-title">${t.title}</p>
-                                <p class="notification-time">${t.subject} - Due: ${new Date(t.dueDate).toLocaleDateString()}</p>
+                                <p class="notification-time">${t.subject} - Due: ${new Date(t.dueDate).toLocaleDateString()}${t.isOverdue ? ' <span style="color: #dc2626; font-weight: 600;">(Overdue)</span>' : ''}</p>
                             </div>
                         </div>
                     `).join('')}
+                </div>
+            ` : ''}
+            ${nonSubmittedQuizzes.length > 0 ? `
+                <div class="notification-section">
+                    <h4><i data-lucide="award"></i> Non-Submitted Quizzes</h4>
+                    ${nonSubmittedQuizzes.map(t => `
+                        <div class="notification-item ${t.isOverdue ? 'overdue' : ''}" onclick="viewTaskDetail('${t._id}', '${t.subject}'); closeNotificationPanel();">
+                            <div class="notification-icon" style="background: ${t.isOverdue ? '#fee2e2' : '#dbeafe'};">
+                                <i data-lucide="award" style="color: ${t.isOverdue ? '#dc2626' : '#2563eb'};"></i>
+                            </div>
+                            <div class="notification-content">
+                                <p class="notification-title">${t.title}</p>
+                                <p class="notification-time">${t.subject} - Due: ${new Date(t.dueDate).toLocaleDateString()}${t.isOverdue ? ' <span style="color: #dc2626; font-weight: 600;">(Overdue)</span>' : ''}</p>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : ''}
+            ${recentlyGraded.length > 0 ? `
+                <div class="notification-section">
+                    <h4><i data-lucide="check-circle"></i> Recently Graded</h4>
+                    ${recentlyGraded.map(g => {
+                        const percent = Math.round((g.submission.grade / g.totalPoints) * 100);
+                        const gradeColor = percent >= 70 ? '#10b981' : percent >= 50 ? '#f59e0b' : '#ef4444';
+                        return `
+                            <div class="notification-item" onclick="viewTaskDetail('${g._id}', '${g.subject}'); closeNotificationPanel();">
+                                <div class="notification-icon" style="background: #ecfdf5;">
+                                    <i data-lucide="check-circle" style="color: ${gradeColor};"></i>
+                                </div>
+                                <div class="notification-content">
+                                    <p class="notification-title">${g.title}</p>
+                                    <p class="notification-time">${g.subject} - Grade: <strong style="color: ${gradeColor};">${g.submission.grade}/${g.totalPoints} (${percent}%)</strong></p>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
                 </div>
             ` : ''}
         `;
@@ -2001,6 +2078,14 @@ function showNotifications() {
             <h3>Notifications</h3>
             <button onclick="closeNotificationPanel()" class="notification-close">&times;</button>
         </div>
+        ${unreadAdminAnnouncements.length > 0 ? `
+        <div class="notification-actions">
+            <button onclick="markAllAsRead()" class="mark-all-read-btn">
+                <i data-lucide="check-check"></i>
+                Mark all as read
+            </button>
+        </div>
+        ` : ''}
         <div class="notification-body">
             ${notificationContent}
         </div>
@@ -2012,6 +2097,49 @@ function showNotifications() {
     setTimeout(() => panel.classList.add('show'), 10);
     
     lucide.createIcons();
+}
+
+// Mark all announcements as read
+async function markAllAsRead() {
+    const unreadAdminAnnouncements = adminAnnouncements.filter(a => !a.isViewed);
+    
+    if (unreadAdminAnnouncements.length === 0) {
+        if (typeof Toast !== 'undefined') {
+            Toast.info('No unread announcements');
+        }
+        return;
+    }
+
+    try {
+        // Mark each announcement as viewed
+        const promises = unreadAdminAnnouncements.map(a => 
+            apiCall(`/admin-announcements/${a._id}/view`, 'POST')
+        );
+        await Promise.all(promises);
+        
+        // Update local state
+        unreadAdminAnnouncements.forEach(a => a.isViewed = true);
+        
+        // Update notification count - hide badge since all announcements are read
+        const notificationCount = document.getElementById('notificationCount');
+        if (notificationCount) {
+            notificationCount.textContent = '0';
+            notificationCount.style.display = 'none';
+        }
+
+        // Refresh the notification panel
+        closeNotificationPanel();
+        showNotifications();
+
+        if (typeof Toast !== 'undefined') {
+            Toast.success('All announcements marked as read');
+        }
+    } catch (error) {
+        console.error('Error marking all as read:', error);
+        if (typeof Toast !== 'undefined') {
+            Toast.error('Failed to mark all as read');
+        }
+    }
 }
 
 // Close notification panel
@@ -2051,16 +2179,12 @@ async function viewAdminAnnouncement(announcementId) {
         try {
             await apiCall(`/admin-announcements/${announcementId}/view`, 'POST');
             announcement.isViewed = true;
-            // Update notification count
+            // Update notification count - only count unread announcements
             const unreadCount = adminAnnouncements.filter(a => !a.isViewed).length;
-            const pendingTasks = allAnnouncements.filter(a =>
-                (a.type === 'assignment' || a.type === 'quiz') && !a.hasSubmitted && !a.isOverdue
-            ).length;
             const notificationCount = document.getElementById('notificationCount');
             if (notificationCount) {
-                const total = unreadCount + pendingTasks;
-                notificationCount.textContent = total;
-                notificationCount.style.display = total > 0 ? 'flex' : 'none';
+                notificationCount.textContent = unreadCount;
+                notificationCount.style.display = unreadCount > 0 ? 'flex' : 'none';
             }
         } catch (error) {
             console.error('Error marking announcement as viewed:', error);

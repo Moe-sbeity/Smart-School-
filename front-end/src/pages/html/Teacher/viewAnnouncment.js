@@ -76,6 +76,49 @@ function updateStats() {
     document.getElementById('pendingGrading').textContent = pendingCount;
 }
 
+let activeCardFilter = 'all';
+
+function filterByCard(filterType) {
+    // Update active card styling
+    document.querySelectorAll('.stat-card').forEach(card => {
+        card.classList.remove('active');
+    });
+    document.querySelector(`.stat-card[data-filter="${filterType}"]`).classList.add('active');
+    
+    activeCardFilter = filterType;
+    
+    // Reset the type dropdown when using card filter (except for 'all')
+    if (filterType !== 'all' && filterType !== 'pending') {
+        document.getElementById('filterType').value = filterType;
+    } else {
+        document.getElementById('filterType').value = '';
+    }
+    
+    filterContent();
+}
+
+function onTypeDropdownChange() {
+    const type = document.getElementById('filterType').value;
+    
+    // Sync the active card with dropdown selection
+    document.querySelectorAll('.stat-card').forEach(card => {
+        card.classList.remove('active');
+    });
+    
+    if (type) {
+        const matchingCard = document.querySelector(`.stat-card[data-filter="${type}"]`);
+        if (matchingCard) {
+            matchingCard.classList.add('active');
+            activeCardFilter = type;
+        }
+    } else {
+        document.querySelector('.stat-card[data-filter="all"]').classList.add('active');
+        activeCardFilter = 'all';
+    }
+    
+    filterContent();
+}
+
 function filterContent() {
     const subject = document.getElementById('filterSubject').value;
     const type = document.getElementById('filterType').value;
@@ -86,9 +129,17 @@ function filterContent() {
     if (subject) {
         filtered = filtered.filter(c => c.subject === subject);
     }
-    if (type) {
+    
+    // Handle card filter for pending grading
+    if (activeCardFilter === 'pending') {
+        filtered = filtered.filter(c => 
+            c.type !== 'announcement' && 
+            (c.submissionCount - c.gradedCount) > 0
+        );
+    } else if (type) {
         filtered = filtered.filter(c => c.type === type);
     }
+    
     if (status) {
         filtered = filtered.filter(c => c.status === status);
     }

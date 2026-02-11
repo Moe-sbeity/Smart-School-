@@ -37,14 +37,14 @@
 
         <div class="filters">
             <div class="filter-group">
-                <label>Subject:</label>
+                <label for="filterSubject">Subject:</label>
                 <select id="filterSubject" onchange="filterContent()">
                     <option value="">All Subjects</option>
                 </select>
             </div>
             <div class="filter-group">
-                <label>Type:</label>
-                <select id="filterType" onchange="filterContent()">
+                <label for="filterType">Type:</label>
+                <select id="filterType" title="Filter by content type" onchange="onTypeDropdownChange()">
                     <option value="">All Types</option>
                     <option value="announcement">Announcements</option>
                     <option value="assignment">Assignments</option>
@@ -52,8 +52,8 @@
                 </select>
             </div>
             <div class="filter-group">
-                <label>Status:</label>
-                <select id="filterStatus" onchange="filterContent()">
+                <label for="filterStatus">Status:</label>
+                <select id="filterStatus" title="Filter by status" onchange="filterContent()">
                     <option value="">All Status</option>
                     <option value="published">Published</option>
                     <option value="draft">Draft</option>
@@ -63,23 +63,23 @@
         </div>
 
         <div class="stats-grid">
-            <div class="stat-card">
+            <div class="stat-card active" data-filter="all" onclick="filterByCard('all')">
                 <div class="stat-value" id="totalCount">0</div>
                 <div class="stat-label">Total Items</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card" data-filter="announcement" onclick="filterByCard('announcement')">
                 <div class="stat-value" id="announcementCount">0</div>
                 <div class="stat-label">Announcements</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card" data-filter="assignment" onclick="filterByCard('assignment')">
                 <div class="stat-value" id="assignmentCount">0</div>
                 <div class="stat-label">Assignments</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card" data-filter="quiz" onclick="filterByCard('quiz')">
                 <div class="stat-value" id="quizCount">0</div>
                 <div class="stat-label">Quizzes</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card" data-filter="pending" onclick="filterByCard('pending')">
                 <div class="stat-value" id="pendingGrading">0</div>
                 <div class="stat-label">Pending Grading</div>
             </div>
@@ -95,7 +95,7 @@
     <div class="dialog-overlay" id="contentDialog" onclick="closeDialog(event)">
         <div class="dialog" onclick="event.stopPropagation()">
             <div class="dialog-header">
-                <button class="dialog-close" onclick="closeDialog()">
+                <button class="dialog-close" onclick="closeDialog()" title="Close dialog">
                     <i class="fas fa-times"></i>
                 </button>
                 <h2 class="dialog-title" id="dialogTitle"></h2>

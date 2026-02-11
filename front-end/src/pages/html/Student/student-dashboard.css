@@ -251,6 +251,30 @@ body {
     color: white;
 }
 
+/* Grades Button */
+.grades {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 700;
+    width: 120px;
+    color: white;
+    padding: 10px 16px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+    display: inline-block;
+    text-decoration: none;
+}
+
+.grades:hover {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    color: white;
+}
+
 .notification-badge {
     position: absolute;
     top: -4px;
@@ -481,6 +505,14 @@ body {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+.stat-card.clickable {
+    cursor: pointer;
+}
+
+.stat-card.clickable:hover {
+    border: 1px solid var(--primary);
+}
+
 .stat-header {
     display: flex;
     justify-content: space-between;
@@ -551,6 +583,10 @@ body {
 
 .stat-change.positive {
     color: var(--secondary);
+}
+
+.stat-change.link {
+    color: var(--primary);
 }
 
 /* Dashboard Grid */
@@ -1191,7 +1227,7 @@ body {
     top: 70px;
     right: 20px;
     width: 380px;
-    max-height: 500px;
+    max-height: 600px;
     background: white;
     border-radius: 16px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
@@ -1241,8 +1277,41 @@ body {
     transform: scale(1.1);
 }
 
+.notification-actions {
+    padding: 12px 20px;
+    background: #f8fafc;
+    border-bottom: 1px solid var(--border);
+}
+
+.mark-all-read-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 16px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--primary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.mark-all-read-btn:hover {
+    background: var(--bg-secondary);
+    border-color: var(--primary);
+}
+
+.mark-all-read-btn i {
+    width: 18px;
+    height: 18px;
+}
+
 .notification-body {
-    max-height: 400px;
+    max-height: 450px;
     overflow-y: auto;
 }
 
@@ -1288,6 +1357,37 @@ body {
 
 .notification-item:hover {
     background: var(--bg-secondary);
+}
+
+.notification-item.overdue {
+    background: rgba(220, 38, 38, 0.05);
+    border-left: 3px solid #dc2626;
+}
+
+.notification-item.overdue:hover {
+    background: rgba(220, 38, 38, 0.1);
+}
+
+/* New tasks styling */
+.new-tasks-section {
+    background: linear-gradient(135deg, rgba(22, 163, 74, 0.05), rgba(22, 163, 74, 0.02));
+    border-radius: 12px;
+    padding: 12px;
+    margin: -4px -4px 12px -4px;
+    border: 1px solid rgba(22, 163, 74, 0.15);
+}
+
+.new-tasks-section h4 {
+    color: #16a34a !important;
+}
+
+.notification-item.new-task {
+    background: rgba(22, 163, 74, 0.05);
+    border-left: 3px solid #16a34a;
+}
+
+.notification-item.new-task:hover {
+    background: rgba(22, 163, 74, 0.1);
 }
 
 .notification-icon {

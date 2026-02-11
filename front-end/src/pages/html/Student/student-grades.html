@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Grades - Smart School</title>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="student-grades.css">
+    <script src="../js/toast.js"></script>
+</head>
+<body>
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <div class="logo">
+            <h1 class="logo-link">
+                <span class="logo-icon">SS</span>
+                <span class="logo-text">Smart School</span>
+            </h1>
+        </div>
+        <div class="nav-right">
+            <a href="student-dashboard.html" class="nav-link">
+                <i data-lucide="home"></i> Dashboard
+            </a>
+            <a href="student-attendance.html" class="nav-link">
+                <i data-lucide="clipboard-check"></i> Attendance
+            </a>
+            <a href="student-schedule.html" class="nav-link">
+                <i data-lucide="calendar"></i> Schedule
+            </a>
+            <div class="user-menu" id="userMenuContainer">
+                <div class="user-avatar" id="userAvatar">S</div>
+                <div>
+                    <div class="user-name" id="userName">Student</div>
+                    <div class="user-role">Student</div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="header-left">
+                <h1><i data-lucide="award"></i> My Grades</h1>
+                <p class="header-subtitle">View your grades and feedback from teachers</p>
+            </div>
+            <div class="header-right">
+                <a href="student-dashboard.html" class="btn btn-back">
+                    <i data-lucide="arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon icon-total">
+                    <i data-lucide="file-text"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="totalGraded">0</div>
+                    <div class="stat-label">Total Graded</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon icon-avg">
+                    <i data-lucide="trending-up"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="avgGrade">--</div>
+                    <div class="stat-label">Average Grade</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon icon-high">
+                    <i data-lucide="trophy"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="highestGrade">--</div>
+                    <div class="stat-label">Highest Grade</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon icon-pending">
+                    <i data-lucide="clock"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="pendingCount">0</div>
+                    <div class="stat-label">Pending Grading</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-section">
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-filter="all" onclick="filterGrades('all')">
+                    All
+                </button>
+                <button class="filter-tab" data-filter="assignment" onclick="filterGrades('assignment')">
+                    Assignments
+                </button>
+                <button class="filter-tab" data-filter="quiz" onclick="filterGrades('quiz')">
+                    Quizzes
+                </button>
+            </div>
+            <div class="filter-select">
+                <label for="subjectFilter">Subject:</label>
+                <select id="subjectFilter" title="Filter by subject" onchange="filterGrades()">
+                    <option value="">All Subjects</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Loading your grades...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="error" class="error-message hidden"></div>
+
+        <!-- Grades List -->
+        <div id="gradesContainer" class="grades-container hidden"></div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state hidden">
+            <i data-lucide="inbox"></i>
+            <h3>No Grades Yet</h3>
+            <p>Your graded assignments and quizzes will appear here.</p>
+        </div>
+    </div>
+
+    <!-- Grade Detail Modal -->
+    <div id="gradeModal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeModal()"></div>
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()" title="Close">
+                <i data-lucide="x"></i>
+            </button>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script src="student-grades.js"></script>
+</body>
+</html>

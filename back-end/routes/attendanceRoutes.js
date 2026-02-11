@@ -741,4 +741,60 @@ router.get('/parent/monthly-summary', protectRoute, async (req, res) => {
     }
 });
 
+// Get teacher's attendance statistics (for year schedule)
+router.get('/teacher-stats', protectRoute, async (req, res) => {
+    try {
+        const user = await UserModel.findById(req.userId);
+        if (!user || user.role !== 'teacher') {
+            return res.status(403).json({ message: 'Teacher access required' });
+        }
+
+        const { startDate, endDate } = req.query;
+        
+        // Build date filter
+        let dateFilter = { teacher: req.userId };
+        if (startDate && endDate) {
+            dateFilter.date = {
+                $gte: new Date(startDate),
+                $lte: new Date(endDate)
+            };
+        }
+
+        // Get all attendance records marked by this teacher
+        const attendanceRecords = await AttendanceModel.find(dateFilter)
+            .populate('student', 'name email classGrade')
+            .sort({ date: -1 });
+
+        // Calculate stats
+        const presentCount = attendanceRecords.filter(a => a.status === 'present').length;
+        const absentCount = attendanceRecords.filter(a => a.status === 'absent').length;
+        const lateCount = attendanceRecords.filter(a => a.status === 'late').length;
+        const excusedCount = attendanceRecords.filter(a => a.status === 'excused').length;
+        const total = attendanceRecords.length;
+
+        // Group by subject
+        const bySubject = {};
+        attendanceRecords.forEach(record => {
+            if (!bySubject[record.subject]) {
+                bySubject[record.subject] = { present: 0, absent: 0, late: 0, excused: 0 };
+            }
+            bySubject[record.subject][record.status]++;
+        });
+
+        res.json({
+            total,
+            present: presentCount,
+            absent: absentCount,
+            late: lateCount,
+            excused: excusedCount,
+            presentRate: total > 0 ? Math.round((presentCount / total) * 100) : 0,
+            bySubject,
+            records: attendanceRecords
+        });
+    } catch (error) {
+        console.error('Error fetching teacher stats:', error);
+        res.status(500).json({ message: 'Error fetching teacher stats', error: error.message });
+    }
+});
+
 export default router;

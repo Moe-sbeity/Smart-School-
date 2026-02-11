@@ -117,6 +117,7 @@
             </button>
             <a class="attendance" href="./student-attendance.html">Attendance</a>
             <a class="schedule" href="./student-schedule.html">Schedule</a>
+            <a class="grades" href="./student-grades.html">Grades</a>
             <div class="user-menu" onclick="toggleUserMenu()" id="userMenuContainer">
                 <div class="user-avatar" id="userAvatar">S</div>
                 <div>
@@ -134,6 +135,9 @@
                     </a>
                     <a href="./student-attendance.html">
                         <i data-lucide="clipboard-check"></i> Attendance
+                    </a>
+                    <a href="./student-grades.html">
+                        <i data-lucide="award"></i> My Grades
                     </a>
                     <hr>
                     <a href="#" onclick="logout(); return false;" class="logout-link">
@@ -177,7 +181,7 @@
                     <div class="stat-value" id="pendingTasks">0</div>
                     <div class="stat-change positive" id="tasksChange">Due this week</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card clickable" onclick="window.location.href='./student-grades.html'">
                     <div class="stat-header">
                         <span class="stat-label">Avg Grade</span>
                         <div class="stat-icon icon-grade">
@@ -185,6 +189,7 @@
                         </div>
                     </div>
                     <div class="stat-value" id="avgGrade">--</div>
+                    <div class="stat-change link">View All Grades →</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-header">

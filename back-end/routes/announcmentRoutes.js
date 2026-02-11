@@ -10,6 +10,7 @@ import {
   gradeSubmission,
   getAnnouncementSubmissions,
   getChildGrades,
+  getYearScheduleData,
   upload,
   uploadSubmission,
 
@@ -20,6 +21,7 @@ const router = express.Router();
 
 router.post('/', protectRoute, upload.array('attachments', 5), createAnnouncement);
 router.get('/teacher', protectRoute, getTeacherAnnouncements);
+router.get('/year-schedule', protectRoute, getYearScheduleData);
 router.put('/:id', protectRoute, upload.array('attachments', 5), updateAnnouncement);
 router.delete('/:id', protectRoute, deleteAnnouncement);
 router.get('/:announcementId/submissions', protectRoute, getAnnouncementSubmissions);

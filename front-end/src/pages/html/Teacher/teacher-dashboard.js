@@ -1,6 +1,7 @@
 const API_URL = 'http://localhost:5001/api';
 let currentTeacher = null;
 let allSchedulesData = [];
+let adminAnnouncements = [];
 
 const getToken = () => localStorage.getItem('token');
 
@@ -69,6 +70,7 @@ async function loadTeacherData() {
         await loadSchedule();
         await loadTodaySummary();
         await loadCharts();
+        await loadAdminAnnouncements();
 
     } catch (error) {
         console.error('Error loading teacher data:', error);
@@ -946,5 +948,247 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeStudentModal();
         closeStatDetail();
+        closeNotificationPanel();
+    }
+});
+
+// ============================================================================
+// NOTIFICATION FUNCTIONS
+// ============================================================================
+
+async function loadAdminAnnouncements() {
+    try {
+        const data = await apiCall('/admin-announcements/teacher/my-announcements');
+        adminAnnouncements = data.announcements || [];
+        
+        // Update notification count
+        updateNotificationCount();
+    } catch (error) {
+        console.error('Error loading admin announcements:', error);
+        adminAnnouncements = [];
+    }
+}
+
+function updateNotificationCount() {
+    const unreadCount = adminAnnouncements.filter(a => !a.isViewed).length;
+    const badge = document.getElementById('notificationCount');
+    if (badge) {
+        badge.textContent = unreadCount;
+        badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+    }
+}
+
+function showNotifications() {
+    // Sort by newest first
+    const sortedAnnouncements = [...adminAnnouncements].sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    );
+    
+    const unreadAnnouncements = sortedAnnouncements.filter(a => !a.isViewed);
+    const readAnnouncements = sortedAnnouncements.filter(a => a.isViewed);
+
+    // Create notification panel content
+    let notificationContent = '';
+
+    if (sortedAnnouncements.length === 0) {
+        notificationContent = `
+            <div class="notification-empty">
+                <i class="fas fa-bell-slash"></i>
+                <p>No announcements</p>
+            </div>
+        `;
+    } else {
+        notificationContent = `
+            ${unreadAnnouncements.length > 0 ? `
+                <div class="notification-section">
+                    <h4><i class="fas fa-envelope"></i> Unread</h4>
+                    ${unreadAnnouncements.map(a => createNotificationItem(a)).join('')}
+                </div>
+            ` : ''}
+            ${readAnnouncements.length > 0 ? `
+                <div class="notification-section">
+                    <h4><i class="fas fa-envelope-open"></i> Read</h4>
+                    ${readAnnouncements.slice(0, 10).map(a => createNotificationItem(a)).join('')}
+                </div>
+            ` : ''}
+        `;
+    }
+
+    // Check if notification panel already exists
+    let panel = document.getElementById('notificationPanel');
+    if (panel) {
+        panel.remove();
+    }
+
+    // Create notification panel
+    panel = document.createElement('div');
+    panel.id = 'notificationPanel';
+    panel.className = 'notification-panel';
+    panel.innerHTML = `
+        <div class="notification-header">
+            <h3>Notifications</h3>
+            <button onclick="closeNotificationPanel()" class="notification-close">&times;</button>
+        </div>
+        ${unreadAnnouncements.length > 0 ? `
+        <div class="notification-actions">
+            <button onclick="markAllAsRead()" class="mark-all-read-btn">
+                <i class="fas fa-check-double"></i>
+                Mark all as read
+            </button>
+        </div>
+        ` : ''}
+        <div class="notification-body">
+            ${notificationContent}
+        </div>
+    `;
+
+    document.body.appendChild(panel);
+    
+    // Show panel with animation
+    setTimeout(() => panel.classList.add('show'), 10);
+}
+
+function createNotificationItem(announcement) {
+    const categoryColors = {
+        general: { bg: '#eef2ff', color: '#4f46e5' },
+        urgent: { bg: '#fee2e2', color: '#dc2626' },
+        event: { bg: '#fef3c7', color: '#d97706' },
+        academic: { bg: '#d1fae5', color: '#059669' }
+    };
+    const colors = categoryColors[announcement.category] || categoryColors.general;
+    const icon = announcement.category === 'urgent' ? 'fa-exclamation-circle' : 
+                 announcement.category === 'event' ? 'fa-calendar' :
+                 announcement.category === 'academic' ? 'fa-graduation-cap' : 'fa-bullhorn';
+
+    return `
+        <div class="notification-item" onclick="viewAdminAnnouncement('${announcement._id}')">
+            <div class="notification-icon" style="background: ${colors.bg};">
+                <i class="fas ${icon}" style="color: ${colors.color};"></i>
+            </div>
+            <div class="notification-content">
+                <p class="notification-title">${announcement.title}</p>
+                <p class="notification-time">${new Date(announcement.createdAt).toLocaleDateString()}</p>
+            </div>
+        </div>
+    `;
+}
+
+async function viewAdminAnnouncement(announcementId) {
+    const announcement = adminAnnouncements.find(a => a._id === announcementId);
+    if (!announcement) return;
+
+    // Mark as viewed if not already
+    if (!announcement.isViewed) {
+        try {
+            await apiCall(`/admin-announcements/${announcementId}/view`, 'POST');
+            announcement.isViewed = true;
+            updateNotificationCount();
+        } catch (error) {
+            console.error('Error marking announcement as viewed:', error);
+        }
+    }
+
+    closeNotificationPanel();
+
+    // Show announcement modal
+    const categoryColors = {
+        general: { bg: '#eef2ff', color: '#4f46e5' },
+        urgent: { bg: '#fee2e2', color: '#dc2626' },
+        event: { bg: '#fef3c7', color: '#d97706' },
+        academic: { bg: '#d1fae5', color: '#059669' }
+    };
+    const colors = categoryColors[announcement.category] || categoryColors.general;
+
+    const modal = document.createElement('div');
+    modal.id = 'announcementModal';
+    modal.className = 'announcement-modal-overlay';
+    modal.innerHTML = `
+        <div class="announcement-modal">
+            <div class="announcement-modal-header" style="background: ${colors.bg};">
+                <div>
+                    <span class="announcement-category" style="background: ${colors.color};">${announcement.category || 'general'}</span>
+                    <h2>${announcement.title}</h2>
+                    <p class="announcement-meta">
+                        <i class="fas fa-user"></i> ${announcement.author?.name || 'Admin'}
+                        <span style="margin: 0 10px;">•</span>
+                        <i class="fas fa-calendar"></i> ${new Date(announcement.createdAt).toLocaleDateString()}
+                    </p>
+                </div>
+                <button onclick="closeAnnouncementModal()" class="announcement-close">&times;</button>
+            </div>
+            <div class="announcement-modal-body">
+                <div class="announcement-content">${announcement.content || announcement.description || ''}</div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    setTimeout(() => modal.classList.add('show'), 10);
+}
+
+function closeAnnouncementModal() {
+    const modal = document.getElementById('announcementModal');
+    if (modal) {
+        modal.classList.remove('show');
+        setTimeout(() => modal.remove(), 300);
+    }
+}
+
+async function markAllAsRead() {
+    const unreadAnnouncements = adminAnnouncements.filter(a => !a.isViewed);
+    
+    if (unreadAnnouncements.length === 0) {
+        if (typeof Toast !== 'undefined') {
+            Toast.info('No unread announcements');
+        }
+        return;
+    }
+
+    try {
+        // Mark each announcement as viewed
+        const promises = unreadAnnouncements.map(a => 
+            apiCall(`/admin-announcements/${a._id}/view`, 'POST')
+        );
+        await Promise.all(promises);
+        
+        // Update local state
+        unreadAnnouncements.forEach(a => a.isViewed = true);
+        
+        // Update notification count
+        updateNotificationCount();
+
+        // Refresh the notification panel
+        closeNotificationPanel();
+        showNotifications();
+
+        if (typeof Toast !== 'undefined') {
+            Toast.success('All announcements marked as read');
+        }
+    } catch (error) {
+        console.error('Error marking all as read:', error);
+        if (typeof Toast !== 'undefined') {
+            Toast.error('Failed to mark all as read');
+        }
+    }
+}
+
+function closeNotificationPanel() {
+    const panel = document.getElementById('notificationPanel');
+    if (panel) {
+        panel.classList.remove('show');
+        setTimeout(() => panel.remove(), 300);
+    }
+}
+
+// Close notification panel when clicking outside
+document.addEventListener('click', function(e) {
+    const panel = document.getElementById('notificationPanel');
+    const btn = document.getElementById('notificationBtn');
+    if (panel && !panel.contains(e.target) && btn && !btn.contains(e.target)) {
+        closeNotificationPanel();
+    }
+    
+    const announcementModal = document.getElementById('announcementModal');
+    if (announcementModal && e.target === announcementModal) {
+        closeAnnouncementModal();
     }
 });
