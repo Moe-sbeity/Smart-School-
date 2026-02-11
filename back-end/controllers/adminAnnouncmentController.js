@@ -1,5 +1,6 @@
 import Announcement from '../models/adminAnnouncment.js';
 import UserModel from '../models/UserModels.js';
+import { getPaginationParams } from '../utils/pagination.js';
 
 export const createAnnouncement = async (req, res) => {
   try {
@@ -82,22 +83,44 @@ export const createAnnouncement = async (req, res) => {
 
 export const getAllAnnouncements = async (req, res) => {
   try {
-    const { category, limit = 50 } = req.query;
+    const { category, search } = req.query;
+    const { page, limit, skip } = getPaginationParams(req.query, { page: 1, limit: 20 });
 
     const filter = { isActive: true };
     if (category) {
       filter.category = category;
     }
+    
+    // Add search functionality
+    if (search) {
+      filter.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { content: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    // Get total count for pagination
+    const totalItems = await Announcement.countDocuments(filter);
+    const totalPages = Math.ceil(totalItems / limit);
 
     const announcements = await Announcement.find(filter)
       .populate('author', 'name email')
       .populate('targetStudents', 'name email classGrade classSection')
       .sort({ createdAt: -1 })
-      .limit(parseInt(limit));
+      .skip(skip)
+      .limit(limit);
 
     res.status(200).json({
       announcements,
-      count: announcements.length
+      count: announcements.length,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        itemsPerPage: limit,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1
+      }
     });
   } catch (error) {
     console.error('Error fetching announcements:', error);

@@ -1,6 +1,8 @@
         const API_URL = "http://localhost:5001/api";
         let currentChildId = null;
         let allChildren = [];
+        let attendancePagination = null;
+        let currentFilters = {};
 
         function getAuthToken() {
             return localStorage.getItem('token');
@@ -44,7 +46,12 @@
             currentChildId = childId;
             localStorage.setItem('selectedChildId', childId);
             updateChildTabs();
-            loadAttendanceData();
+            // Reset pagination and filters when switching children
+            currentFilters = {};
+            if (attendancePagination) {
+                attendancePagination.reset();
+            }
+            loadAttendanceData(1, 10);
         }
 
         function getSelectedChild() {
@@ -59,9 +66,14 @@
             return response.data;
         }
 
-        async function fetchChildAttendance(childId) {
+        async function fetchChildAttendance(childId, page = 1, limit = 10) {
             const token = getAuthToken();
-            const response = await axios.get(`${API_URL}/attendance/parent/child/${childId}`, {
+            const params = new URLSearchParams({
+                page: page.toString(),
+                limit: limit.toString(),
+                ...currentFilters
+            });
+            const response = await axios.get(`${API_URL}/attendance/parent/child/${childId}?${params.toString()}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             return response.data;
@@ -126,7 +138,7 @@
             `;
         }
 
-        function renderAttendanceTable(attendance) {
+        function renderAttendanceTable(attendance, totalRecords = 0) {
             const container = document.getElementById('attendanceTable');
 
             if (!attendance || attendance.length === 0) {
@@ -137,8 +149,15 @@
                         <p>No attendance data available yet.</p>
                     </div>
                 `;
+                // Hide pagination when no records
+                const paginationContainer = document.getElementById('paginationContainer');
+                if (paginationContainer) paginationContainer.style.display = 'none';
                 return;
             }
+            
+            // Show pagination container
+            const paginationContainer = document.getElementById('paginationContainer');
+            if (paginationContainer) paginationContainer.style.display = 'flex';
 
             const statusColors = {
                 present: 'green',
@@ -176,14 +195,20 @@
             `;
         }
 
-        async function loadAttendanceData() {
+        async function loadAttendanceData(page = 1, limit = 10) {
             const childId = getSelectedChild();
             if (!childId) return;
 
             try {
-                const data = await fetchChildAttendance(childId);
+                const data = await fetchChildAttendance(childId, page, limit);
                 renderStats(data.statistics);
-                renderAttendanceTable(data.attendance);
+                renderAttendanceTable(data.attendance, data.pagination.totalItems);
+                
+                // Update pagination
+                if (attendancePagination && data.pagination) {
+                    attendancePagination.update(data.pagination);
+                }
+                
                 document.getElementById('contentContainer').style.display = 'block';
             } catch (error) {
                 console.error('Error loading attendance data:', error);
@@ -236,6 +261,13 @@
 
                 document.getElementById('childrenSelector').style.display = 'block';
                 renderChildrenTabs(allChildren);
+                
+                // Initialize pagination
+                attendancePagination = new Pagination('paginationContainer', {
+                    itemsPerPageOptions: [10, 25, 50],
+                    onPageChange: (page, limit) => loadAttendanceData(page, limit)
+                });
+                
                 await loadAttendanceData();
 
             } catch (error) {

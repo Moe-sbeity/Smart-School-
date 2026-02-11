@@ -1,6 +1,7 @@
 import UserModel from "../models/UserModels.js";
 import ClassGradeModel from "../models/classGrade.js";
 import CounterModel from "../models/counter.js";
+import { getPaginationParams } from '../utils/pagination.js';
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
@@ -256,19 +257,45 @@ export const checkAuth = (req, res) => {
 
 export const getUsers = async (req, res) => {
   try {
-    const { role } = req.query;
+    const { role, search } = req.query;
+    const { page, limit, skip } = getPaginationParams(req.query, { page: 1, limit: 20 });
     
     const filter = {};
     if (role) {
       filter.role = role;
     }
+    
+    // Add search functionality
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    // Get total count for pagination
+    const totalItems = await UserModel.countDocuments(filter);
+    const totalPages = Math.ceil(totalItems / limit);
 
     const users = await UserModel.find(filter)
       .select('-password')
       .populate('children', '-password')
-      .populate('parent', '-password');
+      .populate('parent', '-password')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
     
-    res.status(200).json({ users });
+    res.status(200).json({ 
+      users,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        itemsPerPage: limit,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1
+      }
+    });
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -277,14 +304,45 @@ export const getUsers = async (req, res) => {
 
 export const getStudents = async (req, res) => {
   try {
-    const students = await UserModel.find({ role: 'student' })
+    const { search, classGrade, classSection } = req.query;
+    const { page, limit, skip } = getPaginationParams(req.query, { page: 1, limit: 20 });
+    
+    const filter = { role: 'student' };
+    
+    // Add search functionality
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    // Filter by class
+    if (classGrade) filter.classGrade = classGrade;
+    if (classSection) filter.classSection = classSection;
+
+    // Get total count for pagination
+    const totalItems = await UserModel.countDocuments(filter);
+    const totalPages = Math.ceil(totalItems / limit);
+    
+    const students = await UserModel.find(filter)
       .select('-password')
       .populate('parent', '-password')
-      .sort({ name: 1 });
+      .sort({ name: 1 })
+      .skip(skip)
+      .limit(limit);
     
     res.status(200).json({ 
       students,
-      count: students.length 
+      count: students.length,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        itemsPerPage: limit,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1
+      }
     });
   } catch (error) {
     console.error('Error fetching students:', error);
@@ -294,13 +352,45 @@ export const getStudents = async (req, res) => {
 
 export const getTeachers = async (req, res) => {
   try {
-    const teachers = await UserModel.find({ role: 'teacher' })
+    const { search, subject } = req.query;
+    const { page, limit, skip } = getPaginationParams(req.query, { page: 1, limit: 20 });
+    
+    const filter = { role: 'teacher' };
+    
+    // Add search functionality
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    // Filter by subject
+    if (subject) {
+      filter.subjects = subject;
+    }
+
+    // Get total count for pagination
+    const totalItems = await UserModel.countDocuments(filter);
+    const totalPages = Math.ceil(totalItems / limit);
+    
+    const teachers = await UserModel.find(filter)
       .select('-password')
-      .sort({ name: 1 });
+      .sort({ name: 1 })
+      .skip(skip)
+      .limit(limit);
     
     res.status(200).json({ 
       teachers,
-      count: teachers.length 
+      count: teachers.length,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        itemsPerPage: limit,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1
+      }
     });
   } catch (error) {
     console.error('Error fetching teachers:', error);

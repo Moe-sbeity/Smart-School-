@@ -1,6 +1,8 @@
         const API_URL = 'http://localhost:5001/api';
         let currentStudent = null;
         let allSubjects = [];
+        let attendancePagination = null;
+        let currentFilters = {};
 
         const getToken = () => localStorage.getItem('token');
 
@@ -91,7 +93,7 @@
                 document.getElementById('startDate').value = startDate.toISOString().split('T')[0];
 
                 // Load attendance
-                loadAttendance();
+                loadAttendance(1, 20);
 
             } catch (error) {
                 console.error('Error initializing:', error);
@@ -99,31 +101,39 @@
             }
         }
 
-        async function loadAttendance() {
+        async function loadAttendance(page = 1, limit = 20) {
             const subject = document.getElementById('subjectFilter').value;
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
+
+            // Store current filters
+            currentFilters = { subject, startDate, endDate };
 
             const container = document.getElementById('attendanceContainer');
             container.innerHTML = '<div class="loading"><i class="fas fa-spinner"></i><p>Loading attendance...</p></div>';
 
             try {
                 // Build query params
-                let queryParams = [];
+                let queryParams = [`page=${page}`, `limit=${limit}`];
                 if (subject) queryParams.push(`subject=${subject}`);
                 if (startDate) queryParams.push(`startDate=${startDate}`);
                 if (endDate) queryParams.push(`endDate=${endDate}`);
                 
-                const query = queryParams.length > 0 ? '?' + queryParams.join('&') : '';
+                const query = '?' + queryParams.join('&');
 
                 const response = await apiCall(`/attendance/student/${currentStudent._id}${query}`);
-                const { attendance, statistics } = response;
+                const { attendance, statistics, pagination } = response;
 
                 // Update statistics
                 updateStatistics(statistics);
 
-                // Render attendance table
-                renderAttendanceTable(attendance);
+                // Render attendance table with total from pagination
+                renderAttendanceTable(attendance, pagination.totalItems);
+
+                // Update pagination component
+                if (attendancePagination && pagination) {
+                    attendancePagination.update(pagination);
+                }
 
                 document.getElementById('statsOverview').style.display = 'grid';
 
@@ -150,10 +160,19 @@
             document.getElementById('excusedDays').textContent = `${stats.excused} ${stats.excused === 1 ? 'day' : 'days'}`;
         }
 
-        function renderAttendanceTable(attendance) {
+        function applyFilters() {
+            // Reset pagination when filters change
+            if (attendancePagination) {
+                attendancePagination.reset();
+            }
+            loadAttendance(1, 20);
+        }
+
+        function renderAttendanceTable(attendance, totalRecords = 0) {
             const container = document.getElementById('attendanceContainer');
+            const total = totalRecords || attendance.length;
             document.getElementById('totalRecords').textContent = 
-                `${attendance.length} ${attendance.length === 1 ? 'record' : 'records'}`;
+                `${total} ${total === 1 ? 'record' : 'records'}`;
 
             if (attendance.length === 0) {
                 container.innerHTML = `
@@ -213,5 +232,13 @@
                 setTimeout(() => window.location.href = 'login.html', 2000);
                 return;
             }
+            
+            // Initialize pagination component
+            attendancePagination = new Pagination('paginationContainer', {
+                itemsPerPageOptions: [20, 50, 100],
+                defaultItemsPerPage: 20,
+                onPageChange: (page, limit) => loadAttendance(page, limit)
+            });
+            
             init();
         });

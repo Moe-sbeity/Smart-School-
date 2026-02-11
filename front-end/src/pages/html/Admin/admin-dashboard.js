@@ -6,24 +6,54 @@ const roleFilter = document.getElementById("roleFilter");
 let users = [];
 let filtered = [];
 let admissions = [];
+let allUsersForStats = []; // Keep all users for stats calculation
 
 // Pagination state
 let currentPage = 1;
-const itemsPerPage = 10;
+let itemsPerPage = 10;
+let usersPagination = null;
+let currentFilters = { search: '', role: 'all' };
 
-// Fetch Users
-const fetchUsers = async () => {
+// Fetch Users with server-side pagination
+const fetchUsers = async (page = 1, limit = 10) => {
   try {
     const token = localStorage.getItem("token");
+    
+    // Build query params
+    let params = `page=${page}&limit=${limit}`;
+    if (currentFilters.search) {
+      params += `&search=${encodeURIComponent(currentFilters.search)}`;
+    }
+    if (currentFilters.role && currentFilters.role !== 'all') {
+      params += `&role=${currentFilters.role}`;
+    }
 
-    const res = await axios.get(`${API_URL}/users/all`, {
+    const res = await axios.get(`${API_URL}/users/all?${params}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
       withCredentials: true,
     });
-    users = res.data.users || [];
-    updateStats();
+    
+    // Handle both old and new API response formats
+    users = res.data.data || res.data.users || [];
+    const paginationData = res.data.pagination;
+    
+    // Update pagination component if available
+    if (usersPagination && paginationData) {
+      usersPagination.update(paginationData);
+    }
+    
+    // Fetch all users once for stats (without filters)
+    if (allUsersForStats.length === 0) {
+      const allRes = await axios.get(`${API_URL}/users/all?limit=10000`, {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
+      });
+      allUsersForStats = allRes.data.data || allRes.data.users || [];
+      updateStats();
+    }
+    
     renderTable(users);
   } catch (err) {
     console.error("Failed to fetch users:", err);
@@ -50,14 +80,15 @@ const fetchAdmissions = async () => {
   }
 };
 
-// Update Statistics
+// Update Statistics (uses all users, not paginated subset)
 const updateStats = () => {
+  const usersForStats = allUsersForStats.length > 0 ? allUsersForStats : users;
   const stats = {
-    total: users.length,
-    students: users.filter(u => u.role === "student").length,
-    teachers: users.filter(u => u.role === "teacher").length,
-    parents: users.filter(u => u.role === "parent").length,
-    admins: users.filter(u => u.role === "admin").length,
+    total: usersForStats.length,
+    students: usersForStats.filter(u => u.role === "student").length,
+    teachers: usersForStats.filter(u => u.role === "teacher").length,
+    parents: usersForStats.filter(u => u.role === "parent").length,
+    admins: usersForStats.filter(u => u.role === "admin").length,
   };
 
   document.getElementById("total-users").textContent = stats.total;
@@ -67,23 +98,17 @@ const updateStats = () => {
   document.getElementById("admins").textContent = stats.admins;
 };
 
-// Render Users Table with Pagination
+// Render Users Table (data is already paginated by server)
 const renderTable = (data) => {
   usersBody.innerHTML = "";
 
   if (data.length === 0) {
     usersBody.innerHTML = "<tr><td colspan='7'>No users found.</td></tr>";
-    renderPagination(0);
     return;
   }
 
-  // Calculate pagination
-  const totalPages = Math.ceil(data.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedData = data.slice(startIndex, endIndex);
-
-  paginatedData.forEach((u) => {
+  // Data is already paginated from server, just render it
+  data.forEach((u) => {
     const row = document.createElement("tr");
     // Escape special characters in name for onclick handler
     const escapedName = u.name.replace(/'/g, "\\'").replace(/"/g, '\\"');
@@ -105,92 +130,10 @@ const renderTable = (data) => {
     `;
     usersBody.appendChild(row);
   });
-
-  renderPagination(totalPages, data.length);
 };
 
-// Render Pagination Controls
-const renderPagination = (totalPages, totalItems = 0) => {
-  let paginationContainer = document.getElementById('pagination-container');
-  
-  if (!paginationContainer) {
-    // Create pagination container if it doesn't exist
-    const table = document.querySelector('.users-table');
-    paginationContainer = document.createElement('div');
-    paginationContainer.id = 'pagination-container';
-    paginationContainer.className = 'pagination-container';
-    table.parentNode.insertBefore(paginationContainer, table.nextSibling);
-  }
-
-  if (totalPages <= 1) {
-    paginationContainer.innerHTML = totalItems > 0 ? 
-      `<div class="pagination-info">Showing all ${totalItems} users</div>` : '';
-    return;
-  }
-
-  const startItem = (currentPage - 1) * itemsPerPage + 1;
-  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
-
-  let paginationHTML = `
-    <div class="pagination-info">
-      Showing ${startItem}-${endItem} of ${totalItems} users
-    </div>
-    <div class="pagination-controls">
-      <button class="pagination-btn" onclick="changePage(1)" ${currentPage === 1 ? 'disabled' : ''}>
-        <i class="fas fa-angle-double-left"></i>
-      </button>
-      <button class="pagination-btn" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
-        <i class="fas fa-angle-left"></i>
-      </button>
-  `;
-
-  // Generate page numbers
-  const maxVisiblePages = 5;
-  let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-  let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-  
-  if (endPage - startPage + 1 < maxVisiblePages) {
-    startPage = Math.max(1, endPage - maxVisiblePages + 1);
-  }
-
-  if (startPage > 1) {
-    paginationHTML += `<span class="pagination-ellipsis">...</span>`;
-  }
-
-  for (let i = startPage; i <= endPage; i++) {
-    paginationHTML += `
-      <button class="pagination-btn pagination-number ${i === currentPage ? 'active' : ''}" 
-              onclick="changePage(${i})">${i}</button>
-    `;
-  }
-
-  if (endPage < totalPages) {
-    paginationHTML += `<span class="pagination-ellipsis">...</span>`;
-  }
-
-  paginationHTML += `
-      <button class="pagination-btn" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
-        <i class="fas fa-angle-right"></i>
-      </button>
-      <button class="pagination-btn" onclick="changePage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''}>
-        <i class="fas fa-angle-double-right"></i>
-      </button>
-    </div>
-  `;
-
-  paginationContainer.innerHTML = paginationHTML;
-};
-
-// Change Page
-window.changePage = (page) => {
-  const data = filtered.length > 0 ? filtered : users;
-  const totalPages = Math.ceil(data.length / itemsPerPage);
-  
-  if (page < 1 || page > totalPages) return;
-  
-  currentPage = page;
-  renderTable(data);
-};
+// Note: Pagination is now handled by the Pagination component
+// Old renderPagination and changePage functions have been removed
 
 // Render Admissions
 const renderAdmissions = (data) => {
@@ -248,22 +191,17 @@ const renderAdmissions = (data) => {
   }).join('');
 };
 
-// Filter Users
+// Filter Users (server-side filtering)
+let filterDebounceTimer = null;
 const filterUsers = () => {
-  const term = searchInput.value.toLowerCase();
-  const role = roleFilter.value;
-
-  filtered = users.filter(u => {
-    const matchesRole = role === "all" || u.role === role;
-    const matchesSearch =
-      u.name.toLowerCase().includes(term) ||
-      u.email.toLowerCase().includes(term);
-    return matchesRole && matchesSearch;
-  });
-
-  // Reset to first page when filtering
-  currentPage = 1;
-  renderTable(filtered);
+  // Debounce to avoid too many API calls
+  clearTimeout(filterDebounceTimer);
+  filterDebounceTimer = setTimeout(() => {
+    currentFilters.search = searchInput.value;
+    currentFilters.role = roleFilter.value;
+    currentPage = 1;
+    fetchUsers(1, itemsPerPage);
+  }, 300);
 };
 
 searchInput.addEventListener("input", filterUsers);
@@ -280,7 +218,9 @@ const deleteUser = async (id, name) => {
       },
     });
     showNotification("User deleted successfully", "success");
-    await fetchUsers();
+    // Refresh stats
+    allUsersForStats = [];
+    await fetchUsers(currentPage, itemsPerPage);
   } catch (err) {
     console.error('Delete user error:', err);
     const errorMsg = err.response?.data?.message || "Failed to delete user";
@@ -452,7 +392,9 @@ const handleEditUserSubmit = async (e) => {
     
     showNotification('User updated successfully', 'success');
     closeEditModal();
-    await fetchUsers();
+    // Refresh stats
+    allUsersForStats = [];
+    await fetchUsers(currentPage, itemsPerPage);
   } catch (error) {
     console.error('Error updating user:', error);
     const errorMsg = error.response?.data?.message || 'Failed to update user';
@@ -835,7 +777,26 @@ const deleteAnnouncement = async (announcementId) => {
 // Initialize Dashboard
 const initDashboard = async () => {
   await checkAuth();
-  await fetchUsers();
+  
+  // Initialize pagination component
+  usersPagination = new Pagination('pagination-container', {
+    onPageChange: (page, limit) => {
+      itemsPerPage = limit;
+      fetchUsers(page, limit);
+    },
+    itemsPerPageOptions: [10, 25, 50, 100]
+  });
+  
+  // Ensure pagination container exists
+  let paginationContainer = document.getElementById('pagination-container');
+  if (!paginationContainer) {
+    const table = document.querySelector('.users-table');
+    paginationContainer = document.createElement('div');
+    paginationContainer.id = 'pagination-container';
+    table.parentNode.insertBefore(paginationContainer, table.nextSibling);
+  }
+  
+  await fetchUsers(1, itemsPerPage);
   await fetchAdmissions();
   await fetchAnnouncements();
   await initCharts();

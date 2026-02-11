@@ -321,11 +321,25 @@ document.getElementById('category').addEventListener('change', function() {
   previewCategory.className = `preview-category ${category}`;
 });
 
+// Pagination variables
+let announcementsPagination = null;
+let currentPage = 1;
+let currentLimit = 10;
+
 // Load announcements
-async function loadAnnouncements() {
+async function loadAnnouncements(page = 1, limit = 10) {
   try {
-    const response = await axios.get(`${API_URL}/admin-announcements`);
-    const announcements = response.data.announcements;
+    const response = await axios.get(`${API_URL}/admin-announcements?page=${page}&limit=${limit}`);
+    const announcements = response.data.data || response.data.announcements || [];
+    const paginationData = response.data.pagination;
+    
+    currentPage = page;
+    currentLimit = limit;
+    
+    // Update pagination component
+    if (announcementsPagination && paginationData) {
+      announcementsPagination.update(paginationData);
+    }
     
     const container = document.getElementById('announcementsListContainer');
     
@@ -393,6 +407,14 @@ async function loadAnnouncements() {
     console.error('Error loading announcements:', error);
   }
 }
+
+// Initialize pagination on page load
+document.addEventListener('DOMContentLoaded', function() {
+  announcementsPagination = new Pagination('paginationContainer', {
+    onPageChange: (page, limit) => loadAnnouncements(page, limit),
+    itemsPerPageOptions: [5, 10, 20, 50]
+  });
+});
 
 // Create announcement
 document.getElementById('announcementForm').addEventListener('submit', async (e) => {

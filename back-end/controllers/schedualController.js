@@ -3,6 +3,7 @@ import UserModel from '../models/UserModels.js';
 import WeeklyScheduleTemplate from '../models/weaklyschedual.js';
 import ClassGradeModel from '../models/classGrade.js';
 import ScheduleSettings from '../models/scheduleSettings.js';
+import { getPaginationParams } from '../utils/pagination.js';
 
 // ============================================================================
 // CREATE TEACHER SCHEDULE (for weekly template)
@@ -93,17 +94,83 @@ export const createTeacherSchedule = async (req, res) => {
 // ============================================================================
 export const getAllSchedules = async (req, res) => {
   try {
-    const schedules = await Schedule.find()
+    const { classGrade, classSection, teacherId } = req.query;
+    const { page, limit, skip } = getPaginationParams(req.query, { page: 1, limit: 50 });
+    
+    const filter = {};
+    if (classGrade) filter.classGrade = classGrade;
+    if (classSection) filter.classSection = classSection;
+    if (teacherId) filter.teacher = teacherId;
+
+    // Get total count for pagination
+    const totalItems = await Schedule.countDocuments(filter);
+    const totalPages = Math.ceil(totalItems / limit);
+
+    const schedules = await Schedule.find(filter)
       .populate('teacher', 'name email subjects')
       .populate('student', 'name email')
-      .sort({ classGrade: 1, classSection: 1, dayOfWeek: 1, startTime: 1 });
+      .sort({ classGrade: 1, classSection: 1, dayOfWeek: 1, startTime: 1 })
+      .skip(skip)
+      .limit(limit);
 
     res.status(200).json({
       schedules,
-      count: schedules.length
+      count: schedules.length,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        itemsPerPage: limit,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1
+      }
     });
   } catch (error) {
     console.error('Error fetching all schedules:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ============================================================================
+// GET TEACHER'S ASSIGNED CLASSES (unique grades and sections)
+// ============================================================================
+export const getTeacherAssignedClasses = async (req, res) => {
+  try {
+    const teacherId = req.userId;
+
+    // Get all schedules for this teacher
+    const schedules = await Schedule.find({ teacher: teacherId });
+
+    // Extract unique grades and sections
+    const gradesSet = new Set();
+    const sectionsSet = new Set();
+    const classesSet = new Set();
+
+    schedules.forEach(schedule => {
+      gradesSet.add(schedule.classGrade);
+      sectionsSet.add(schedule.classSection);
+      classesSet.add(`${schedule.classGrade}-${schedule.classSection}`);
+    });
+
+    // Convert to sorted arrays
+    const gradeOrder = ['kg1', 'kg2', 'grade1', 'grade2', 'grade3', 'grade4', 'grade5', 'grade6', 'grade7', 'grade8', 'grade9', 'grade10', 'grade11', 'grade12'];
+    const sectionOrder = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+    const grades = Array.from(gradesSet).sort((a, b) => gradeOrder.indexOf(a) - gradeOrder.indexOf(b));
+    const sections = Array.from(sectionsSet).sort((a, b) => sectionOrder.indexOf(a) - sectionOrder.indexOf(b));
+    const classes = Array.from(classesSet).map(c => {
+      const [grade, section] = c.split('-');
+      return { grade, section };
+    });
+
+    res.status(200).json({
+      grades,
+      sections,
+      classes,
+      totalClasses: classes.length
+    });
+  } catch (error) {
+    console.error('Error fetching teacher assigned classes:', error);
     res.status(500).json({ message: error.message });
   }
 };

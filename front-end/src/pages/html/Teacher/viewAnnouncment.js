@@ -1,6 +1,8 @@
 const API_URL = 'http://localhost:5001/api';
 let allContent = [];
 let teacherSubjects = [];
+let pagination = null;
+let currentFilters = { subject: '', type: '', status: '' };
 
 const getToken = () => localStorage.getItem('token');
 
@@ -41,13 +43,27 @@ async function loadSubjects() {
     }
 }
 
-async function loadContent() {
+async function loadContent(page = 1, limit = 10) {
     try {
-        const data = await apiCall('/announcements/teacher');
+        // Build query params
+        const params = new URLSearchParams();
+        params.append('page', page);
+        params.append('limit', limit);
+        
+        if (currentFilters.subject) params.append('subject', currentFilters.subject);
+        if (currentFilters.type) params.append('type', currentFilters.type);
+        if (currentFilters.status) params.append('status', currentFilters.status);
+        
+        const data = await apiCall(`/announcements/teacher?${params.toString()}`);
         allContent = data.announcements;
 
         updateStats();
         renderContent(allContent);
+        
+        // Update pagination
+        if (pagination && data.pagination) {
+            pagination.update(data.pagination);
+        }
 
     } catch (error) {
         console.error('Error loading content:', error);
@@ -124,27 +140,18 @@ function filterContent() {
     const type = document.getElementById('filterType').value;
     const status = document.getElementById('filterStatus').value;
 
-    let filtered = allContent;
-
-    if (subject) {
-        filtered = filtered.filter(c => c.subject === subject);
-    }
+    // Update current filters
+    currentFilters.subject = subject;
+    currentFilters.type = activeCardFilter === 'pending' ? '' : type;
+    currentFilters.status = status;
     
-    // Handle card filter for pending grading
+    // Handle pending filter locally after data load
     if (activeCardFilter === 'pending') {
-        filtered = filtered.filter(c => 
-            c.type !== 'announcement' && 
-            (c.submissionCount - c.gradedCount) > 0
-        );
-    } else if (type) {
-        filtered = filtered.filter(c => c.type === type);
-    }
-    
-    if (status) {
-        filtered = filtered.filter(c => c.status === status);
+        currentFilters.type = '';
     }
 
-    renderContent(filtered);
+    // Reload content with new filters from page 1
+    loadContent(1, pagination ? pagination.itemsPerPage : 10);
 }
 
 function renderContent(content) {
@@ -359,6 +366,14 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = 'home.html';
         return;
     }
+
+    // Initialize pagination
+    pagination = new Pagination({
+        container: '#paginationContainer',
+        onPageChange: (page, limit) => loadContent(page, limit),
+        itemsPerPageOptions: [10, 20, 50],
+        defaultItemsPerPage: 10
+    });
 
     loadSubjects();
     loadContent();

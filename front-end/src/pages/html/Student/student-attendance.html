@@ -46,7 +46,7 @@
                     <label for="endDate">End Date</label>
                     <input type="date" id="endDate" title="End date" placeholder="End date" />
                 </div>
-                <button class="btn-filter" onclick="loadAttendance()">
+                <button class="btn-filter" onclick="applyFilters()">
                     <i class="fas fa-filter"></i> Apply Filters
                 </button>
             </div>
@@ -120,8 +120,10 @@
                     <p>Loading attendance records...</p>
                 </div>
             </div>
+            <div id="paginationContainer" class="pagination-container"></div>
         </div>
     </div>
+<script src="../js/pagination.js"></script>
 <script src="student-attendance.js"></script>
 
 </body>

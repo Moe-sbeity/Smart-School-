@@ -31,6 +31,18 @@
                     <input type="date" id="attendanceDate" title="Select attendance date" placeholder="YYYY-MM-DD" />
                 </div>
                 <div class="selector-group">
+                    <label>Grade:</label>
+                    <select id="gradeSelect" title="Select Grade" onchange="onGradeChange()">
+                        <option value="">Select Grade</option>
+                    </select>
+                </div>
+                <div class="selector-group">
+                    <label>Section:</label>
+                    <select id="sectionSelect" title="Select Section">
+                        <option value="">Select Section</option>
+                    </select>
+                </div>
+                <div class="selector-group">
                     <label>Subject:</label>
                     <select id="subjectSelect" title="Select Subject">
                         <option value="">Select Subject</option>
@@ -80,7 +92,7 @@
 
             <div id="studentContainer" class="loading">
                 <i class="fas fa-info-circle"></i>
-                <p>Select a date and subject to begin</p>
+                <p>Select grade, section, and subject to load students</p>
             </div>
         </div>
     </div>

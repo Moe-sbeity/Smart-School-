@@ -2,6 +2,7 @@ import Announcement from '../models/Announcement.js';
 import Submission from '../models/submission.js';
 import Schedule from '../models/schedual.js';
 import UserModel from '../models/UserModels.js';
+import { getPaginationParams, paginateArray } from '../utils/pagination.js';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -211,7 +212,9 @@ export const createAnnouncement = async (req, res) => {
       totalPoints,
       questions,
       priority,
-      targetStudents
+      targetStudents,
+      targetGrades,
+      targetSections
     } = req.body;
 
     const teacherId = req.userId;
@@ -227,9 +230,52 @@ export const createAnnouncement = async (req, res) => {
       });
     }
 
+    // Parse targetGrades and targetSections if they're strings
+    let parsedGrades = targetGrades;
+    let parsedSections = targetSections;
+    
+    if (typeof targetGrades === 'string') {
+      try {
+        parsedGrades = JSON.parse(targetGrades);
+      } catch (e) {
+        parsedGrades = [];
+      }
+    }
+    
+    if (typeof targetSections === 'string') {
+      try {
+        parsedSections = JSON.parse(targetSections);
+      } catch (e) {
+        parsedSections = [];
+      }
+    }
+
     let students = targetStudents || [];
     
-    if (!targetStudents || targetStudents.length === 0) {
+    // If specific grades/sections are selected, find matching students
+    if ((parsedGrades && parsedGrades.length > 0) || (parsedSections && parsedSections.length > 0)) {
+      // Build query to find students matching grade/section criteria
+      const studentQuery = { role: 'student' };
+      
+      if (parsedGrades && parsedGrades.length > 0) {
+        studentQuery.classGrade = { $in: parsedGrades };
+      }
+      
+      if (parsedSections && parsedSections.length > 0) {
+        studentQuery.classSection = { $in: parsedSections };
+      }
+      
+      // Find matching students
+      const matchingStudents = await UserModel.find(studentQuery).select('_id');
+      students = matchingStudents.map(s => s._id.toString());
+      
+      if (students.length === 0) {
+        return res.status(400).json({ 
+          message: `No students found matching the selected grades and sections.` 
+        });
+      }
+    } else if (!targetStudents || targetStudents.length === 0) {
+      // No grades/sections specified, fall back to schedule-based targeting
       const schedules = await Schedule.find({
         teacher: teacherId,
         subject: subject
@@ -287,6 +333,8 @@ export const createAnnouncement = async (req, res) => {
       questions: parsedQuestions,
       priority: priority || 'medium',
       targetStudents: students,
+      targetGrades: parsedGrades || [],
+      targetSections: parsedSections || [],
       attachments: attachments,
       status: 'published'
     });
@@ -324,16 +372,24 @@ export const getTeacherAnnouncements = async (req, res) => {
   try {
     const teacherId = req.userId;
     const { subject, type, status } = req.query;
+    const { page, limit } = getPaginationParams(req.query, { page: 1, limit: 10 });
 
     const filter = { teacher: teacherId };
     if (subject) filter.subject = subject;
     if (type) filter.type = type;
     if (status) filter.status = status;
 
+    // Get total count for pagination
+    const totalItems = await Announcement.countDocuments(filter);
+    const totalPages = Math.ceil(totalItems / limit);
+    const skip = (page - 1) * limit;
+
     const announcements = await Announcement.find(filter)
       .populate('teacher', 'name email')
       .populate('targetStudents', 'name email')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     const announcementsWithStats = await Promise.all(
       announcements.map(async (announcement) => {
@@ -357,7 +413,15 @@ export const getTeacherAnnouncements = async (req, res) => {
 
     res.status(200).json({
       announcements: announcementsWithStats,
-      count: announcementsWithStats.length
+      count: announcementsWithStats.length,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        itemsPerPage: limit,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1
+      }
     });
 
   } catch (error) {
@@ -370,6 +434,7 @@ export const getStudentAnnouncements = async (req, res) => {
   try {
     const studentId = req.userId;
     const { subject, type } = req.query;
+    const { page, limit } = getPaginationParams(req.query, { page: 1, limit: 10 });
 
     const filter = {
       targetStudents: studentId,
@@ -378,9 +443,16 @@ export const getStudentAnnouncements = async (req, res) => {
     if (subject) filter.subject = subject;
     if (type) filter.type = type;
 
+    // Get total count for pagination
+    const totalItems = await Announcement.countDocuments(filter);
+    const totalPages = Math.ceil(totalItems / limit);
+    const skip = (page - 1) * limit;
+
     const announcements = await Announcement.find(filter)
       .populate('teacher', 'name email')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     const announcementsWithStatus = await Promise.all(
       announcements.map(async (announcement) => {
@@ -405,7 +477,15 @@ export const getStudentAnnouncements = async (req, res) => {
 
     res.status(200).json({
       announcements: announcementsWithStatus,
-      count: announcementsWithStatus.length
+      count: announcementsWithStatus.length,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        itemsPerPage: limit,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1
+      }
     });
 
   } catch (error) {
@@ -607,6 +687,7 @@ export const getAnnouncementSubmissions = async (req, res) => {
   try {
     const { announcementId } = req.params;
     const teacherId = req.userId;
+    const { page, limit } = getPaginationParams(req.query, { page: 1, limit: 20 });
 
     const announcement = await Announcement.findOne({
       _id: announcementId,
@@ -617,14 +698,29 @@ export const getAnnouncementSubmissions = async (req, res) => {
       return res.status(404).json({ message: 'Announcement not found or access denied' });
     }
 
+    // Get total count for pagination
+    const totalItems = await Submission.countDocuments({ announcement: announcementId });
+    const totalPages = Math.ceil(totalItems / limit);
+    const skip = (page - 1) * limit;
+
     const submissions = await Submission.find({ announcement: announcementId })
       .populate('student', 'name email')
-      .sort({ submittedAt: -1 });
+      .sort({ submittedAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     res.status(200).json({
       submissions,
       count: submissions.length,
-      totalStudents: announcement.targetStudents.length
+      totalStudents: announcement.targetStudents.length,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        itemsPerPage: limit,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1
+      }
     });
 
   } catch (error) {

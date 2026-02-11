@@ -59,6 +59,15 @@ const announcementSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   }],
+  // Target grades and sections for filtering
+  targetGrades: [{
+    type: String,
+    enum: ['kg1','kg2','grade1','grade2','grade3','grade4','grade5','grade6','grade7','grade8','grade9','grade10','grade11','grade12']
+  }],
+  targetSections: [{
+    type: String,
+    enum: ['A','B','C','D','E','F']
+  }],
   // Track who has seen the announcement
   viewedBy: [{
     student: {

@@ -4,6 +4,7 @@ import {
   createTeacherSchedule,
   getAllSchedules,
   updateSchedule,
+  getTeacherAssignedClasses,
   
   // Weekly Template Management
   createWeeklyScheduleTemplate,
@@ -42,6 +43,7 @@ const router = express.Router();
 // ============================================================================
 router.post('/teacher', createTeacherSchedule);
 router.get('/all', getAllSchedules);
+router.get('/my-classes', protectRoute, getTeacherAssignedClasses);
 
 // ============================================================================
 // WEEKLY TEMPLATE ROUTES

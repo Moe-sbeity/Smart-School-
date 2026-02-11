@@ -49,8 +49,51 @@
                 <div class="form-group">
                     <label>Subject <span class="required">*</span></label>
                     <select class="form-control" id="subject" required>
-                        <option value="">Select Subject</option>
+                        <option value="">Loading subjects...</option>
                     </select>
+                </div>
+
+                <!-- Target Audience Section -->
+                <div class="target-audience-section">
+                    <label>Target Audience <span class="required">*</span></label>
+                    <p class="audience-hint">Select which grades and sections should receive this content</p>
+                    
+                    <div class="audience-controls">
+                        <div class="audience-group">
+                            <div class="audience-header">
+                                <h4><i class="fas fa-graduation-cap"></i> Grades</h4>
+                                <div class="select-actions">
+                                    <button type="button" class="btn-select-all" onclick="selectAllGrades()">Select All</button>
+                                    <button type="button" class="btn-clear" onclick="clearAllGrades()">Clear</button>
+                                </div>
+                            </div>
+                            <div class="checkbox-grid grades-grid" id="gradesGrid">
+                                <div class="loading-placeholder">
+                                    <i class="fas fa-spinner fa-spin"></i> Loading your grades...
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="audience-group">
+                            <div class="audience-header">
+                                <h4><i class="fas fa-users"></i> Sections</h4>
+                                <div class="select-actions">
+                                    <button type="button" class="btn-select-all" onclick="selectAllSections()">Select All</button>
+                                    <button type="button" class="btn-clear" onclick="clearAllSections()">Clear</button>
+                                </div>
+                            </div>
+                            <div class="checkbox-grid sections-grid" id="sectionsGrid">
+                                <div class="loading-placeholder">
+                                    <i class="fas fa-spinner fa-spin"></i> Loading your sections...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="audience-summary" id="audienceSummary">
+                        <i class="fas fa-info-circle"></i>
+                        <span id="summaryText">No audience selected - will target all your students</span>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -122,6 +165,82 @@
         </div>
     </div>
 
-<script src="teacher-publishAnnouncment.js"></script>
+<script src="teacher-publishAnnouncment.js?v=4"></script>
+<script>
+// Fallback: Immediately load subjects and classes after main script
+(async function() {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    
+    try {
+        // Load subjects
+        const userResponse = await fetch('http://localhost:5001/api/users/me', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const userData = await userResponse.json();
+        
+        const subjectSelect = document.getElementById('subject');
+        if (userData.user && userData.user.subjects && userData.user.subjects.length > 0) {
+            subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+            userData.user.subjects.forEach(subject => {
+                const option = document.createElement('option');
+                option.value = subject;
+                option.textContent = subject;
+                subjectSelect.appendChild(option);
+            });
+            if (userData.user.subjects.length === 1) {
+                subjectSelect.value = userData.user.subjects[0];
+            }
+            console.log('Inline: loaded subjects:', userData.user.subjects);
+        }
+        
+        // Load teacher classes (grades/sections)
+        const classesResponse = await fetch('http://localhost:5001/api/schedules/my-classes', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const classesData = await classesResponse.json();
+        console.log('Inline: teacher classes:', classesData);
+        
+        const gradesGrid = document.getElementById('gradesGrid');
+        const sectionsGrid = document.getElementById('sectionsGrid');
+        
+        // Format grade label helper
+        function formatGrade(grade) {
+            if (grade.startsWith('kg')) return 'KG ' + grade.replace('kg', '');
+            if (grade.startsWith('grade')) return 'Grade ' + grade.replace('grade', '');
+            return grade;
+        }
+        
+        // Populate grades
+        if (classesData.grades && classesData.grades.length > 0) {
+            gradesGrid.innerHTML = classesData.grades.map(grade => 
+                '<label class="checkbox-item"><input type="checkbox" name="targetGrades" value="' + grade + '"><span class="checkbox-label">' + formatGrade(grade) + '</span></label>'
+            ).join('');
+        } else {
+            gradesGrid.innerHTML = '<div class="no-classes-message"><i class="fas fa-info-circle"></i> No grades assigned. Contact admin.</div>';
+        }
+        
+        // Populate sections
+        if (classesData.sections && classesData.sections.length > 0) {
+            sectionsGrid.innerHTML = classesData.sections.map(section => 
+                '<label class="checkbox-item"><input type="checkbox" name="targetSections" value="' + section + '"><span class="checkbox-label">Section ' + section + '</span></label>'
+            ).join('');
+        } else {
+            sectionsGrid.innerHTML = '<div class="no-classes-message"><i class="fas fa-info-circle"></i> No sections assigned.</div>';
+        }
+        
+        // Add change listeners
+        document.querySelectorAll('input[name="targetGrades"], input[name="targetSections"]').forEach(cb => {
+            cb.addEventListener('change', function() {
+                if (typeof updateAudienceSummary === 'function') updateAudienceSummary();
+            });
+        });
+        
+        console.log('Inline: loaded grades and sections successfully');
+    } catch (e) {
+        console.error('Inline script error:', e);
+    }
+})();
+</script>
 </body>
 </html>

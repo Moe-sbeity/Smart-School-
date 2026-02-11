@@ -6,6 +6,61 @@
 
         const getToken = () => localStorage.getItem('token');
 
+        // Grade and Section selection functions
+        function selectAllGrades() {
+            document.querySelectorAll('input[name="targetGrades"]').forEach(cb => cb.checked = true);
+            updateAudienceSummary();
+        }
+
+        function clearAllGrades() {
+            document.querySelectorAll('input[name="targetGrades"]').forEach(cb => cb.checked = false);
+            updateAudienceSummary();
+        }
+
+        function selectAllSections() {
+            document.querySelectorAll('input[name="targetSections"]').forEach(cb => cb.checked = true);
+            updateAudienceSummary();
+        }
+
+        function clearAllSections() {
+            document.querySelectorAll('input[name="targetSections"]').forEach(cb => cb.checked = false);
+            updateAudienceSummary();
+        }
+
+        function getSelectedGrades() {
+            return Array.from(document.querySelectorAll('input[name="targetGrades"]:checked')).map(cb => cb.value);
+        }
+
+        function getSelectedSections() {
+            return Array.from(document.querySelectorAll('input[name="targetSections"]:checked')).map(cb => cb.value);
+        }
+
+        function updateAudienceSummary() {
+            const grades = getSelectedGrades();
+            const sections = getSelectedSections();
+            const summaryEl = document.getElementById('audienceSummary');
+            const summaryText = document.getElementById('summaryText');
+            
+            if (grades.length === 0 && sections.length === 0) {
+                summaryEl.classList.remove('has-selection');
+                summaryText.textContent = 'No audience selected - will target all your students';
+            } else {
+                summaryEl.classList.add('has-selection');
+                const gradeLabels = grades.map(g => g.replace('grade', 'Grade ').replace('kg', 'KG '));
+                const sectionLabels = sections.map(s => `Section ${s}`);
+                
+                let text = 'Targeting: ';
+                if (grades.length > 0) {
+                    text += gradeLabels.join(', ');
+                }
+                if (sections.length > 0) {
+                    if (grades.length > 0) text += ' | ';
+                    text += sectionLabels.join(', ');
+                }
+                summaryText.textContent = text;
+            }
+        }
+
         async function apiCall(endpoint, options = {}) {
             const token = getToken();
             const headers = {
@@ -140,20 +195,160 @@
 
         // Load teacher subjects
         async function loadSubjects() {
+            const subjectSelect = document.getElementById('subject');
+            if (!subjectSelect) {
+                console.error('Subject select not found');
+                return;
+            }
+            
+            const token = getToken();
+            if (!token) {
+                console.error('No token found');
+                subjectSelect.innerHTML = '<option value="">No token - please login</option>';
+                return;
+            }
+            
             try {
-                const data = await apiCall('/users/me');
+                console.log('Fetching subjects...');
+                
+                const response = await fetch('http://localhost:5001/api/users/me', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('User data:', data);
+                
                 const teacher = data.user;
+                
+                // Clear the loading text
+                subjectSelect.innerHTML = '<option value="">Select Subject</option>';
 
-                const subjectSelect = document.getElementById('subject');
+                if (!teacher || !teacher.subjects || teacher.subjects.length === 0) {
+                    console.log('No subjects found for teacher');
+                    return;
+                }
+
+                console.log('Adding subjects:', teacher.subjects);
+                
+                // Add only teacher's subjects
                 teacher.subjects.forEach(subject => {
                     const option = document.createElement('option');
                     option.value = subject;
                     option.textContent = subject;
                     subjectSelect.appendChild(option);
                 });
+                
+                // Auto-select if only one subject
+                if (teacher.subjects.length === 1) {
+                    subjectSelect.value = teacher.subjects[0];
+                }
+                
+                console.log('Subjects loaded successfully');
             } catch (error) {
                 console.error('Error loading subjects:', error);
-                showAlert('Failed to load subjects', 'error');
+                // Show all subjects as fallback
+                subjectSelect.innerHTML = `
+                    <option value="">Select Subject</option>
+                    <option value="Math">Math</option>
+                    <option value="Physics">Physics</option>
+                    <option value="Chemistry">Chemistry</option>
+                    <option value="Biology">Biology</option>
+                    <option value="English">English</option>
+                    <option value="History">History</option>
+                    <option value="Geography">Geography</option>
+                    <option value="Computer">Computer</option>
+                    <option value="Computer Science">Computer Science</option>
+                    <option value="Arabic">Arabic</option>
+                    <option value="French">French</option>
+                `;
+            }
+        }
+
+        // Helper function to format grade display name
+        function formatGradeLabel(grade) {
+            if (grade.startsWith('kg')) {
+                return 'KG ' + grade.replace('kg', '');
+            } else if (grade.startsWith('grade')) {
+                return 'Grade ' + grade.replace('grade', '');
+            }
+            return grade;
+        }
+
+        // Load teacher's assigned classes (grades and sections)
+        async function loadTeacherClasses() {
+            const gradesGrid = document.getElementById('gradesGrid');
+            const sectionsGrid = document.getElementById('sectionsGrid');
+            
+            const token = getToken();
+            if (!token) {
+                console.error('No token for loading classes');
+                if (gradesGrid) gradesGrid.innerHTML = '<div class="no-classes-message"><i class="fas fa-exclamation-circle"></i> Please login to view your classes</div>';
+                if (sectionsGrid) sectionsGrid.innerHTML = '';
+                return;
+            }
+            
+            try {
+                console.log('Fetching teacher classes...');
+                
+                const response = await fetch('http://localhost:5001/api/schedules/my-classes', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Teacher classes data:', data);
+                
+                const { grades, sections } = data;
+                
+                // Populate grades
+                if (!grades || grades.length === 0) {
+                    gradesGrid.innerHTML = '<div class="no-classes-message"><i class="fas fa-info-circle"></i> No grades assigned. Contact admin to assign you to classes.</div>';
+                } else {
+                    gradesGrid.innerHTML = grades.map(grade => `
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="targetGrades" value="${grade}">
+                            <span class="checkbox-label">${formatGradeLabel(grade)}</span>
+                        </label>
+                    `).join('');
+                }
+                
+                // Populate sections
+                if (!sections || sections.length === 0) {
+                    sectionsGrid.innerHTML = '<div class="no-classes-message"><i class="fas fa-info-circle"></i> No sections assigned.</div>';
+                } else {
+                    sectionsGrid.innerHTML = sections.map(section => `
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="targetSections" value="${section}">
+                            <span class="checkbox-label">Section ${section}</span>
+                        </label>
+                    `).join('');
+                }
+                
+                // Add change listeners for the newly created checkboxes
+                document.querySelectorAll('input[name="targetGrades"], input[name="targetSections"]').forEach(cb => {
+                    cb.addEventListener('change', updateAudienceSummary);
+                });
+                
+                console.log('Teacher classes loaded successfully');
+            } catch (error) {
+                console.error('Error loading teacher classes:', error);
+                gradesGrid.innerHTML = '<div class="no-classes-message"><i class="fas fa-exclamation-triangle"></i> Error loading classes. Please refresh.</div>';
+                sectionsGrid.innerHTML = '';
             }
         }
 
@@ -297,6 +492,16 @@
                 formData.append('priority', selectedPriority);
                 formData.append('status', isDraft ? 'draft' : 'published');
 
+                // Add target grades and sections
+                const targetGrades = getSelectedGrades();
+                const targetSections = getSelectedSections();
+                if (targetGrades.length > 0) {
+                    formData.append('targetGrades', JSON.stringify(targetGrades));
+                }
+                if (targetSections.length > 0) {
+                    formData.append('targetSections', JSON.stringify(targetSections));
+                }
+
                 // Add task-specific fields
                 if (currentType === 'assignment' || currentType === 'quiz') {
                     formData.append('dueDate', document.getElementById('dueDate').value);
@@ -362,11 +567,33 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOMContentLoaded fired');
             const token = getToken();
+            console.log('Token exists:', !!token);
+            
             if (!token) {
+                console.log('No token, redirecting...');
                 window.location.href = 'home.html';
                 return;
             }
 
+            // Load teacher subjects and classes
             loadSubjects();
+            loadTeacherClasses();
         });
+        
+        // Also try loading immediately in case DOMContentLoaded already fired
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            setTimeout(() => {
+                const subjectSelect = document.getElementById('subject');
+                if (subjectSelect && subjectSelect.options[0].text === 'Loading subjects...') {
+                    console.log('Late loading subjects...');
+                    loadSubjects();
+                }
+                const gradesGrid = document.getElementById('gradesGrid');
+                if (gradesGrid && gradesGrid.innerHTML.includes('Loading your grades')) {
+                    console.log('Late loading teacher classes...');
+                    loadTeacherClasses();
+                }
+            }, 100);
+        }

@@ -17,6 +17,15 @@ const attendanceSchema = new mongoose.Schema({
     required: true,
     enum: ['Math', 'Physics', 'Chemistry', 'Biology', 'English', 'History', 'Geography', 'Computer', 'Computer Science', 'Arabic', 'French']
   },
+  // Class information for filtering
+  classGrade: {
+    type: String,
+    enum: ['kg1','kg2','grade1','grade2','grade3','grade4','grade5','grade6','grade7','grade8','grade9','grade10','grade11','grade12']
+  },
+  classSection: {
+    type: String,
+    enum: ['A','B','C','D','E','F']
+  },
   date: {
     type: Date,
     required: true,

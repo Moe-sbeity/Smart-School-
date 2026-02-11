@@ -2,6 +2,7 @@
         let currentTeacher = null;
         let students = [];
         let attendanceData = {};
+        let teacherClasses = []; // Store teacher's assigned classes
 
         const getToken = () => localStorage.getItem('token');
 
@@ -48,6 +49,7 @@
                     return;
                 }
 
+                // Load teacher's subjects
                 const subjectSelect = document.getElementById('subjectSelect');
                 currentTeacher.subjects.forEach(subject => {
                     const option = document.createElement('option');
@@ -55,6 +57,9 @@
                     option.textContent = subject;
                     subjectSelect.appendChild(option);
                 });
+
+                // Load teacher's assigned classes (grades and sections)
+                await loadTeacherClasses();
 
                 const today = new Date().toISOString().split('T')[0];
                 document.getElementById('attendanceDate').value = today;
@@ -65,9 +70,91 @@
             }
         }
 
+        // Load teacher's assigned classes
+        async function loadTeacherClasses() {
+            try {
+                const data = await apiCall('/schedules/my-classes');
+                teacherClasses = data.classes || [];
+                
+                // Get unique grades
+                const grades = [...new Set(teacherClasses.map(c => c.grade))];
+                
+                // Sort grades naturally
+                grades.sort((a, b) => {
+                    if (a === 'kg1') return -1;
+                    if (b === 'kg1') return 1;
+                    if (a === 'kg2') return -1;
+                    if (b === 'kg2') return 1;
+                    // Extract numbers from "grade12" format
+                    const numA = parseInt(a.replace('grade', '')) || 0;
+                    const numB = parseInt(b.replace('grade', '')) || 0;
+                    return numA - numB;
+                });
+                
+                const gradeSelect = document.getElementById('gradeSelect');
+                grades.forEach(grade => {
+                    const option = document.createElement('option');
+                    option.value = grade;
+                    option.textContent = formatGradeLabel(grade);
+                    gradeSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading teacher classes:', error);
+            }
+        }
+
+        // Format grade label
+        function formatGradeLabel(grade) {
+            if (!grade) return 'N/A';
+            if (grade === 'kg1') return 'KG1';
+            if (grade === 'kg2') return 'KG2';
+            // Handle "grade12" format
+            if (grade.startsWith('grade')) {
+                return `Grade ${grade.replace('grade', '')}`;
+            }
+            return `Grade ${grade}`;
+        }
+
+        // Handle grade change - update sections dropdown
+        function onGradeChange() {
+            const selectedGrade = document.getElementById('gradeSelect').value;
+            const sectionSelect = document.getElementById('sectionSelect');
+            
+            // Clear existing sections
+            sectionSelect.innerHTML = '<option value="">Select Section</option>';
+            
+            if (!selectedGrade) return;
+            
+            // Get sections for the selected grade
+            const sections = teacherClasses
+                .filter(c => c.grade === selectedGrade)
+                .map(c => c.section)
+                .filter((v, i, a) => a.indexOf(v) === i) // unique
+                .sort();
+            
+            sections.forEach(section => {
+                const option = document.createElement('option');
+                option.value = section;
+                option.textContent = `Section ${section}`;
+                sectionSelect.appendChild(option);
+            });
+        }
+
         async function loadStudents() {
             const date = document.getElementById('attendanceDate').value;
             const subject = document.getElementById('subjectSelect').value;
+            const grade = document.getElementById('gradeSelect').value;
+            const section = document.getElementById('sectionSelect').value;
+
+            if (!grade) {
+                showMessage('Please select a grade', 'error');
+                return;
+            }
+
+            if (!section) {
+                showMessage('Please select a section', 'error');
+                return;
+            }
 
             if (!subject) {
                 showMessage('Please select a subject', 'error');
@@ -78,39 +165,33 @@
             container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Loading students...</p></div>';
 
             try {
-                const scheduleData = await apiCall(`/schedules/teacher/${currentTeacher._id}`);
-                const schedules = scheduleData.schedules || [];
-                const subjectSchedules = schedules.filter(s => s.subject === subject);
+                // Get ALL students registered in this grade and section
+                const studentsData = await apiCall(`/users/students?classGrade=${grade}&classSection=${section}&limit=500`);
+                students = studentsData.students || [];
                 
-                const studentSet = new Set();
-                const studentMap = new Map();
-                
-                subjectSchedules.forEach(schedule => {
-                    if (Array.isArray(schedule.student)) {
-                        schedule.student.forEach(s => {
-                            if (s && s._id) {
-                                studentSet.add(s._id);
-                                studentMap.set(s._id, s);
-                            }
-                        });
-                    } else if (schedule.student && schedule.student._id) {
-                        studentSet.add(schedule.student._id);
-                        studentMap.set(schedule.student._id, schedule.student);
-                    }
-                });
+                if (students.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-users-slash"></i>
+                            <p>No students found in ${formatGradeLabel(grade)} - Section ${section}</p>
+                        </div>
+                    `;
+                    return;
+                }
 
-                students = Array.from(studentMap.values());
-
+                // Load existing attendance for this date and subject
                 try {
-                    const attendanceResponse = await apiCall(`/attendance/by-date?date=${date}&subject=${subject}`);
+                    const attendanceResponse = await apiCall(`/attendance/by-date?date=${date}&subject=${subject}&classGrade=${grade}&classSection=${section}`);
                     const existingAttendance = attendanceResponse.attendance || [];
                     
                     attendanceData = {};
                     existingAttendance.forEach(att => {
-                        attendanceData[att.student._id] = {
-                            status: att.status,
-                            notes: att.notes || ''
-                        };
+                        if (att.student && att.student._id) {
+                            attendanceData[att.student._id] = {
+                                status: att.status,
+                                notes: att.notes || ''
+                            };
+                        }
                     });
                 } catch (error) {
                     console.log('No existing attendance found');
@@ -271,9 +352,16 @@
         async function saveAttendance() {
             const subject = document.getElementById('subjectSelect').value;
             const date = document.getElementById('attendanceDate').value;
+            const grade = document.getElementById('gradeSelect').value;
+            const section = document.getElementById('sectionSelect').value;
 
             if (!subject) {
                 showMessage('Please select a subject', 'error');
+                return;
+            }
+            
+            if (!grade || !section) {
+                showMessage('Please select grade and section', 'error');
                 return;
             }
 
@@ -292,7 +380,9 @@
                 const response = await apiCall('/attendance/mark-bulk', 'POST', {
                     attendanceRecords,
                     subject,
-                    date
+                    date,
+                    classGrade: grade,
+                    classSection: section
                 });
 
                 showMessage(`Attendance saved successfully for ${response.results.length} students`, 'success');

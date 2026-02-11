@@ -8,7 +8,7 @@ const router = express.Router();
 // Mark attendance for a single student
 router.post('/mark', protectRoute, async (req, res) => {
     try {
-        const { studentId, subject, status, notes, classTime } = req.body;
+        const { studentId, subject, status, notes, classTime, classGrade, classSection } = req.body;
         const teacherId = req.userId;
         // Verify teacher
         const teacher = await UserModel.findById(teacherId);
@@ -46,6 +46,8 @@ router.post('/mark', protectRoute, async (req, res) => {
             attendance.status = status;
             attendance.notes = notes || '';
             attendance.teacher = teacherId;
+            attendance.classGrade = classGrade || student.classGrade;
+            attendance.classSection = classSection || student.classSection;
             if (status === 'present' || status === 'late') {
                 attendance.checkInTime = new Date();
             }
@@ -59,6 +61,8 @@ router.post('/mark', protectRoute, async (req, res) => {
                 teacher: teacherId,
                 student: studentId,
                 subject,
+                classGrade: classGrade || student.classGrade,
+                classSection: classSection || student.classSection,
                 date: today,
                 status,
                 notes: notes || '',
@@ -84,7 +88,7 @@ router.post('/mark', protectRoute, async (req, res) => {
 // Mark attendance for multiple students (bulk)
 router.post('/mark-bulk', protectRoute, async (req, res) => {
     try {
-        const { attendanceRecords, subject, classTime } = req.body;
+        const { attendanceRecords, subject, classTime, classGrade, classSection } = req.body;
         // attendanceRecords: [{ studentId, status, notes }]
         const teacherId = req.userId;
 
@@ -106,6 +110,9 @@ router.post('/mark-bulk', protectRoute, async (req, res) => {
         for (const record of attendanceRecords) {
             try {
                 const { studentId, status, notes } = record;
+                
+                // Get student to retrieve their class info if not provided
+                const student = await UserModel.findById(studentId);
 
                 // Check if attendance already exists
                 let attendance = await AttendanceModel.findOne({
@@ -121,6 +128,8 @@ router.post('/mark-bulk', protectRoute, async (req, res) => {
                     attendance.status = status;
                     attendance.notes = notes || '';
                     attendance.teacher = teacherId;
+                    attendance.classGrade = classGrade || (student ? student.classGrade : null);
+                    attendance.classSection = classSection || (student ? student.classSection : null);
                     if (status === 'present' || status === 'late') {
                         attendance.checkInTime = new Date();
                     }
@@ -133,6 +142,8 @@ router.post('/mark-bulk', protectRoute, async (req, res) => {
                         teacher: teacherId,
                         student: studentId,
                         subject,
+                        classGrade: classGrade || (student ? student.classGrade : null),
+                        classSection: classSection || (student ? student.classSection : null),
                         date: today,
                         status,
                         notes: notes || '',
@@ -256,7 +267,7 @@ router.get('/my-stats', protectRoute, async (req, res) => {
 // Get attendance for a specific date and subject (for teachers)
 router.get('/by-date', protectRoute, async (req, res) => {
     try {
-        const { date, subject } = req.query;
+        const { date, subject, classGrade, classSection } = req.query;
         const teacherId = req.userId;
         const teacher = await UserModel.findById(teacherId);
         if (!teacher || teacher.role !== 'teacher') {
@@ -277,6 +288,14 @@ router.get('/by-date', protectRoute, async (req, res) => {
         if (subject) {
             query.subject = subject;
         }
+        
+        // Filter by class grade and section
+        if (classGrade) {
+            query.classGrade = classGrade;
+        }
+        if (classSection) {
+            query.classSection = classSection;
+        }
 
         const attendance = await AttendanceModel.find(query)
             .populate('student', 'name email')
@@ -293,7 +312,7 @@ router.get('/by-date', protectRoute, async (req, res) => {
 router.get('/student/:studentId', protectRoute, async (req, res) => {
     try {
         const { studentId } = req.params;
-        const { subject, startDate, endDate } = req.query;
+        const { subject, startDate, endDate, page = 1, limit = 10 } = req.query;
 
         const query = { student: studentId };
 
@@ -311,17 +330,26 @@ router.get('/student/:studentId', protectRoute, async (req, res) => {
             }
         }
 
-        const attendance = await AttendanceModel.find(query)
+        // Get all attendance for statistics calculation
+        const allAttendance = await AttendanceModel.find(query)
             .populate('teacher', 'name')
             .sort({ date: -1 });
 
-        // Calculate statistics
-        const total = attendance.length;
-        const present = attendance.filter(a => a.status === 'present').length;
-        const absent = attendance.filter(a => a.status === 'absent').length;
-        const late = attendance.filter(a => a.status === 'late').length;
-        const excused = attendance.filter(a => a.status === 'excused').length;
+        // Calculate statistics from ALL records (not paginated)
+        const total = allAttendance.length;
+        const present = allAttendance.filter(a => a.status === 'present').length;
+        const absent = allAttendance.filter(a => a.status === 'absent').length;
+        const late = allAttendance.filter(a => a.status === 'late').length;
+        const excused = allAttendance.filter(a => a.status === 'excused').length;
         const attendanceRate = total > 0 ? ((present + late) / total * 100).toFixed(2) : 0;
+
+        // Apply pagination
+        const pageNum = parseInt(page) || 1;
+        const limitNum = parseInt(limit) || 10;
+        const skip = (pageNum - 1) * limitNum;
+        const totalItems = allAttendance.length;
+        const totalPages = Math.ceil(totalItems / limitNum);
+        const attendance = allAttendance.slice(skip, skip + limitNum);
 
         res.json({
             attendance,
@@ -332,6 +360,14 @@ router.get('/student/:studentId', protectRoute, async (req, res) => {
                 late,
                 excused,
                 attendanceRate: `${attendanceRate}%`
+            },
+            pagination: {
+                currentPage: pageNum,
+                totalPages,
+                totalItems,
+                itemsPerPage: limitNum,
+                hasNextPage: pageNum < totalPages,
+                hasPrevPage: pageNum > 1
             }
         });
     } catch (error) {
