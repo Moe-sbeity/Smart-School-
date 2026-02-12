@@ -151,39 +151,14 @@
         const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
         let TIME_SLOTS = []; // Loaded dynamically from schedule settings API
 
-        // Load time slots from schedule settings
-        async function loadTimeSlots() {
-            try {
-                const res = await apiCall('/schedules/settings');
-                const settings = res.settings || res;
-                if (settings.timeSlots && settings.timeSlots.length > 0) {
-                    TIME_SLOTS = settings.timeSlots
-                        .filter(s => s.type === 'session')
-                        .map(s => s.startTime);
-                } else {
-                    // Generate from settings values
-                    const sessionsPerDay = settings.sessionsPerDay || 7;
-                    const duration = settings.sessionDuration || 50;
-                    const breakDuration = settings.breakDuration || 30;
-                    const breakAfter = settings.breakAfterSession || 4;
-                    const startTime = settings.dayStartTime || '08:00';
-                    let [h, m] = startTime.split(':').map(Number);
-                    TIME_SLOTS = [];
-                    for (let i = 0; i < sessionsPerDay; i++) {
-                        TIME_SLOTS.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
-                        m += duration;
-                        h += Math.floor(m / 60);
-                        m = m % 60;
-                        if ((i + 1) === breakAfter && i < sessionsPerDay - 1) {
-                            m += breakDuration;
-                            h += Math.floor(m / 60);
-                            m = m % 60;
-                        }
-                    }
-                }
-            } catch (e) {
-                console.error('Failed to load schedule settings, using fallback:', e);
-                TIME_SLOTS = ['08:00', '08:50', '09:40', '10:30', '11:40', '12:30', '13:20'];
+        // Build TIME_SLOTS from actual schedule data so grid always matches
+        function buildTimeSlotsFromSchedules() {
+            const times = new Set();
+            schedules.forEach(s => {
+                if (s.startTime) times.add(s.startTime.substring(0, 5));
+            });
+            if (times.size > 0) {
+                TIME_SLOTS = [...times].sort();
             }
         }
 
@@ -236,7 +211,6 @@
             }
 
             try {
-                await loadTimeSlots();
                 await loadSchedule();
             } catch (error) {
                 console.error('Initialization error:', error);
@@ -282,6 +256,9 @@
                 } else {
                     schedules = [];
                 }
+
+                // Build TIME_SLOTS from actual schedule data
+                buildTimeSlotsFromSchedules();
 
                 renderSchedule();
                 updateStats();
