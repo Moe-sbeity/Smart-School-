@@ -32,7 +32,7 @@
                 </div>
                 <div class="selector-group">
                     <label>Grade:</label>
-                    <select id="gradeSelect" title="Select Grade" onchange="onGradeChange()">
+                    <select id="gradeSelect" title="Select Grade">
                         <option value="">Select Grade</option>
                     </select>
                 </div>
@@ -48,7 +48,7 @@
                         <option value="">Select Subject</option>
                     </select>
                 </div>
-                <button class="btn-load" onclick="loadStudents()">
+                <button class="btn-load" id="loadStudentsBtn">
                     <i class="fas fa-sync-alt"></i> Load Students
                 </button>
             </div>
@@ -76,16 +76,20 @@
         </div>
 
         <div class="attendance-container">
+            <div class="edit-banner" id="editBanner" style="display: none;">
+                <i class="fas fa-info-circle"></i>
+                <span>Attendance already recorded for this subject. You are now editing it.</span>
+            </div>
             <div class="toolbar" id="toolbar" style="display: none;">
                 <div class="quick-actions">
-                    <button class="btn-action" onclick="markAllPresent()">
+                    <button class="btn-action" id="markAllPresentBtn">
                         <i class="fas fa-check-double"></i> Mark All Present
                     </button>
-                    <button class="btn-action" onclick="clearAll()">
+                    <button class="btn-action" id="clearAllBtn">
                         <i class="fas fa-eraser"></i> Clear All
                     </button>
                 </div>
-                <button class="saveAtt" onclick="saveAttendance()">
+                <button class="saveAtt" id="saveAttendanceBtn">
                     <i class="fas fa-save"></i> Save Attendance
                 </button>
             </div>

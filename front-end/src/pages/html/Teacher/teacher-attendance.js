@@ -3,6 +3,8 @@
         let students = [];
         let attendanceData = {};
         let teacherClasses = []; // Store teacher's assigned classes
+        let doneSubjects = []; // Track subjects with completed attendance
+        let isEditMode = false; // Whether editing existing attendance
 
         const getToken = () => localStorage.getItem('token');
 
@@ -65,6 +67,9 @@
 
                 const today = new Date().toISOString().split('T')[0];
                 document.getElementById('attendanceDate').value = today;
+
+                // Add date change listener to refresh done subjects
+                document.getElementById('attendanceDate').addEventListener('change', refreshDoneSubjects);
 
             } catch (error) {
                 console.error('Error initializing:', error);
@@ -140,6 +145,51 @@
                 option.textContent = `Section ${section}`;
                 sectionSelect.appendChild(option);
             });
+
+            // Reset done subjects when grade changes
+            refreshDoneSubjects();
+        }
+
+        // Handle section change - refresh done subjects
+        function onSectionChange() {
+            refreshDoneSubjects();
+        }
+
+        // Fetch and display which subjects already have attendance done
+        async function refreshDoneSubjects() {
+            const date = document.getElementById('attendanceDate').value;
+            const grade = document.getElementById('gradeSelect').value;
+            const section = document.getElementById('sectionSelect').value;
+
+            if (!date || !grade || !section) {
+                doneSubjects = [];
+                updateSubjectOptions();
+                return;
+            }
+
+            try {
+                const data = await apiCall(`/attendance/done-subjects?date=${date}&classGrade=${grade}&classSection=${section}`);
+                doneSubjects = data.doneSubjects || [];
+            } catch (error) {
+                console.log('Could not fetch done subjects');
+                doneSubjects = [];
+            }
+            updateSubjectOptions();
+        }
+
+        // Update subject dropdown to show done badges
+        function updateSubjectOptions() {
+            const subjectSelect = document.getElementById('subjectSelect');
+            const currentValue = subjectSelect.value;
+            const options = subjectSelect.querySelectorAll('option');
+
+            options.forEach(option => {
+                if (!option.value) return;
+                const isDone = doneSubjects.includes(option.value);
+                option.textContent = isDone ? `${option.value}  ✓ Done` : option.value;
+            });
+
+            subjectSelect.value = currentValue;
         }
 
         async function loadStudents() {
@@ -182,6 +232,7 @@
                 }
 
                 // Load existing attendance for this date and subject
+                isEditMode = false;
                 try {
                     const attendanceResponse = await apiCall(`/attendance/by-date?date=${date}&subject=${subject}&classGrade=${grade}&classSection=${section}`);
                     const existingAttendance = attendanceResponse.attendance || [];
@@ -195,6 +246,10 @@
                             };
                         }
                     });
+
+                    if (existingAttendance.length > 0) {
+                        isEditMode = true;
+                    }
                 } catch (error) {
                     console.log('No existing attendance found');
                     attendanceData = {};
@@ -204,6 +259,20 @@
                 document.getElementById('toolbar').style.display = 'flex';
                 document.getElementById('statsGrid').style.display = 'grid';
                 updateStats();
+
+                // Show edit banner if editing existing attendance
+                const editBanner = document.getElementById('editBanner');
+                if (editBanner) {
+                    editBanner.style.display = isEditMode ? 'flex' : 'none';
+                }
+
+                // Update save button text
+                const saveBtn = document.getElementById('saveAttendanceBtn');
+                if (saveBtn) {
+                    saveBtn.innerHTML = isEditMode 
+                        ? '<i class="fas fa-edit"></i> Update Attendance'
+                        : '<i class="fas fa-save"></i> Save Attendance';
+                }
 
             } catch (error) {
                 console.error('Error loading students:', error);
@@ -258,39 +327,43 @@
                                         <div class="status-checkbox">
                                             <input type="checkbox" 
                                                    class="present"
-                                                   ${attendance.status === 'present' ? 'checked' : ''}
-                                                   onchange="setStatus('${student._id}', 'present', this.checked)">
+                                                   data-student-id="${student._id}"
+                                                   data-status="present"
+                                                   ${attendance.status === 'present' ? 'checked' : ''}>
                                         </div>
                                     </td>
                                     <td class="checkbox-cell">
                                         <div class="status-checkbox">
                                             <input type="checkbox" 
                                                    class="absent"
-                                                   ${attendance.status === 'absent' ? 'checked' : ''}
-                                                   onchange="setStatus('${student._id}', 'absent', this.checked)">
+                                                   data-student-id="${student._id}"
+                                                   data-status="absent"
+                                                   ${attendance.status === 'absent' ? 'checked' : ''}>
                                         </div>
                                     </td>
                                     <td class="checkbox-cell">
                                         <div class="status-checkbox">
                                             <input type="checkbox" 
                                                    class="late"
-                                                   ${attendance.status === 'late' ? 'checked' : ''}
-                                                   onchange="setStatus('${student._id}', 'late', this.checked)">
+                                                   data-student-id="${student._id}"
+                                                   data-status="late"
+                                                   ${attendance.status === 'late' ? 'checked' : ''}>
                                         </div>
                                     </td>
                                     <td class="checkbox-cell">
                                         <div class="status-checkbox">
                                             <input type="checkbox" 
                                                    class="excused"
-                                                   ${attendance.status === 'excused' ? 'checked' : ''}
-                                                   onchange="setStatus('${student._id}', 'excused', this.checked)">
+                                                   data-student-id="${student._id}"
+                                                   data-status="excused"
+                                                   ${attendance.status === 'excused' ? 'checked' : ''}>
                                         </div>
                                     </td>
                                     <td class="notes-cell">
                                         <input type="text" 
                                                placeholder="Add notes..."
-                                               value="${attendance.notes}"
-                                               onchange="setNotes('${student._id}', this.value)">
+                                               data-student-id="${student._id}"
+                                               value="${attendance.notes}">
                                     </td>
                                 </tr>
                             `;
@@ -387,16 +460,62 @@
                     classSection: section
                 });
 
-                showMessage(`Attendance saved successfully for ${response.results.length} students`, 'success');
+                showMessage(
+                    isEditMode 
+                        ? `Attendance updated successfully for ${response.results.length} students` 
+                        : `Attendance saved successfully for ${response.results.length} students`, 
+                    'success'
+                );
                 
-                setTimeout(() => {
-                    loadStudents();
-                }, 1500);
+                // Reset the page
+                resetPage();
+
+                // Refresh done subjects list
+                refreshDoneSubjects();
 
             } catch (error) {
                 console.error('Error saving attendance:', error);
                 showMessage('Failed to save attendance: ' + error.message, 'error');
             }
+        }
+
+        // Reset the page to initial state after saving
+        function resetPage() {
+            students = [];
+            attendanceData = {};
+            isEditMode = false;
+
+            // Hide toolbar and stats
+            document.getElementById('toolbar').style.display = 'none';
+            document.getElementById('statsGrid').style.display = 'none';
+
+            // Hide edit banner
+            const editBanner = document.getElementById('editBanner');
+            if (editBanner) editBanner.style.display = 'none';
+
+            // Reset stats
+            document.getElementById('presentCount').textContent = '0';
+            document.getElementById('absentCount').textContent = '0';
+            document.getElementById('lateCount').textContent = '0';
+            document.getElementById('excusedCount').textContent = '0';
+
+            // Reset subject select
+            document.getElementById('subjectSelect').value = '';
+
+            // Reset save button text
+            const saveBtn = document.getElementById('saveAttendanceBtn');
+            if (saveBtn) {
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Attendance';
+            }
+
+            // Show initial placeholder
+            document.getElementById('studentContainer').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-clipboard-check" style="font-size: 48px; color: #10b981; margin-bottom: 12px;"></i>
+                    <p style="font-size: 16px; color: #10b981; font-weight: 600;">Attendance saved!</p>
+                    <p>Select a subject to continue marking attendance</p>
+                </div>
+            `;
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -409,19 +528,34 @@
             
             // Add event listener for grade select
             document.getElementById('gradeSelect').addEventListener('change', onGradeChange);
+
+            // Add event listener for section select
+            document.getElementById('sectionSelect').addEventListener('change', onSectionChange);
             
             // Add event listener for load students button
-            const loadBtn = document.querySelector('.btn-load');
+            const loadBtn = document.getElementById('loadStudentsBtn');
             if (loadBtn) {
                 loadBtn.addEventListener('click', loadStudents);
             }
+
+            // Mark All Present button
+            document.getElementById('markAllPresentBtn').addEventListener('click', markAllPresent);
+
+            // Clear All button
+            document.getElementById('clearAllBtn').addEventListener('click', clearAll);
+
+            // Save Attendance button
+            document.getElementById('saveAttendanceBtn').addEventListener('click', saveAttendance);
+
+            // Event delegation for dynamically rendered checkboxes and notes
+            document.getElementById('studentContainer').addEventListener('change', (e) => {
+                const target = e.target;
+                if (target.matches('input[type="checkbox"][data-student-id]')) {
+                    setStatus(target.dataset.studentId, target.dataset.status, target.checked);
+                } else if (target.matches('input[type="text"][data-student-id]')) {
+                    setNotes(target.dataset.studentId, target.value);
+                }
+            });
             
             init();
         });
-
-        // Expose functions to global scope for HTML onclick/onchange handlers
-        window.onGradeChange = onGradeChange;
-        window.loadStudents = loadStudents;
-        window.markAllPresent = markAllPresent;
-        window.clearAll = clearAll;
-        window.saveAttendance = saveAttendance;

@@ -833,4 +833,32 @@ router.get('/teacher-stats', protectRoute, async (req, res) => {
     }
 });
 
+// Get which subjects already have attendance marked for a given date, grade, and section (for teacher)
+router.get('/done-subjects', protectRoute, async (req, res) => {
+    try {
+        const { date, classGrade, classSection } = req.query;
+        const teacherId = req.userId;
+
+        const targetDate = date ? new Date(date) : new Date();
+        targetDate.setHours(0, 0, 0, 0);
+
+        const records = await AttendanceModel.find({
+            teacher: teacherId,
+            date: {
+                $gte: targetDate,
+                $lt: new Date(targetDate.getTime() + 24 * 60 * 60 * 1000)
+            },
+            ...(classGrade && { classGrade }),
+            ...(classSection && { classSection })
+        }).select('subject');
+
+        const doneSubjects = [...new Set(records.map(r => r.subject))];
+
+        res.json({ doneSubjects });
+    } catch (error) {
+        console.error('Error fetching done subjects:', error);
+        res.status(500).json({ message: 'Error fetching done subjects', error: error.message });
+    }
+});
+
 export default router;

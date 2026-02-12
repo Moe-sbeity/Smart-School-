@@ -3,6 +3,7 @@ let allContent = [];
 let teacherSubjects = [];
 let pagination = null;
 let currentFilters = { subject: '', type: '', status: '' };
+let totalStats = { total: 0, announcements: 0, assignments: 0, quizzes: 0, pending: 0 };
 
 const getToken = () => localStorage.getItem('token');
 
@@ -57,7 +58,6 @@ async function loadContent(page = 1, limit = 10) {
         const data = await apiCall(`/announcements/teacher?${params.toString()}`);
         allContent = data.announcements;
 
-        updateStats();
         renderContent(allContent);
         
         // Update pagination
@@ -78,18 +78,36 @@ async function loadContent(page = 1, limit = 10) {
 }
 
 function updateStats() {
-    document.getElementById('totalCount').textContent = allContent.length;
-    document.getElementById('announcementCount').textContent =
-        allContent.filter(c => c.type === 'announcement').length;
-    document.getElementById('assignmentCount').textContent =
-        allContent.filter(c => c.type === 'assignment').length;
-    document.getElementById('quizCount').textContent =
-        allContent.filter(c => c.type === 'quiz').length;
+    document.getElementById('totalCount').textContent = totalStats.total;
+    document.getElementById('announcementCount').textContent = totalStats.announcements;
+    document.getElementById('assignmentCount').textContent = totalStats.assignments;
+    document.getElementById('quizCount').textContent = totalStats.quizzes;
+    document.getElementById('pendingGrading').textContent = totalStats.pending;
+}
 
-    const pendingCount = allContent
-        .filter(c => c.type !== 'announcement')
-        .reduce((sum, c) => sum + (c.submissionCount - c.gradedCount), 0);
-    document.getElementById('pendingGrading').textContent = pendingCount;
+async function loadStats() {
+    try {
+        // Fetch all content without type/status filters to get true totals
+        const params = new URLSearchParams();
+        params.append('page', 1);
+        params.append('limit', 9999);
+        if (currentFilters.subject) params.append('subject', currentFilters.subject);
+
+        const data = await apiCall(`/announcements/teacher?${params.toString()}`);
+        const all = data.announcements || [];
+
+        totalStats.total = all.length;
+        totalStats.announcements = all.filter(c => c.type === 'announcement').length;
+        totalStats.assignments = all.filter(c => c.type === 'assignment').length;
+        totalStats.quizzes = all.filter(c => c.type === 'quiz').length;
+        totalStats.pending = all
+            .filter(c => c.type !== 'announcement')
+            .reduce((sum, c) => sum + (c.submissionCount - c.gradedCount), 0);
+
+        updateStats();
+    } catch (error) {
+        console.error('Error loading stats:', error);
+    }
 }
 
 let activeCardFilter = 'all';
@@ -140,6 +158,9 @@ function filterContent() {
     const type = document.getElementById('filterType').value;
     const status = document.getElementById('filterStatus').value;
 
+    // Refresh stats when subject filter changes
+    const subjectChanged = currentFilters.subject !== subject;
+
     // Update current filters
     currentFilters.subject = subject;
     currentFilters.type = activeCardFilter === 'pending' ? '' : type;
@@ -148,6 +169,10 @@ function filterContent() {
     // Handle pending filter locally after data load
     if (activeCardFilter === 'pending') {
         currentFilters.type = '';
+    }
+
+    if (subjectChanged) {
+        loadStats();
     }
 
     // Reload content with new filters from page 1
@@ -349,6 +374,7 @@ async function deleteContent(id) {
         if (typeof Toast !== 'undefined') {
             Toast.success('Content deleted successfully');
         }
+        loadStats();
         loadContent();
     } catch (error) {
         console.error('Error deleting content:', error);
@@ -381,5 +407,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     loadSubjects();
+    loadStats();
     loadContent();
 });

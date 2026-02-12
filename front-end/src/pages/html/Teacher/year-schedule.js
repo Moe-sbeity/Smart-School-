@@ -11,34 +11,19 @@ let allAttendance = [];
 let performanceChart = null;
 let subjectChart = null;
 let attendanceChart = null;
+let academicYearSettings = null;
 
-// Term date ranges for academic year
-const termDates = {
-    '2025-2026': {
-        1: { start: '2025-09-01', end: '2025-10-31', label: 'September - October 2025' },
-        2: { start: '2025-11-01', end: '2025-12-31', label: 'November - December 2025' },
-        3: { start: '2026-01-01', end: '2026-02-28', label: 'January - February 2026' },
-        4: { start: '2026-03-01', end: '2026-04-30', label: 'March - April 2026' },
-        5: { start: '2026-05-01', end: '2026-06-30', label: 'May - June 2026' },
-        6: { start: '2026-07-01', end: '2026-08-31', label: 'July - August 2026' }
-    },
-    '2024-2025': {
-        1: { start: '2024-09-01', end: '2024-10-31', label: 'September - October 2024' },
-        2: { start: '2024-11-01', end: '2024-12-31', label: 'November - December 2024' },
-        3: { start: '2025-01-01', end: '2025-02-28', label: 'January - February 2025' },
-        4: { start: '2025-03-01', end: '2025-04-30', label: 'March - April 2025' },
-        5: { start: '2025-05-01', end: '2025-06-30', label: 'May - June 2025' },
-        6: { start: '2025-07-01', end: '2025-08-31', label: 'July - August 2025' }
-    },
-    '2026-2027': {
-        1: { start: '2026-09-01', end: '2026-10-31', label: 'September - October 2026' },
-        2: { start: '2026-11-01', end: '2026-12-31', label: 'November - December 2026' },
-        3: { start: '2027-01-01', end: '2027-02-28', label: 'January - February 2027' },
-        4: { start: '2027-03-01', end: '2027-04-30', label: 'March - April 2027' },
-        5: { start: '2027-05-01', end: '2027-06-30', label: 'May - June 2027' },
-        6: { start: '2027-07-01', end: '2027-08-31', label: 'July - August 2027' }
-    }
+// Month name to number mapping (supports both full and abbreviated names)
+const monthMap = {
+    'January': 0, 'February': 1, 'March': 2, 'April': 3, 'May': 4, 'June': 5,
+    'July': 6, 'August': 7, 'September': 8, 'October': 9, 'November': 10, 'December': 11,
+    'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
+    'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
 };
+
+// Month full names
+const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'];
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
@@ -52,7 +37,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     try {
         await loadTeacherData();
+        await loadAcademicYearSettings();
         await loadYearData();
+        renderTermTabs();
         updateOverviewStats();
         selectTerm(getCurrentTerm());
     } catch (error) {
@@ -70,17 +57,83 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 });
 
-// Get current term based on today's date
+// Load academic year settings from admin API
+async function loadAcademicYearSettings() {
+    const token = localStorage.getItem('token');
+    try {
+        const res = await fetch(`${API_BASE}/academic-year/current`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+            const data = await res.json();
+            academicYearSettings = data.settings || data;
+            currentYear = academicYearSettings.academicYear || currentYear;
+        }
+    } catch (error) {
+        console.error('Error loading academic year settings:', error);
+    }
+}
+
+// Get current term based on admin settings
 function getCurrentTerm() {
+    // Use the currentTerm from admin settings if available
+    if (academicYearSettings && academicYearSettings.currentTerm) {
+        return academicYearSettings.currentTerm;
+    }
+    // Fallback: find term whose date range contains today
+    const terms = academicYearSettings?.terms || [];
     const today = new Date();
-    const month = today.getMonth() + 1;
-    
-    if (month >= 9 && month <= 10) return 1;
-    if (month >= 11 && month <= 12) return 2;
-    if (month >= 1 && month <= 2) return 3;
-    if (month >= 3 && month <= 4) return 4;
-    if (month >= 5 && month <= 6) return 5;
-    return 6;
+    for (const term of terms) {
+        const range = getTermDateRange(term);
+        if (range && today >= range.start && today <= range.end) {
+            return term.termNumber;
+        }
+    }
+    return 1;
+}
+
+// Get term date range from term data
+function getTermDateRange(term) {
+    if (!term) return null;
+
+    // If term has explicit startDate/endDate
+    if (term.startDate && term.endDate) {
+        return { start: new Date(term.startDate), end: new Date(term.endDate) };
+    }
+
+    // Derive from startMonth/endMonth and academic year
+    const years = currentYear.split('-').map(Number);
+    const startMonthIdx = monthMap[term.startMonth];
+    const endMonthIdx = monthMap[term.endMonth];
+    if (startMonthIdx === undefined || endMonthIdx === undefined) return null;
+
+    // Sep-Aug spans two calendar years
+    const startYear = startMonthIdx >= 8 ? years[0] : years[1]; // Sep+ = first year
+    const endYear = endMonthIdx >= 8 ? years[0] : years[1];
+
+    const start = new Date(startYear, startMonthIdx, 1);
+    const end = new Date(endYear, endMonthIdx + 1, 0); // last day of end month
+    return { start, end };
+}
+
+// Render term tabs dynamically from admin settings
+function renderTermTabs() {
+    const container = document.querySelector('.term-tabs');
+    if (!container) return;
+
+    const terms = academicYearSettings?.terms || [];
+    if (terms.length === 0) {
+        container.innerHTML = '<p style="color: #64748b; padding: 10px;">No terms configured.</p>';
+        return;
+    }
+
+    container.innerHTML = terms.map(term => `
+        <button class="term-tab" data-term="${term.termNumber}" onclick="selectTerm(${term.termNumber})">
+            <i class="fas fa-calendar-week"></i>
+            <span>${term.name || 'Term ' + term.termNumber}</span>
+            <small>${term.startMonth} - ${term.endMonth}</small>
+        </button>
+    `).join('');
 }
 
 // Load teacher data
@@ -258,13 +311,27 @@ function selectTerm(termNumber) {
 
 // Update term content
 function updateTermContent() {
-    const termData = termDates[currentYear][currentTerm];
-    const startDate = new Date(termData.start);
-    const endDate = new Date(termData.end);
+    const terms = academicYearSettings?.terms || [];
+    const term = terms.find(t => t.termNumber === currentTerm);
+    if (!term) {
+        document.getElementById('termTitle').textContent = `Term ${currentTerm}: No data`;
+        document.getElementById('termProgress').style.width = '0%';
+        document.getElementById('termProgressPercent').textContent = '0%';
+        return;
+    }
+
+    const range = getTermDateRange(term);
+    const startDate = range ? range.start : new Date();
+    const endDate = range ? range.end : new Date();
     
+    // Build label from month names
+    const startLabel = monthNames[startDate.getMonth()];
+    const endLabel = monthNames[endDate.getMonth()];
+    const yearLabel = endDate.getFullYear();
+
     // Update header
     const gradeLabel = currentGrade === 'all' ? 'All Grades' : currentGrade;
-    document.getElementById('termTitle').textContent = `Term ${currentTerm}: ${termData.label} (${gradeLabel})`;
+    document.getElementById('termTitle').textContent = `${term.name || 'Term ' + currentTerm}: ${startLabel} - ${endLabel} ${yearLabel} (${gradeLabel})`;
     
     // Calculate progress
     const today = new Date();
@@ -272,7 +339,7 @@ function updateTermContent() {
     if (today >= startDate && today <= endDate) {
         const total = endDate - startDate;
         const elapsed = today - startDate;
-        progress = Math.round((elapsed / total) * 100);
+        progress = total > 0 ? Math.round((elapsed / total) * 100) : 0;
     } else if (today > endDate) {
         progress = 100;
     }
@@ -527,8 +594,10 @@ function createPerformanceChart(exams, quizzes, assignments) {
         performanceChart.destroy();
     }
     
-    const termData = termDates[currentYear][currentTerm];
-    const startDate = new Date(termData.start);
+    const terms = academicYearSettings?.terms || [];
+    const currentTermObj = terms.find(t => t.termNumber === currentTerm);
+    const termRange = getTermDateRange(currentTermObj);
+    const startDate = termRange ? termRange.start : new Date();
     
     // Generate weekly labels
     const weeks = [];

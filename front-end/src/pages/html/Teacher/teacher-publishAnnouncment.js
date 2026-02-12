@@ -1,6 +1,5 @@
         const API_URL = 'http://localhost:5001/api';
         let currentType = 'announcement';
-        let selectedPriority = 'medium';
         let questionCounter = 0;
         let selectedFiles = [];
 
@@ -380,15 +379,6 @@
             });
         });
 
-        // Priority selection
-        document.querySelectorAll('.priority-option').forEach(option => {
-            option.addEventListener('click', function() {
-                document.querySelectorAll('.priority-option').forEach(o => o.classList.remove('active'));
-                this.classList.add('active');
-                selectedPriority = this.dataset.priority;
-            });
-        });
-
         // Add question
         function addQuestion() {
             questionCounter++;
@@ -489,7 +479,6 @@
                 formData.append('subject', document.getElementById('subject').value);
                 formData.append('title', document.getElementById('title').value);
                 formData.append('description', document.getElementById('description').value);
-                formData.append('priority', selectedPriority);
                 formData.append('status', isDraft ? 'draft' : 'published');
 
                 // Add target grades and sections
