@@ -163,15 +163,19 @@
                     <div class="stat-value" id="totalSubjects">0</div>
                     <div class="stat-change link">View Subjects →</div>
                 </div>
-                <div class="stat-card clickable" onclick="window.location.href='./student-tasks.html?filter=pending'">
+                <div class="stat-card clickable" onclick="window.location.href='./student-tasks.html'">
                     <div class="stat-header">
-                        <span class="stat-label">Pending Tasks</span>
+                        <span class="stat-label">My Tasks</span>
                         <div class="stat-icon icon-tasks">
                             <i data-lucide="clipboard-list"></i>
                         </div>
                     </div>
-                    <div class="stat-value" id="pendingTasks">0</div>
-                    <div class="stat-change link">View Pending →</div>
+                    <div class="stat-value" id="tasksTotal">0</div>
+                    <div class="stat-tasks-split">
+                        <span class="tasks-pending" id="pendingTasks"><i data-lucide="clock"></i> 0 pending</span>
+                        <span class="tasks-completed" id="completedTasks"><i data-lucide="check-circle"></i> 0 done</span>
+                    </div>
+                    <div class="stat-change link">View All Tasks →</div>
                 </div>
                 <div class="stat-card clickable" onclick="window.location.href='./student-grades.html'">
                     <div class="stat-header">
@@ -182,16 +186,6 @@
                     </div>
                     <div class="stat-value" id="avgGrade">--</div>
                     <div class="stat-change link">View All Grades →</div>
-                </div>
-                <div class="stat-card clickable" onclick="window.location.href='./student-tasks.html?filter=completed'">
-                    <div class="stat-header">
-                        <span class="stat-label">Completed</span>
-                        <div class="stat-icon icon-completed">
-                            <i data-lucide="check-circle"></i>
-                        </div>
-                    </div>
-                    <div class="stat-value" id="completedTasks">0</div>
-                    <div class="stat-change link">View Completed →</div>
                 </div>
             </div>
 

@@ -439,9 +439,10 @@ function renderDashboard() {
 
     // Update stats
     document.getElementById('totalSubjects').textContent = subjects.length;
-    document.getElementById('pendingTasks').textContent = pendingTasks.length;
+    document.getElementById('tasksTotal').textContent = pendingTasks.length + completedTasks.length;
+    document.getElementById('pendingTasks').innerHTML = `<i data-lucide="clock"></i> ${pendingTasks.length} pending`;
+    document.getElementById('completedTasks').innerHTML = `<i data-lucide="check-circle"></i> ${completedTasks.length} done`;
     document.getElementById('avgGrade').textContent = avgGrade;
-    document.getElementById('completedTasks').textContent = completedTasks.length;
 
     // Update notification count - only count unread admin announcements
     const unreadAdminAnnouncements = adminAnnouncements.filter(a => !a.isViewed).length;

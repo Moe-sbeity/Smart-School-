@@ -79,7 +79,6 @@ function renderPage(subjects) {
     document.getElementById('totalSubjects').textContent = subjects.length;
     document.getElementById('totalClasses').textContent = schedules.length;
     document.getElementById('totalTeachers').textContent = uniqueTeachers.size;
-    document.getElementById('totalPending').textContent = pendingTasks.length;
 
     // Render subjects
     const container = document.getElementById('subjectsContainer');
