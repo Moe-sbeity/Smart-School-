@@ -746,7 +746,19 @@ function showLoading(show) {
 function showToast(message, type = 'info') {
     if (typeof window.showToast === 'function') {
         window.showToast(message, type);
+    } else if (typeof Toast !== 'undefined') {
+        if (type === 'error') Toast.error(message);
+        else if (type === 'success') Toast.success(message);
+        else Toast.info(message);
     } else {
-        alert(message);
+        // Fallback: use confirm modal as info dialog
+        showConfirmModal({
+            title: type === 'error' ? 'Error' : type === 'success' ? 'Success' : 'Info',
+            message: message,
+            confirmText: 'OK',
+            cancelText: '',
+            type: type === 'error' ? 'danger' : type === 'success' ? 'info' : 'info',
+            icon: type === 'error' ? 'fa-exclamation-circle' : type === 'success' ? 'fa-check-circle' : 'fa-info-circle'
+        });
     }
 }

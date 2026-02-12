@@ -302,9 +302,15 @@ async function saveAllSettings() {
 
 // Reset to defaults
 async function resetToDefaults() {
-    if (!confirm('Are you sure you want to reset all settings to defaults? This cannot be undone.')) {
-        return;
-    }
+    const ok = await showConfirmModal({
+        title: 'Reset Settings',
+        message: 'Are you sure you want to reset all settings to defaults?',
+        subMessage: 'This action cannot be undone.',
+        confirmText: 'Reset',
+        type: 'warning',
+        icon: 'fa-undo'
+    });
+    if (!ok) return;
     
     try {
         const token = localStorage.getItem('token');
@@ -352,9 +358,13 @@ async function addRequirement() {
 
 // Delete requirement
 async function deleteRequirement(index) {
-    if (!confirm('Are you sure you want to delete this requirement?')) {
-        return;
-    }
+    const ok = await showConfirmModal({
+        title: 'Delete Requirement',
+        message: 'Are you sure you want to delete this requirement?',
+        confirmText: 'Delete',
+        type: 'danger'
+    });
+    if (!ok) return;
     
     try {
         const token = localStorage.getItem('token');
@@ -441,9 +451,13 @@ async function saveFAQ() {
 
 // Delete FAQ
 async function deleteFAQ(faqId) {
-    if (!confirm('Are you sure you want to delete this FAQ?')) {
-        return;
-    }
+    const ok = await showConfirmModal({
+        title: 'Delete FAQ',
+        message: 'Are you sure you want to delete this FAQ?',
+        confirmText: 'Delete',
+        type: 'danger'
+    });
+    if (!ok) return;
     
     try {
         const token = localStorage.getItem('token');

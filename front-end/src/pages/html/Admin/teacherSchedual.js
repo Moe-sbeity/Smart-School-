@@ -211,9 +211,15 @@ async function saveScheduleSettings() {
 }
 
 async function resetScheduleSettings() {
-  if (!confirm('Are you sure you want to reset to default settings? This will set:\n- 7 sessions per day\n- 50 minutes per session\n- 30 minute break after session 4\n- Start time: 8:00 AM')) {
-    return;
-  }
+  const ok = await showConfirmModal({
+    title: 'Reset Settings',
+    message: 'Are you sure you want to reset to default settings?',
+    subMessage: '7 sessions/day, 50 min/session, 30 min break after session 4, start at 8:00 AM',
+    confirmText: 'Reset',
+    type: 'warning',
+    icon: 'fa-undo'
+  });
+  if (!ok) return;
   
   try {
     const response = await axios.post(`${API_URL}/schedules/settings/reset`);

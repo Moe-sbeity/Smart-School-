@@ -231,7 +231,14 @@ window.filterByRole = filterByRole;
 
 // Delete User
 const deleteUser = async (id, name) => {
-  if (!confirm(`Are you sure you want to delete ${name}? This action cannot be undone.`)) return;
+  const ok = await showConfirmModal({
+    title: 'Delete User',
+    message: `Are you sure you want to delete ${name}?`,
+    subMessage: 'This action cannot be undone.',
+    confirmText: 'Delete',
+    type: 'danger'
+  });
+  if (!ok) return;
   try {
     const token = localStorage.getItem("token");
     await axios.delete(`${API_URL}/users/${id}`, {
@@ -538,9 +545,14 @@ const updateAdmissionStatus = async (admissionId) => {
 
 // Delete Admission
 const deleteAdmission = async (admissionId) => {
-  if (!confirm('Are you sure you want to delete this admission?')) {
-    return;
-  }
+  const ok = await showConfirmModal({
+    title: 'Delete Admission',
+    message: 'Are you sure you want to delete this admission?',
+    subMessage: 'This action cannot be undone.',
+    confirmText: 'Delete',
+    type: 'danger'
+  });
+  if (!ok) return;
   
   try {
     const token = localStorage.getItem("token");
@@ -771,51 +783,34 @@ const showAnnouncementModal = (announcement) => {
 
 // Delete Announcement
 const deleteAnnouncement = async (announcementId) => {
-  // Show styled confirmation modal
-  const confirmOverlay = document.createElement('div');
-  confirmOverlay.className = 'modal-overlay';
-  confirmOverlay.innerHTML = `
-    <div class="modal-content" style="max-width: 420px;">
-      <div class="modal-header" style="background: linear-gradient(135deg, #dc3545, #c82333); border-radius: 12px 12px 0 0;">
-        <h3 style="color: white;"><i class="fas fa-exclamation-triangle"></i> Confirm Delete</h3>
-        <button class="modal-close" style="color: white;" onclick="this.closest('.modal-overlay').remove()">&times;</button>
-      </div>
-      <div class="modal-body">
-        <p style="font-size: 16px; color: #333; margin-bottom: 10px;">Are you sure you want to delete this announcement?</p>
-        <p style="color: #888; font-size: 14px;">This action cannot be undone.</p>
-      </div>
-      <div class="modal-actions" style="justify-content: flex-end; padding: 15px 25px; border-top: 1px solid #eee;">
-        <button class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
-        <button class="btn btn-danger" id="confirmDashboardDeleteBtn">
-          <i class="fas fa-trash"></i> Delete
-        </button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(confirmOverlay);
-
-  document.getElementById('confirmDashboardDeleteBtn').addEventListener('click', async () => {
-    confirmOverlay.remove();
-    try {
-      const token = localStorage.getItem("token");
-      await axios.delete(`${API_URL}/admin-announcements/${announcementId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      showNotification('Announcement deleted successfully', 'success');
-
-      // Close detail modal if open
-      const detailModal = document.querySelector('.modal-overlay');
-      if (detailModal) detailModal.remove();
-
-      // Reload announcements
-      await fetchAnnouncements();
-    } catch (error) {
-      console.error('Error deleting announcement:', error);
-      showNotification('Failed to delete announcement', 'error');
-    }
+  const ok = await showConfirmModal({
+    title: 'Delete Announcement',
+    message: 'Are you sure you want to delete this announcement?',
+    subMessage: 'This action cannot be undone.',
+    confirmText: 'Delete',
+    type: 'danger'
   });
+  if (!ok) return;
+
+  try {
+    const token = localStorage.getItem("token");
+    await axios.delete(`${API_URL}/admin-announcements/${announcementId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    showNotification('Announcement deleted successfully', 'success');
+
+    // Close detail modal if open
+    const detailModal = document.querySelector('.modal-overlay');
+    if (detailModal) detailModal.remove();
+
+    // Reload announcements
+    await fetchAnnouncements();
+  } catch (error) {
+    console.error('Error deleting announcement:', error);
+    showNotification('Failed to delete announcement', 'error');
+  }
 };
 
 // Initialize Dashboard

@@ -335,9 +335,14 @@ function viewSubmissions(id) {
 }
 
 async function deleteContent(id) {
-    if (!confirm('Are you sure you want to delete this content? This action cannot be undone.')) {
-        return;
-    }
+    const ok = await showConfirmModal({
+        title: 'Delete Content',
+        message: 'Are you sure you want to delete this content?',
+        subMessage: 'This action cannot be undone.',
+        confirmText: 'Delete',
+        type: 'danger'
+    });
+    if (!ok) return;
 
     try {
         await apiCall(`/announcements/${id}`, { method: 'DELETE' });

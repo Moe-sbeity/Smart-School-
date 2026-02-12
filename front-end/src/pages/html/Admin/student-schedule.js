@@ -253,11 +253,17 @@ window.handleQuickEnroll = async function() {
     }
     
     // Confirm the section change
-    const confirmMsg = selectedStudent.classSection
-        ? 'Re-enroll student in ' + formatClassGrade(grade) + ' Section ' + section + '?'
-        : 'Enroll student in ' + formatClassGrade(grade) + ' Section ' + section + '?';
+    const actionLabel = selectedStudent.classSection ? 'Re-enroll' : 'Enroll';
+    const confirmMsg = actionLabel + ' student in ' + formatClassGrade(grade) + ' Section ' + section + '?';
     
-    if (!confirm(confirmMsg)) return;
+    const ok = await showConfirmModal({
+        title: actionLabel + ' Student',
+        message: confirmMsg,
+        confirmText: actionLabel,
+        type: 'info',
+        icon: 'fa-user-plus'
+    });
+    if (!ok) return;
     
     await quickEnrollStudent(selectedStudent._id, grade, section);
     displayStudentInfo();
@@ -373,7 +379,14 @@ async function loadStudentSchedule(studentId) {
 
 // Remove schedule
 window.removeSchedule = async function(scheduleId) {
-    if (!confirm('Remove this schedule?')) return;
+    const ok = await showConfirmModal({
+        title: 'Remove Schedule',
+        message: 'Are you sure you want to remove this schedule?',
+        confirmText: 'Remove',
+        type: 'danger',
+        icon: 'fa-trash'
+    });
+    if (!ok) return;
 
     try {
         await axios.delete(API_URL + '/schedules/' + scheduleId + '/student/' + selectedStudent._id);
