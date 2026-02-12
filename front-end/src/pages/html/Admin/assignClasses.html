@@ -33,6 +33,19 @@
     .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
     .loading { display: none; text-align: center; padding: 20px; }
     .loading.show { display: block; }
+    .exists-banner { padding: 16px 20px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; font-size: 15px; font-weight: 500; flex-wrap: wrap; }
+    .exists-banner.warning { background: #fff3cd; color: #856404; border: 1px solid #ffc107; }
+    .exists-banner.info { background: #d1ecf1; color: #0c5460; border: 1px solid #17a2b8; }
+    .exists-banner i.banner-icon { font-size: 22px; }
+    .exists-banner.warning .banner-icon { color: #e65100; }
+    .exists-banner.info .banner-icon { color: #17a2b8; }
+    .exists-banner .banner-text { flex: 1; }
+    .exists-banner .banner-text strong { color: inherit; }
+    .edit-btn { background: #f39c12; color: white; border: none; padding: 8px 18px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 600; white-space: nowrap; }
+    .edit-btn:hover { background: #e67e22; }
+    .delete-template-btn { background: #e74c3c; color: white; border: none; padding: 8px 18px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 600; white-space: nowrap; }
+    .delete-template-btn:hover { background: #c0392b; }
+    .schedule-builder.disabled, .submit-container.disabled { opacity: 0.4; pointer-events: none; user-select: none; }
   </style>
 </head>
 <body>
@@ -82,6 +95,7 @@
       </div>
     </div>
     
+    <div id="existsWarning"></div>
     <div class="schedule-builder" id="scheduleBuilder"></div>
     
     <div class="loading" id="loading">Loading teachers...</div>
@@ -91,6 +105,7 @@
     </div>
   </div>
 
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script>
     const API_URL = 'http://localhost:5001/api';
@@ -101,6 +116,10 @@
     let scheduleData = {};
     let scheduleSettings = { timeSlots: [] };
 
+    let existingTemplates = [];  // cache of all existing templates
+    let editMode = false;        // true when editing an existing template
+    let editingTemplate = null;  // the template being edited
+
     // Initialize
     async function init() {
       const token = localStorage.getItem('token');
@@ -110,7 +129,161 @@
       
       await loadScheduleSettings();
       await fetchTeachers();
+      await loadExistingTemplates();
       initializeSchedule();
+
+      // Check on grade/section change
+      document.getElementById('classGrade').addEventListener('change', () => { editMode = false; editingTemplate = null; checkExisting(); });
+      document.getElementById('classSection').addEventListener('change', () => { editMode = false; editingTemplate = null; checkExisting(); });
+      document.getElementById('academicYear').addEventListener('input', () => { editMode = false; editingTemplate = null; checkExisting(); });
+    }
+
+    async function loadExistingTemplates() {
+      try {
+        const res = await axios.get(`${API_URL}/schedules/templates`);
+        existingTemplates = res.data.templates || [];
+      } catch (err) {
+        existingTemplates = [];
+      }
+    }
+
+    function checkExisting() {
+      const grade = document.getElementById('classGrade').value;
+      const section = document.getElementById('classSection').value;
+      const year = document.getElementById('academicYear').value.trim();
+      const warningEl = document.getElementById('existsWarning');
+      const builder = document.getElementById('scheduleBuilder');
+      const submitContainer = document.querySelector('.submit-container');
+      const submitBtn = document.getElementById('submitBtn');
+
+      if (!grade || !section) {
+        warningEl.innerHTML = '';
+        builder.classList.remove('disabled');
+        submitContainer.classList.remove('disabled');
+        submitBtn.textContent = 'Create Schedule Template';
+        return;
+      }
+
+      const found = existingTemplates.find(t =>
+        t.classGrade === grade &&
+        t.classSection === section &&
+        (!year || t.academicYear === year)
+      );
+
+      if (found && !editMode) {
+        const gradeName = grade.startsWith('kg') ? grade.toUpperCase() : 'Grade ' + grade.replace('grade', '');
+        warningEl.innerHTML = `
+          <div class="exists-banner warning">
+            <i class="fas fa-exclamation-triangle banner-icon"></i>
+            <span class="banner-text">
+              <strong>${gradeName} — Section ${section}</strong> already has a schedule for <strong>${found.academicYear}</strong>.
+              Choose a different section, or edit the existing schedule.
+            </span>
+            <button class="edit-btn" onclick="enterEditMode()"><i class="fas fa-edit"></i> Edit Schedule</button>
+            <button class="delete-template-btn" onclick="deleteExistingTemplate('${found._id}')"><i class="fas fa-trash"></i> Delete</button>
+          </div>`;
+        builder.classList.add('disabled');
+        submitContainer.classList.add('disabled');
+      } else {
+        if (editMode) {
+          const gradeName = grade.startsWith('kg') ? grade.toUpperCase() : 'Grade ' + grade.replace('grade', '');
+          warningEl.innerHTML = `
+            <div class="exists-banner info">
+              <i class="fas fa-edit banner-icon"></i>
+              <span class="banner-text">
+                Editing schedule for <strong>${gradeName} — Section ${section}</strong>. Modify periods below and save.
+              </span>
+            </div>`;
+          submitBtn.textContent = 'Update Schedule Template';
+        } else {
+          warningEl.innerHTML = '';
+          submitBtn.textContent = 'Create Schedule Template';
+        }
+        builder.classList.remove('disabled');
+        submitContainer.classList.remove('disabled');
+      }
+    }
+
+    window.enterEditMode = function() {
+      const grade = document.getElementById('classGrade').value;
+      const section = document.getElementById('classSection').value;
+      const year = document.getElementById('academicYear').value.trim();
+
+      const found = existingTemplates.find(t =>
+        t.classGrade === grade &&
+        t.classSection === section &&
+        (!year || t.academicYear === year)
+      );
+      if (!found) return;
+
+      editMode = true;
+      editingTemplate = found;
+
+      // Re-initialize the schedule builder with existing data
+      initializeSchedule();
+      loadTemplateIntoBuilder(found);
+      checkExisting();
+    }
+
+    function loadTemplateIntoBuilder(template) {
+      for (const dayData of (template.schedule || [])) {
+        const day = dayData.dayOfWeek;
+        for (const period of (dayData.periods || [])) {
+          // Add period slot
+          const container = document.getElementById(`periods-${day}`);
+          if (!container) continue;
+          const periodNum = scheduleData[day].length + 1;
+
+          const periodDiv = document.createElement('div');
+          periodDiv.className = 'period';
+          periodDiv.id = `period-${day}-${periodNum}`;
+
+          periodDiv.innerHTML = `
+            <div><strong>Period ${periodNum}</strong></div>
+            <select class="subject-select" onchange="updateTeachers('${day}', ${periodNum})">
+              <option value="">Select Subject</option>
+              ${subjects.map(s => `<option value="${s}" ${s === period.subject ? 'selected' : ''}>${s}</option>`).join('')}
+            </select>
+            <select class="teacher-select">
+              <option value="">Select Teacher</option>
+            </select>
+            <input type="time" class="start-time" value="${period.startTime || ''}">
+            <input type="time" class="end-time" value="${period.endTime || ''}">
+            <button class="remove-period" onclick="removePeriod('${day}', ${periodNum})">Remove</button>
+          `;
+
+          container.appendChild(periodDiv);
+          scheduleData[day].push({ periodNumber: periodNum });
+
+          // Populate teacher dropdown and select the right one
+          const teacherSelect = periodDiv.querySelector('.teacher-select');
+          if (period.subject) {
+            const availableTeachers = teachers.filter(t => t.subjects && t.subjects.includes(period.subject));
+            teacherSelect.disabled = false;
+            teacherSelect.innerHTML = `<option value="">Select Teacher</option>
+              ${availableTeachers.map(t => {
+                const tid = t._id;
+                const pid = typeof period.teacher === 'object' ? (period.teacher._id || period.teacher) : period.teacher;
+                return `<option value="${tid}" ${tid === pid ? 'selected' : ''}>${t.name}</option>`;
+              }).join('')}`;
+          }
+        }
+      }
+    }
+
+    window.deleteExistingTemplate = async function(templateId) {
+      if (!confirm('Are you sure you want to delete this schedule template? This will also remove all associated class entries.')) return;
+      try {
+        await axios.delete(`${API_URL}/schedules/template/${templateId}`);
+        showAlert('Schedule template deleted successfully!', 'success');
+        await loadExistingTemplates();
+        editMode = false;
+        editingTemplate = null;
+        initializeSchedule();
+        checkExisting();
+      } catch (err) {
+        showAlert('Error deleting template: ' + (err.response?.data?.message || err.message), 'error');
+      }
     }
 
     async function loadScheduleSettings() {
@@ -322,7 +495,7 @@
       
       try {
         document.getElementById('submitBtn').disabled = true;
-        document.getElementById('submitBtn').textContent = 'Creating...';
+        document.getElementById('submitBtn').textContent = editMode ? 'Updating...' : 'Creating...';
         
         const res = await axios.post(`${API_URL}/schedules/template`, {
           classGrade,
@@ -330,14 +503,18 @@
           academicYear,
           schedule
         });
-        
-        showAlert(`Schedule template created successfully for ${classGrade} Section ${classSection}!`, 'success');
+
+        const action = editMode ? 'updated' : 'created';
+        showAlert(`Schedule template ${action} successfully for ${classGrade} Section ${classSection}!`, 'success');
+        await loadExistingTemplates();
+        editMode = false;
+        editingTemplate = null;
         setTimeout(() => location.reload(), 2000);
         
       } catch (err) {
         showAlert('Error: ' + (err.response?.data?.message || err.message), 'error');
         document.getElementById('submitBtn').disabled = false;
-        document.getElementById('submitBtn').textContent = 'Create Schedule Template';
+        document.getElementById('submitBtn').textContent = editMode ? 'Update Schedule Template' : 'Create Schedule Template';
       }
     });
 

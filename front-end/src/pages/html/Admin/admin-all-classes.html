@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>All Classes - Smart School</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="admin-all-classes.css" />
+  <script src="../js/toast.js"></script>
+  <script src="../js/confirm-modal.js"></script>
+</head>
+
+<body>
+  <!-- Header -->
+  <header class="main-header">
+    <div class="container">
+      <div class="header-content">
+        <div class="logo">
+          <div class="logo-icon">SS</div>
+          <span>Smart School</span>
+        </div>
+        <nav class="header-nav">
+          <a href="admin-dashboard.html" class="nav-link" title="Dashboard">
+            <i class="fas fa-home"></i>
+            <span>Dashboard</span>
+          </a>
+          <a href="admin-year-schedule.html" class="nav-link" title="Year Schedule">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Year Schedule</span>
+          </a>
+          <a href="student-schedule.html" class="nav-link" title="Student Schedule">
+            <i class="fas fa-calendar"></i>
+            <span>Schedule</span>
+          </a>
+          <a href="admin-all-classes.html" class="nav-link active" title="All Classes">
+            <i class="fas fa-th-list"></i>
+            <span>All Classes</span>
+          </a>
+          <a href="assignClasses.html" class="nav-link" title="Assign Classes">
+            <i class="fas fa-chalkboard"></i>
+            <span>Assign</span>
+          </a>
+          <a href="admin-announcment.html" class="nav-link" title="Announcements">
+            <i class="fas fa-bullhorn"></i>
+            <span>Announce</span>
+          </a>
+          <a href="admin-settings.html" class="nav-link" title="Site Settings">
+            <i class="fas fa-cog"></i>
+            <span>Settings</span>
+          </a>
+        </nav>
+        <button id="logoutBtn" class="logout btn">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="page-title">
+        <h1><i class="fas fa-th-list" style="color:var(--primary);margin-right:0.5rem;"></i> All Classes</h1>
+        <p>View and filter all scheduled classes across grades, sections, and instructors</p>
+      </div>
+      <div class="view-toggle">
+        <button class="view-btn active" data-view="table" onclick="switchView('table')">
+          <i class="fas fa-table"></i> Table
+        </button>
+        <button class="view-btn" data-view="cards" onclick="switchView('cards')">
+          <i class="fas fa-th-large"></i> Cards
+        </button>
+        <button class="view-btn" data-view="timetable" onclick="switchView('timetable')">
+          <i class="fas fa-calendar-week"></i> Timetable
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <i class="fas fa-chalkboard stat-icon"></i>
+        <div class="stat-number" id="totalClasses">0</div>
+        <div class="stat-label">Total Classes</div>
+      </div>
+      <div class="stat-card">
+        <i class="fas fa-layer-group stat-icon"></i>
+        <div class="stat-number" id="totalGrades">0</div>
+        <div class="stat-label">Grades</div>
+      </div>
+      <div class="stat-card">
+        <i class="fas fa-users stat-icon"></i>
+        <div class="stat-number" id="totalSections">0</div>
+        <div class="stat-label">Sections</div>
+      </div>
+      <div class="stat-card">
+        <i class="fas fa-book stat-icon"></i>
+        <div class="stat-number" id="totalSubjects">0</div>
+        <div class="stat-label">Subjects</div>
+      </div>
+      <div class="stat-card">
+        <i class="fas fa-chalkboard-teacher stat-icon"></i>
+        <div class="stat-number" id="totalTeachers">0</div>
+        <div class="stat-label">Teachers</div>
+      </div>
+    </div>
+
+    <!-- Grade & Section Breakdown -->
+    <div id="gradeBreakdown" class="grade-breakdown"></div>
+
+    <!-- Filters -->
+    <div class="filters-bar">
+      <div class="filter-group">
+        <label for="filterTeacher"><i class="fas fa-chalkboard-teacher"></i> Instructor</label>
+        <select id="filterTeacher">
+          <option value="">All Teachers</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="filterDay"><i class="fas fa-calendar-day"></i> Day</label>
+        <select id="filterDay">
+          <option value="">All Days</option>
+          <option value="Monday">Monday</option>
+          <option value="Tuesday">Tuesday</option>
+          <option value="Wednesday">Wednesday</option>
+          <option value="Thursday">Thursday</option>
+          <option value="Friday">Friday</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="filterGrade"><i class="fas fa-graduation-cap"></i> Grade</label>
+        <select id="filterGrade">
+          <option value="">All Grades</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="filterSection"><i class="fas fa-users"></i> Section</label>
+        <select id="filterSection">
+          <option value="">All Sections</option>
+          <option value="A">Section A</option>
+          <option value="B">Section B</option>
+          <option value="C">Section C</option>
+          <option value="D">Section D</option>
+          <option value="E">Section E</option>
+          <option value="F">Section F</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="filterSubject"><i class="fas fa-book"></i> Subject</label>
+        <select id="filterSubject">
+          <option value="">All Subjects</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="searchInput"><i class="fas fa-search"></i> Search</label>
+        <input type="text" id="searchInput" placeholder="Search classes..." />
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-primary" onclick="applyFilters()">
+          <i class="fas fa-filter"></i> Filter
+        </button>
+        <button class="btn btn-outline" onclick="resetFilters()">
+          <i class="fas fa-redo"></i> Reset
+        </button>
+      </div>
+    </div>
+
+    <!-- Content Area -->
+    <div id="contentArea">
+      <div class="loading-state">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>Loading classes...</p>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="admin-all-classes.js"></script>
+</body>
+
+</html>

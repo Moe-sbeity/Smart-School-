@@ -97,7 +97,7 @@ router.get('/parent/child/:childId/summary', protectRoute, async (req, res) => {
     }
 
     // Verify child belongs to parent
-    const isChildOfParent = parent.children?.some(c => c.student?.toString() === childId);
+    const isChildOfParent = parent.children?.some(c => c.toString() === childId);
     if (!isChildOfParent) {
       return res.status(403).json({ message: 'Access denied. This is not your child.' });
     }
@@ -179,7 +179,7 @@ router.get('/parent/child/:childId/schedule', protectRoute, async (req, res) => 
     }
 
     // Verify child belongs to parent
-    const isChildOfParent = parent.children?.some(c => c.student?.toString() === childId);
+    const isChildOfParent = parent.children?.some(c => c.toString() === childId);
     if (!isChildOfParent) {
       return res.status(403).json({ message: 'Access denied. This is not your child.' });
     }

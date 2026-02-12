@@ -253,6 +253,42 @@ export const createWeeklyScheduleTemplate = async (req, res) => {
       }
     }
 
+    // ⭐ Also create/update individual Schedule entries so they appear in "All Classes"
+    // First, remove old schedule entries for this grade-section that have no students
+    // (template-generated ones), then recreate from template
+    await Schedule.deleteMany({
+      classGrade,
+      classSection,
+      $or: [{ student: { $exists: false } }, { student: { $size: 0 } }]
+    });
+
+    // Collect existing student enrollments for this grade-section
+    const existingSchedules = await Schedule.find({ classGrade, classSection });
+    const enrolledStudentIds = new Set();
+    existingSchedules.forEach(s => {
+      (s.student || []).forEach(sid => enrolledStudentIds.add(sid.toString()));
+    });
+    const studentIds = [...enrolledStudentIds];
+
+    // Now delete remaining schedules for this grade-section (they'll be recreated with students)
+    await Schedule.deleteMany({ classGrade, classSection });
+
+    // Create individual Schedule entries from the template
+    for (const day of schedule) {
+      for (const period of day.periods) {
+        await Schedule.create({
+          teacher: period.teacher,
+          subject: period.subject,
+          dayOfWeek: day.dayOfWeek,
+          startTime: period.startTime,
+          endTime: period.endTime,
+          classGrade,
+          classSection,
+          student: studentIds
+        });
+      }
+    }
+
     const populated = await WeeklyScheduleTemplate.findById(template._id)
       .populate('schedule.periods.teacher', 'name email subjects');
 

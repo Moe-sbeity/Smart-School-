@@ -95,7 +95,13 @@
                 const isActive = child.student._id === getSelectedChild();
 
                 return `
-                   
+                    <button class="child-tab ${isActive ? 'active' : ''}" onclick="setSelectedChild('${child.student._id}')">
+                        <div class="child-avatar">${initials}</div>
+                        <div class="child-info">
+                            <span class="child-name">${child.student.name}</span>
+                            <span class="child-grade">Grade ${child.student.classGrade || 'N/A'} - Section ${child.student.classSection || 'N/A'}</span>
+                        </div>
+                    </button>
                 `;
             }).join('');
         }
@@ -202,7 +208,8 @@
             try {
                 const data = await fetchChildAttendance(childId, page, limit);
                 renderStats(data.statistics);
-                renderAttendanceTable(data.attendance, data.pagination.totalItems);
+                const totalItems = data.pagination?.totalItems || data.attendance?.length || 0;
+                renderAttendanceTable(data.attendance, totalItems);
                 
                 // Update pagination
                 if (attendancePagination && data.pagination) {

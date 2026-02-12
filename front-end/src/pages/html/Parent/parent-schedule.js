@@ -77,7 +77,13 @@
                 const isActive = child.student._id === getSelectedChild();
 
                 return `
-                   
+                    <button class="child-tab ${isActive ? 'active' : ''}" onclick="setSelectedChild('${child.student._id}')">
+                        <div class="child-avatar">${initials}</div>
+                        <div class="child-info">
+                            <span class="child-name">${child.student.name}</span>
+                            <span class="child-grade">Grade ${child.student.classGrade || 'N/A'} - Section ${child.student.classSection || 'N/A'}</span>
+                        </div>
+                    </button>
                 `;
             }).join('');
         }

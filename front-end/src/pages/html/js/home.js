@@ -322,10 +322,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             checkAuth();
-            loadAnnouncements();
             loadSiteSettings();
         });
 
-        setInterval(loadAnnouncements, 5 * 60 * 1000);
         window.logout = logout;
-        window.viewAnnouncement = viewAnnouncement;
