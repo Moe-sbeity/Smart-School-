@@ -1,19 +1,31 @@
 /* Admin Settings Page Styles */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-    --primary-color: #1e88e5;
+    /* Unified Theme Colors */
+    --primary: #1e88e5;
     --primary-light: #42a5f5;
     --primary-dark: #1565c0;
     --primary-gradient: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);
-    --bg-light: #f5f7fa;
+    --primary-gradient-hover: linear-gradient(135deg, #42a5f5 0%, #1e88e5 100%);
+    --secondary: #64b5f6;
+    --danger: #c62828;
+    --warning: #f57c00;
+    --success: #2e7d32;
+    --bg-primary: #f5f7fa;
     --bg-secondary: #e3f2fd;
     --bg-white: #FFFFFF;
-    --text-dark: #1a1a2e;
-    --text-muted: #5a6a85;
-    --border-color: #e0e6ed;
+    --text-primary: #1a1a2e;
+    --text-secondary: #5a6a85;
+    --text-muted: #8896a4;
+    --border: #e0e6ed;
     --shadow: 0 2px 8px rgba(30, 136, 229, 0.12);
     --shadow-lg: 0 4px 16px rgba(30, 136, 229, 0.16);
+    /* Legacy aliases */
+    --primary-color: var(--primary);
+    --bg-light: var(--bg-primary);
+    --text-dark: var(--text-primary);
+    --border-color: var(--border);
 }
 
 * {

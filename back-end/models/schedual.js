@@ -32,13 +32,11 @@ student: [{
   },
 
   classGrade: {
-    type:mongoose.Schema.Types.String,
-    ref: 'ClassGrade',
+    type: String,
     required: true,
   },
   classSection: {
-    type:mongoose.Schema.Types.String,
-    ref: 'ClassSection',
+    type: String,
     required: true,
   }
 

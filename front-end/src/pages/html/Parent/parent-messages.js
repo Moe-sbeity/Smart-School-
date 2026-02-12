@@ -156,9 +156,10 @@ function renderChildTabs() {
     console.log('Rendering child tabs for children:', children);
     
     tabsContainer.innerHTML = children.map((child, index) => `
-        <div class=" ${index === 0 ? 'active' : ''}" 
+        <div class="child-tab ${index === 0 ? 'active' : ''}" 
              onclick="selectChild('${child._id}')">
-           
+            <span class="child-name">${child.name || 'Child'}</span>
+            <span class="child-grade">${child.classGrade || ''} ${child.classSection || ''}</span>
         </div>
     `).join('');
 }

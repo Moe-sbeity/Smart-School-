@@ -1,58 +1,87 @@
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+/* Teacher Publisher Announcement Styles */
+:root {
+    /* Unified Theme Colors */
+    --primary: #1e88e5;
+    --primary-light: #42a5f5;
+    --primary-dark: #1565c0;
+    --primary-gradient: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);
+    --primary-gradient-hover: linear-gradient(135deg, #42a5f5 0%, #1e88e5 100%);
+    --secondary: #64b5f6;
+    --success: #2e7d32;
+    --warning: #f57c00;
+    --danger: #c62828;
+    --bg-primary: #f5f7fa;
+    --bg-secondary: #e3f2fd;
+    --bg-white: #ffffff;
+    --text-primary: #1a1a2e;
+    --text-secondary: #5a6a85;
+    --text-muted: #8896a4;
+    --border: #e0e6ed;
+    --shadow: 0 2px 8px rgba(30, 136, 229, 0.12);
+    --shadow-lg: 0 4px 16px rgba(30, 136, 229, 0.16);
+}
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--primary-gradient);
+    min-height: 100vh;
+    padding: 20px;
+    color: var(--text-primary);
+}
 
-        .header {
-            background: white;
-            padding: 25px 30px;
-            border-radius: 15px;
-            margin-bottom: 25px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+}
 
-        .header h1 {
-            color: #2c3e50;
-            font-size: 28px;
-        }
+.header {
+    background: var(--bg-white);
+    padding: 25px 30px;
+    border-radius: 15px;
+    margin-bottom: 25px;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 
-        .btn-back {
-            background: #95a5a6;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
+.header h1 {
+    color: var(--text-primary);
+    font-size: 28px;
+}
 
-        .card {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
+.btn-back {
+    background: var(--text-secondary);
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s;
+}
+
+.btn-back:hover {
+    background: var(--primary);
+}
+
+.card {
+    background: var(--bg-white);
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: var(--shadow-lg);
+    margin-bottom: 20px;
+}
 
         .type-selector {
             display: grid;
@@ -531,6 +560,7 @@
 .checkbox-label {
     font-size: 12px;
     color: #475569;
+    -webkit-user-select: none;
     user-select: none;
 }
 

@@ -63,10 +63,6 @@ export const register = async (req, res) => {
       subjects, parentEmail, classGrade, classSection 
     } = req.body;
 
-    // Debug logging - remove after fixing
-    console.log('Registration request body:', req.body);
-    console.log('Extracted values - name:', name, 'password:', password ? '[PRESENT]' : '[MISSING]', 'gender:', gender, 'role:', role);
-
     const emailDomains = {
       student: "@student.com",
       parent: "@parent.com",
@@ -700,6 +696,65 @@ export const getNextStudentId = async (req, res) => {
     });
   } catch (error) {
     console.error('Error getting next student ID:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+/**
+ * Forgot Password - Send reset link to email
+ */
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+
+    const user = await UserModel.findOne({ email: email.toLowerCase().trim() });
+    
+    if (!user) {
+      // Don't reveal if email exists or not for security
+      return res.status(200).json({ 
+        message: 'If an account with that email exists, a password reset link has been sent.' 
+      });
+    }
+
+    // TODO: Generate reset token, save to DB, and send email
+    // For now, just log and respond
+    console.log(`Password reset requested for: ${email}`);
+    
+    res.status(200).json({ 
+      message: 'If an account with that email exists, a password reset link has been sent.' 
+    });
+  } catch (error) {
+    console.error('Error in forgot password:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+/**
+ * Reset Password - Update password using token
+ */
+export const resetPassword = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+    
+    if (!token || !newPassword) {
+      return res.status(400).json({ message: 'Token and new password are required' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters' });
+    }
+
+    // TODO: Validate token, find user, update password
+    // For now, just respond with error that token is invalid
+    res.status(400).json({ 
+      message: 'Invalid or expired reset token. Please request a new password reset.' 
+    });
+  } catch (error) {
+    console.error('Error in reset password:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };

@@ -49,7 +49,7 @@
         </div>
 
         <div class="stats-grid">
-            <div class="stat-card stat-clickable" onclick="showStatDetail('totalClasses')">
+            <div class="stat-card stat-clickable" data-stat="totalClasses">
                 <div class="stat-header">
                     <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
                     <div class="stat-click-hint"><i class="fas fa-chevron-right"></i></div>
@@ -59,7 +59,7 @@
                     <div class="stat-label">Total Classes</div>
                 </div>
             </div>
-            <div class="stat-card stat-clickable" onclick="showStatDetail('totalStudents')">
+            <div class="stat-card stat-clickable" data-stat="totalStudents">
                 <div class="stat-header">
                     <div class="stat-icon"><i class="fas fa-user-graduate"></i></div>
                     <div class="stat-click-hint"><i class="fas fa-chevron-right"></i></div>
@@ -69,7 +69,7 @@
                     <div class="stat-label">Total Students</div>
                 </div>
             </div>
-            <div class="stat-card stat-clickable" onclick="showStatDetail('classesToday')">
+            <div class="stat-card stat-clickable" data-stat="classesToday">
                 <div class="stat-header">
                     <div class="stat-icon"><i class="fas fa-clock"></i></div>
                     <div class="stat-click-hint"><i class="fas fa-chevron-right"></i></div>
@@ -79,7 +79,7 @@
                     <div class="stat-label">Classes Today</div>
                 </div>
             </div>
-            <div class="stat-card stat-clickable" onclick="showStatDetail('subjects')">
+            <div class="stat-card stat-clickable" data-stat="subjects">
                 <div class="stat-header">
                     <div class="stat-icon"><i class="fas fa-book"></i></div>
                     <div class="stat-click-hint"><i class="fas fa-chevron-right"></i></div>
@@ -238,6 +238,20 @@
             <div class="stat-detail-search hidden-modal" id="statDetailSearchWrap">
                 <i class="fas fa-search"></i>
                 <input type="text" id="statDetailSearch" placeholder="Search..." oninput="filterStatDetail()">
+            </div>
+            <div class="stat-detail-filters hidden-modal" id="statDetailFiltersWrap">
+                <div class="filter-group">
+                    <label for="statGradeFilter">Grade</label>
+                    <select id="statGradeFilter" onchange="filterStatDetail()">
+                        <option value="">All Grades</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="statSectionFilter">Section</label>
+                    <select id="statSectionFilter" onchange="filterStatDetail()">
+                        <option value="">All Sections</option>
+                    </select>
+                </div>
             </div>
             <div class="stat-detail-body" id="statDetailBody">
             </div>

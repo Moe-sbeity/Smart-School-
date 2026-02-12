@@ -51,12 +51,14 @@
 
                 // Load teacher's subjects
                 const subjectSelect = document.getElementById('subjectSelect');
-                currentTeacher.subjects.forEach(subject => {
-                    const option = document.createElement('option');
-                    option.value = subject;
-                    option.textContent = subject;
-                    subjectSelect.appendChild(option);
-                });
+                if (currentTeacher.subjects && Array.isArray(currentTeacher.subjects)) {
+                    currentTeacher.subjects.forEach(subject => {
+                        const option = document.createElement('option');
+                        option.value = subject;
+                        option.textContent = subject;
+                        subjectSelect.appendChild(option);
+                    });
+                }
 
                 // Load teacher's assigned classes (grades and sections)
                 await loadTeacherClasses();
@@ -404,5 +406,22 @@
                 setTimeout(() => window.location.href = 'login.html', 2000);
                 return;
             }
+            
+            // Add event listener for grade select
+            document.getElementById('gradeSelect').addEventListener('change', onGradeChange);
+            
+            // Add event listener for load students button
+            const loadBtn = document.querySelector('.btn-load');
+            if (loadBtn) {
+                loadBtn.addEventListener('click', loadStudents);
+            }
+            
             init();
         });
+
+        // Expose functions to global scope for HTML onclick/onchange handlers
+        window.onGradeChange = onGradeChange;
+        window.loadStudents = loadStudents;
+        window.markAllPresent = markAllPresent;
+        window.clearAll = clearAll;
+        window.saveAttendance = saveAttendance;

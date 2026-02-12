@@ -1,12 +1,24 @@
-root {
-    --primary-blue: #1e88e5;
-    --primary-blue-hover: #1565c0;
-    --light-blue: #e3f2fd;
+:root {
+    /* Unified Theme Colors */
+    --primary: #1e88e5;
+    --primary-dark: #1565c0;
+    --primary-light: #42a5f5;
+    --primary-gradient: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);
+    --bg-primary: #f5f7fa;
+    --bg-secondary: #e3f2fd;
+    --bg-white: #FFFFFF;
     --text-primary: #1a1a2e;
     --text-secondary: #5a6a85;
-    --border-color: #e0e6ed;
-    --background-color: #f5f7fa;
-    --white: #FFFFFF;
+    --border: #e0e6ed;
+    --success: #2e7d32;
+    --danger: #c62828;
+    /* Legacy aliases */
+    --primary-blue: var(--primary);
+    --primary-blue-hover: var(--primary-dark);
+    --light-blue: var(--bg-secondary);
+    --border-color: var(--border);
+    --background-color: var(--bg-primary);
+    --white: var(--bg-white);
     --green-bg: #D1FAE5;
     --green-text: #065F46;
     --green-border: #A7F3D0;

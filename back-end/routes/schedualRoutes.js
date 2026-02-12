@@ -39,16 +39,16 @@ import SubmissionModel from '../models/submission.js';
 const router = express.Router();
 
 // ============================================================================
-// TEACHER SCHEDULE ROUTES (Public for admin use)
+// TEACHER SCHEDULE ROUTES (Protected - Admin only)
 // ============================================================================
-router.post('/teacher', createTeacherSchedule);
-router.get('/all', getAllSchedules);
+router.post('/teacher', protectRoute, createTeacherSchedule);
+router.get('/all', protectRoute, getAllSchedules);
 router.get('/my-classes', protectRoute, getTeacherAssignedClasses);
 
 // ============================================================================
 // WEEKLY TEMPLATE ROUTES
 // ============================================================================
-router.post('/template', createWeeklyScheduleTemplate);
+router.post('/template', protectRoute, createWeeklyScheduleTemplate);
 router.get('/templates', getAllWeeklyScheduleTemplates);
 router.get('/template/:classGrade/:classSection', getWeeklyScheduleTemplate);
 router.delete('/template/:id', protectRoute, deleteWeeklyScheduleTemplate);
@@ -56,8 +56,8 @@ router.delete('/template/:id', protectRoute, deleteWeeklyScheduleTemplate);
 // ============================================================================
 // STUDENT ENROLLMENT ROUTES
 // ============================================================================
-router.post('/enroll-student', enrollStudentInGradeSection);
-router.post('/enroll-students-bulk', bulkEnrollStudents);
+router.post('/enroll-student', protectRoute, enrollStudentInGradeSection);
+router.post('/enroll-students-bulk', protectRoute, bulkEnrollStudents);
 
 // ============================================================================
 // SCHEDULE VIEWING ROUTES

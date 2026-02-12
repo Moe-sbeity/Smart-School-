@@ -1,13 +1,19 @@
 import express from 'express';
 
-import {LoginUser,DeleteUser,getSubjects,checkAuth, register,getUserInfo,getUsers,getStudents,getTeachers,getMe,logoutUser,updateProfile,changePassword,getParents,getNextStudentId,updateChildDob,updateUserById} from '../controllers/UserController.js';
+import {LoginUser,DeleteUser,getSubjects,checkAuth, register,getUserInfo,getUsers,getStudents,getTeachers,getMe,logoutUser,updateProfile,changePassword,getParents,getNextStudentId,updateChildDob,updateUserById,forgotPassword,resetPassword} from '../controllers/UserController.js';
 import {protectRoute} from '../middleware/auth.js';
+import { authLimiter, passwordResetLimiter } from '../middleware/rateLimiter.js';
 
 const router=express.Router()
 
-router.post('/login', LoginUser);
-router.post('/register', register);
+// Auth routes with rate limiting (5 requests per 15 minutes)
+router.post('/login', authLimiter, LoginUser);
+router.post('/register', authLimiter, register);
 router.post('/logout', logoutUser);
+
+// Password reset routes with strict rate limiting (3 requests per hour)
+router.post('/forgot-password', passwordResetLimiter, forgotPassword);
+router.post('/reset-password', passwordResetLimiter, resetPassword);
 router.get('/getUser',protectRoute, getUserInfo);
 router.get('/checkAuth', protectRoute, checkAuth);
 router.get('/all', protectRoute, getUsers);

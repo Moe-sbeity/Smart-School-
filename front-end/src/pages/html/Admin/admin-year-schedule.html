@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Academic Year Schedule - Smart School</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="admin-year-schedule.css">
+  <script src="../js/toast.js"></script>
+</head>
+<body>
+  <!-- Header -->
+  <header class="main-header">
+    <div class="header-container">
+      <div class="logo">
+        <div class="logo-icon">SS</div>
+        <span>Smart School</span>
+      </div>
+      <nav class="header-nav">
+        <a href="admin-dashboard.html" class="nav-btn">
+          <i class="fas fa-home"></i> Dashboard
+        </a>
+        <a href="admin-announcment.html" class="nav-btn">
+          <i class="fas fa-bullhorn"></i> Create Content
+        </a>
+        <a href="teacherSchedual.html" class="nav-btn">
+          <i class="fas fa-calendar-check"></i> Attendance
+        </a>
+        <button class="nav-btn logout-btn" id="logoutBtn">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <!-- Page Title Section -->
+    <div class="page-header">
+      <div class="page-title">
+        <i class="fas fa-calendar-alt title-icon"></i>
+        <div>
+          <h1>Academic Year Schedule</h1>
+          <p id="welcomeMessage">Welcome, Admin | Academic Year <span id="currentYear">2025-2026</span></p>
+        </div>
+      </div>
+      <div class="page-filters">
+        <div class="filter-group">
+          <label for="filterGrade">Grade:</label>
+          <select id="filterGrade" title="Filter by grade" onchange="applyFilters()">
+            <option value="">All Grades</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filterYear">Academic Year:</label>
+          <select id="filterYear" title="Select academic year" onchange="changeAcademicYear()">
+            <option value="2025-2026">2025 - 2026</option>
+            <option value="2024-2025">2024 - 2025</option>
+            <option value="2023-2024">2023 - 2024</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Data by Grade Section -->
+    <section class="card data-by-grade-section">
+      <div class="section-header">
+        <h2><i class="fas fa-graduation-cap"></i> Data by Grade</h2>
+        <button class="btn btn-primary btn-sm" onclick="openAddGradeDataModal()">
+          <i class="fas fa-plus"></i> Add Grade
+        </button>
+      </div>
+      <div class="grade-cards-container" id="gradeCardsContainer">
+        <!-- Grade cards will be rendered here -->
+        <div class="loading-spinner">
+          <i class="fas fa-spinner fa-spin"></i>
+          <span>Loading...</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats Summary Section -->
+    <section class="stats-summary">
+      <div class="stat-card stat-exams">
+        <div class="stat-icon">
+          <i class="fas fa-file-alt"></i>
+        </div>
+        <div class="stat-info">
+          <h3 id="totalExams">0</h3>
+          <p>Total Exams</p>
+        </div>
+        <button class="stat-edit-btn" onclick="openEditStatsModal('exams')" title="Edit">
+          <i class="fas fa-pen"></i>
+        </button>
+      </div>
+      <div class="stat-card stat-quizzes">
+        <div class="stat-icon">
+          <i class="fas fa-question-circle"></i>
+        </div>
+        <div class="stat-info">
+          <h3 id="totalQuizzes">0</h3>
+          <p>Total Quizzes</p>
+        </div>
+        <button class="stat-edit-btn" onclick="openEditStatsModal('quizzes')" title="Edit">
+          <i class="fas fa-pen"></i>
+        </button>
+      </div>
+      <div class="stat-card stat-assignments">
+        <div class="stat-icon">
+          <i class="fas fa-tasks"></i>
+        </div>
+        <div class="stat-info">
+          <h3 id="totalAssignments">0</h3>
+          <p>Total Assignments</p>
+        </div>
+        <button class="stat-edit-btn" onclick="openEditStatsModal('assignments')" title="Edit">
+          <i class="fas fa-pen"></i>
+        </button>
+      </div>
+      <div class="stat-card stat-attendance">
+        <div class="stat-icon">
+          <i class="fas fa-user-check"></i>
+        </div>
+        <div class="stat-info">
+          <h3 id="avgAttendance">0%</h3>
+          <p>Avg Attendance</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Terms Section -->
+    <section class="terms-section">
+      <div class="terms-header">
+        <h3>Academic Terms</h3>
+        <button class="btn btn-outline btn-sm" onclick="openTermSettingsModal()">
+          <i class="fas fa-cog"></i> Configure Terms
+        </button>
+      </div>
+      <div class="terms-grid" id="termsContainer">
+        <!-- Terms will be rendered here -->
+      </div>
+    </section>
+
+    <!-- Assessment Settings Section -->
+    <section class="card assessment-settings-section">
+      <div class="section-header">
+        <h2><i class="fas fa-sliders-h"></i> Assessment Settings</h2>
+        <button class="btn btn-outline btn-sm" onclick="openAssessmentSettingsModal()">
+          <i class="fas fa-edit"></i> Edit Settings
+        </button>
+      </div>
+      <div class="settings-grid">
+        <div class="setting-item">
+          <label>Max Exams per Term</label>
+          <span id="maxExamsPerTerm">10</span>
+        </div>
+        <div class="setting-item">
+          <label>Max Quizzes per Term</label>
+          <span id="maxQuizzesPerTerm">15</span>
+        </div>
+        <div class="setting-item">
+          <label>Max Assignments per Term</label>
+          <span id="maxAssignmentsPerTerm">30</span>
+        </div>
+        <div class="setting-item">
+          <label>Exam Weight</label>
+          <span id="examWeight">40%</span>
+        </div>
+        <div class="setting-item">
+          <label>Quiz Weight</label>
+          <span id="quizWeight">20%</span>
+        </div>
+        <div class="setting-item">
+          <label>Assignment Weight</label>
+          <span id="assignmentWeight">40%</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Edit Grade Data Modal -->
+  <div class="modal" id="gradeDataModal">
+    <div class="modal-overlay" onclick="closeGradeDataModal()"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="gradeModalTitle"><i class="fas fa-graduation-cap"></i> Edit Grade Data</h3>
+        <button class="modal-close" onclick="closeGradeDataModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="gradeDataForm">
+          <input type="hidden" id="editGradeId">
+          <div class="form-group">
+            <label for="gradeSelect">Grade</label>
+            <select id="gradeSelect" required>
+              <option value="">-- Select Grade --</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="gradeExams">Exams</label>
+              <input type="number" id="gradeExams" min="0" value="0">
+            </div>
+            <div class="form-group">
+              <label for="gradeQuizzes">Quizzes</label>
+              <input type="number" id="gradeQuizzes" min="0" value="0">
+            </div>
+            <div class="form-group">
+              <label for="gradeTasks">Assignments</label>
+              <input type="number" id="gradeTasks" min="0" value="0">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeGradeDataModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save"></i> Save
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Term Settings Modal -->
+  <div class="modal" id="termSettingsModal">
+    <div class="modal-overlay" onclick="closeTermSettingsModal()"></div>
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h3><i class="fas fa-calendar"></i> Configure Terms</h3>
+        <button class="modal-close" onclick="closeTermSettingsModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="termSettingsForm">
+          <div class="form-group">
+            <label for="numberOfTerms">Number of Terms</label>
+            <select id="numberOfTerms" onchange="updateTermsCount()">
+              <option value="2">2 Terms (Semester)</option>
+              <option value="3">3 Terms (Trimester)</option>
+              <option value="4">4 Terms (Quarter)</option>
+              <option value="6" selected>6 Terms (Bi-monthly)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="currentTermSelect">Current Active Term</label>
+            <select id="currentTermSelect">
+              <option value="1">Term 1</option>
+              <option value="2">Term 2</option>
+              <option value="3" selected>Term 3</option>
+              <option value="4">Term 4</option>
+              <option value="5">Term 5</option>
+              <option value="6">Term 6</option>
+            </select>
+          </div>
+          <div class="terms-config" id="termsConfigContainer">
+            <!-- Terms config will be rendered here -->
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeTermSettingsModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save"></i> Save Terms
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Assessment Settings Modal -->
+  <div class="modal" id="assessmentSettingsModal">
+    <div class="modal-overlay" onclick="closeAssessmentSettingsModal()"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fas fa-sliders-h"></i> Assessment Settings</h3>
+        <button class="modal-close" onclick="closeAssessmentSettingsModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="assessmentSettingsForm">
+          <h4>Limits per Term</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="settingsMaxExams">Max Exams</label>
+              <input type="number" id="settingsMaxExams" min="1" max="50" value="10">
+            </div>
+            <div class="form-group">
+              <label for="settingsMaxQuizzes">Max Quizzes</label>
+              <input type="number" id="settingsMaxQuizzes" min="1" max="50" value="15">
+            </div>
+            <div class="form-group">
+              <label for="settingsMaxAssignments">Max Assignments</label>
+              <input type="number" id="settingsMaxAssignments" min="1" max="100" value="30">
+            </div>
+          </div>
+          <h4>Grade Weights (%)</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="settingsExamWeight">Exam Weight</label>
+              <input type="number" id="settingsExamWeight" min="0" max="100" value="40">
+            </div>
+            <div class="form-group">
+              <label for="settingsQuizWeight">Quiz Weight</label>
+              <input type="number" id="settingsQuizWeight" min="0" max="100" value="20">
+            </div>
+            <div class="form-group">
+              <label for="settingsAssignmentWeight">Assignment Weight</label>
+              <input type="number" id="settingsAssignmentWeight" min="0" max="100" value="40">
+            </div>
+          </div>
+          <p class="weight-total">Total: <span id="weightTotal">100</span>%</p>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeAssessmentSettingsModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save"></i> Save Settings
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Academic Year Modal -->
+  <div class="modal" id="newYearModal">
+    <div class="modal-overlay" onclick="closeNewYearModal()"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fas fa-plus-circle"></i> Create New Academic Year</h3>
+        <button class="modal-close" onclick="closeNewYearModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="newYearForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="newYearStart">Start Year</label>
+              <input type="number" id="newYearStart" min="2020" max="2050" value="2026">
+            </div>
+            <div class="form-group">
+              <label for="newYearEnd">End Year</label>
+              <input type="number" id="newYearEnd" min="2020" max="2050" value="2027">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>
+              <input type="checkbox" id="setAsCurrent"> Set as current academic year
+            </label>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeNewYearModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-plus"></i> Create Year
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="admin-year-schedule.js"></script>
+</body>
+</html>

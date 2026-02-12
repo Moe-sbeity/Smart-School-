@@ -3,6 +3,7 @@ import Submission from '../models/submission.js';
 import Schedule from '../models/schedual.js';
 import UserModel from '../models/UserModels.js';
 import { getPaginationParams, paginateArray } from '../utils/pagination.js';
+import { notifySubmissionUploaded } from '../utils/notificationService.js';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -190,6 +191,23 @@ export const submitAssignment = async (req, res) => {
     const populated = await Submission.findById(submission._id)
       .populate('student', 'name email')
       .populate('announcement', 'title type totalPoints');
+
+    // Notify teacher about the submission
+    try {
+      if (announcement.teacher) {
+        const student = await UserModel.findById(studentId).select('name classGrade classSection');
+        await notifySubmissionUploaded(announcement.teacher, {
+          submissionId: submission._id,
+          studentName: student?.name || 'A student',
+          assignmentTitle: announcement.title,
+          className: `Grade ${student?.classGrade || ''} ${student?.classSection || ''}`.trim(),
+          submittedAt: new Date()
+        });
+      }
+    } catch (notifError) {
+      console.error('Notification failed:', notifError.message);
+      // Don't fail the request if notification fails
+    }
 
     res.status(201).json({
       message: 'Submitted successfully',

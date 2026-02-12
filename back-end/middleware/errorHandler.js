@@ -3,6 +3,8 @@
  * Catches all errors and returns consistent error responses
  */
 
+import logger from '../utils/logger.js';
+
 // Custom error class for API errors
 export class ApiError extends Error {
   constructor(statusCode, message, isOperational = true) {
@@ -20,10 +22,13 @@ export const errorHandler = (err, req, res, next) => {
   let error = { ...err };
   error.message = err.message;
 
-  // Log error for debugging (in development)
-  if (process.env.NODE_ENV === 'development') {
-    console.error('Error:', err);
-  }
+  // Log error with Winston
+  logger.logError('Request error', err, {
+    method: req.method,
+    url: req.originalUrl,
+    ip: req.ip,
+    userId: req.user?._id?.toString()
+  });
 
   // Mongoose bad ObjectId
   if (err.name === 'CastError') {

@@ -63,7 +63,8 @@ async function loadUserInfo() {
 // Load announcements
 async function loadAnnouncements() {
     try {
-        const data = await apiCall('/announcements/student');
+        // Load all announcements with a large limit to get all graded items
+        const data = await apiCall('/announcements/student?limit=500');
         allAnnouncements = data.announcements || [];
         
         // Get all subjects for filter

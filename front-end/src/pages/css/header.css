@@ -1,12 +1,21 @@
 :root {
+  /* Header uses unified theme colors */
   --header-bg: #ffffff;
   --header-border: #e0e6ed;
   --header-height: 64px;
-  --color-primary: #1e88e5;
-  --color-primary-hover: #1565c0;
-  --color-primary-light: #42a5f5;
-  --text-dark: #1a1a2e;
-  
+  --primary: #1e88e5;
+  --primary-dark: #1565c0;
+  --primary-light: #42a5f5;
+  --primary-gradient: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);
+  --text-primary: #1a1a2e;
+  --text-secondary: #5a6a85;
+  --bg-primary: #f5f7fa;
+  --border: #e0e6ed;
+  /* Legacy aliases */
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-dark);
+  --color-primary-light: var(--primary-light);
+  --text-dark: var(--text-primary);
 }
 
 /* === Reset Defaults === */

@@ -90,7 +90,9 @@ async function loadSchedule() {
                 daySchedules.forEach(schedule => {
                     schedules.push({
                         ...schedule,
-                        dayOfWeek: dayOfWeek
+                        dayOfWeek: dayOfWeek,
+                        // Map 'student' field to 'students' for consistency
+                        students: schedule.student || schedule.students || []
                     });
                 });
             });
@@ -443,6 +445,16 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
     loadTeacherData();
+    
+    // Bind click events to stat cards
+    document.querySelectorAll('.stat-clickable').forEach(card => {
+        card.addEventListener('click', () => {
+            const statType = card.dataset.stat;
+            if (statType) {
+                showStatDetail(statType);
+            }
+        });
+    });
 });
 
 document.getElementById('logout').addEventListener('click', () => {
@@ -458,8 +470,10 @@ let statDetailAllItems = [];
 let statDetailType = '';
 
 function showStatDetail(type) {
+    console.log('showStatDetail called with type:', type);
     statDetailType = type;
     const modal = document.getElementById('statDetailModal');
+    console.log('Modal element:', modal);
     const body = document.getElementById('statDetailBody');
     const titleEl = document.getElementById('statDetailTitle');
     const subtitleEl = document.getElementById('statDetailSubtitle');
@@ -467,10 +481,19 @@ function showStatDetail(type) {
     const searchWrap = document.getElementById('statDetailSearchWrap');
     const searchInput = document.getElementById('statDetailSearch');
 
+    if (!modal) {
+        console.error('Modal not found!');
+        return;
+    }
+
     searchInput.value = '';
 
     if (type === 'totalClasses') {
-        iconEl.innerHTML = '<i class="fas fa-calendar-check"></i>';
+        // Hide filters for non-student views
+        const filtersWrap = document.getElementById('statDetailFiltersWrap');
+        if (filtersWrap) filtersWrap.classList.add('hidden-modal');
+        
+        iconEl.innerHTML = '<i class="fas fa-calendar-check"></i>';;
         iconEl.style.background = '#1e88e5';
         titleEl.textContent = 'All Classes';
         subtitleEl.textContent = `${allSchedulesData.length} total classes across all days`;
@@ -507,10 +530,20 @@ function showStatDetail(type) {
         subtitleEl.textContent = `${uniqueStudents.length} unique students`;
         searchWrap.classList.remove('hidden-modal');
         statDetailAllItems = uniqueStudents;
+        
+        // Show and populate grade/section filters
+        const filtersWrap = document.getElementById('statDetailFiltersWrap');
+        filtersWrap.classList.remove('hidden-modal');
+        populateStatStudentFilters(uniqueStudents);
+        
         renderStudentsDetail(uniqueStudents);
 
     } else if (type === 'classesToday') {
-        iconEl.innerHTML = '<i class="fas fa-clock"></i>';
+        // Hide filters for non-student views
+        const filtersWrap = document.getElementById('statDetailFiltersWrap');
+        filtersWrap.classList.add('hidden-modal');
+        
+        iconEl.innerHTML = '<i class="fas fa-clock"></i>';;
         iconEl.style.background = '#e67e22';
         const today = getDayOfWeek();
         const todaySchedules = allSchedulesData.filter(s => s.dayOfWeek === today)
@@ -522,6 +555,10 @@ function showStatDetail(type) {
         renderTodayClassesDetail(todaySchedules);
 
     } else if (type === 'subjects') {
+        // Hide filters for non-student views
+        const filtersWrap = document.getElementById('statDetailFiltersWrap');
+        filtersWrap.classList.add('hidden-modal');
+        
         iconEl.innerHTML = '<i class="fas fa-book"></i>';
         iconEl.style.background = '#2ecc71';
         const subs = currentTeacher?.subjects || [];
@@ -697,6 +734,8 @@ function renderSubjectsDetail(subjects) {
 
 function filterStatDetail() {
     const query = document.getElementById('statDetailSearch').value.toLowerCase().trim();
+    const gradeFilter = document.getElementById('statGradeFilter')?.value || '';
+    const sectionFilter = document.getElementById('statSectionFilter')?.value || '';
 
     if (statDetailType === 'totalClasses') {
         const filtered = query
@@ -709,18 +748,67 @@ function filterStatDetail() {
             : allSchedulesData;
         renderClassesDetail(filtered);
     } else if (statDetailType === 'totalStudents') {
-        const filtered = query
-            ? statDetailAllItems.filter(s =>
+        let filtered = statDetailAllItems;
+        
+        // Apply grade filter
+        if (gradeFilter) {
+            filtered = filtered.filter(s => 
+                s.classes && s.classes.some(c => c.grade === gradeFilter)
+            );
+        }
+        
+        // Apply section filter
+        if (sectionFilter) {
+            filtered = filtered.filter(s => 
+                s.classes && s.classes.some(c => c.section === sectionFilter)
+            );
+        }
+        
+        // Apply search query
+        if (query) {
+            filtered = filtered.filter(s =>
                 (s.name && s.name.toLowerCase().includes(query)) ||
                 (s.email && s.email.toLowerCase().includes(query))
-            )
-            : statDetailAllItems;
+            );
+        }
+        
         renderStudentsDetail(filtered);
     }
 }
 
+function populateStatStudentFilters(students) {
+    const grades = new Set();
+    const sections = new Set();
+
+    students.forEach(st => {
+        if (st.classes && Array.isArray(st.classes)) {
+            st.classes.forEach(c => {
+                if (c.grade) grades.add(c.grade);
+                if (c.section) sections.add(c.section);
+            });
+        }
+    });
+
+    const gradeFilter = document.getElementById('statGradeFilter');
+    gradeFilter.innerHTML = '<option value="">All Grades</option>';
+    [...grades].sort().forEach(g => {
+        gradeFilter.innerHTML += `<option value="${g}">${formatGradeLabel(g)}</option>`;
+    });
+
+    const sectionFilter = document.getElementById('statSectionFilter');
+    sectionFilter.innerHTML = '<option value="">All Sections</option>';
+    [...sections].sort().forEach(s => {
+        sectionFilter.innerHTML += `<option value="${s}">Section ${s}</option>`;
+    });
+}
+
 function closeStatDetail() {
     document.getElementById('statDetailModal').classList.add('hidden-modal');
+    // Reset filters when closing
+    const gradeFilter = document.getElementById('statGradeFilter');
+    const sectionFilter = document.getElementById('statSectionFilter');
+    if (gradeFilter) gradeFilter.value = '';
+    if (sectionFilter) sectionFilter.value = '';
 }
 
 // ============================================================================
@@ -1192,3 +1280,16 @@ document.addEventListener('click', function(e) {
         closeAnnouncementModal();
     }
 });
+
+// Expose functions to global scope for HTML onclick/onchange handlers
+window.showStatDetail = showStatDetail;
+window.closeStatDetail = closeStatDetail;
+window.filterStatDetail = filterStatDetail;
+window.showStudentList = typeof showStudentList !== 'undefined' ? showStudentList : () => {};
+window.closeStudentModal = closeStudentModal;
+window.filterStudentList = filterStudentList;
+window.applyScheduleFilters = applyScheduleFilters;
+window.resetScheduleFilters = resetScheduleFilters;
+window.showNotifications = showNotifications;
+window.closeNotificationPanel = closeNotificationPanel;
+window.closeAnnouncementModal = closeAnnouncementModal;

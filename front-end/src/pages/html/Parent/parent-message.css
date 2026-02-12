@@ -1,14 +1,37 @@
+/* Parent Message Styles */
+:root {
+    /* Unified Theme Colors */
+    --primary: #1e88e5;
+    --primary-light: #42a5f5;
+    --primary-dark: #1565c0;
+    --primary-gradient: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);
+    --primary-gradient-hover: linear-gradient(135deg, #42a5f5 0%, #1e88e5 100%);
+    --secondary: #64b5f6;
+    --success: #2e7d32;
+    --warning: #f57c00;
+    --danger: #c62828;
+    --bg-primary: #f5f7fa;
+    --bg-secondary: #e3f2fd;
+    --bg-white: #ffffff;
+    --text-primary: #1a1a2e;
+    --text-secondary: #5a6a85;
+    --text-muted: #8896a4;
+    --border: #e0e6ed;
+    --shadow: 0 2px 8px rgba(30, 136, 229, 0.12);
+    --shadow-lg: 0 4px 16px rgba(30, 136, 229, 0.16);
+}
+
         .messages-container {
             max-width: 1400px;
             margin: 0 auto;
         }
 
         .child-selector {
-            background: white;
+            background: var(--bg-white);
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 30px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow);
         }
 
         .child-tabs {
@@ -19,7 +42,7 @@
 
         .child-tab {
             padding: 12px 24px;
-            background: #f3f4f6;
+            background: var(--bg-primary);
             border: 2px solid transparent;
             border-radius: 8px;
             cursor: pointer;
@@ -31,13 +54,13 @@
         }
 
         .child-tab:hover {
-            background: #e5e7eb;
+            background: var(--border);
         }
 
         .child-tab.active {
-            background: #1e88e5;
+            background: var(--primary);
             color: white;
-            border-color: #1565c0;
+            border-color: var(--primary-dark);
         }
 
         .child-tab i {
@@ -51,10 +74,10 @@
         }
 
         .announcement-section {
-            background: white;
+            background: var(--bg-white);
             border-radius: 12px;
             padding: 24px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow);
         }
 
         .section-header {
