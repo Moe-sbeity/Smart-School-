@@ -6,6 +6,38 @@ import ScheduleSettings from '../models/scheduleSettings.js';
 import { getPaginationParams } from '../utils/pagination.js';
 
 // ============================================================================
+// HELPER: Check teacher time conflicts
+// Returns the conflicting schedule if found, otherwise null
+// ============================================================================
+async function checkTeacherTimeConflict(teacherId, dayOfWeek, startTime, endTime, excludeScheduleId = null) {
+  const query = {
+    teacher: teacherId,
+    dayOfWeek,
+    startTime: { $lt: endTime },
+    endTime: { $gt: startTime }
+  };
+  if (excludeScheduleId) {
+    query._id = { $ne: excludeScheduleId };
+  }
+  return await Schedule.findOne(query).populate('teacher', 'name');
+}
+
+// HELPER: Check section time conflicts (same grade-section-day-time)
+async function checkSectionTimeConflict(classGrade, classSection, dayOfWeek, startTime, endTime, excludeScheduleId = null) {
+  const query = {
+    classGrade,
+    classSection,
+    dayOfWeek,
+    startTime: { $lt: endTime },
+    endTime: { $gt: startTime }
+  };
+  if (excludeScheduleId) {
+    query._id = { $ne: excludeScheduleId };
+  }
+  return await Schedule.findOne(query);
+}
+
+// ============================================================================
 // CREATE TEACHER SCHEDULE (for weekly template)
 // ============================================================================
 export const createTeacherSchedule = async (req, res) => {
@@ -31,18 +63,20 @@ export const createTeacherSchedule = async (req, res) => {
       });
     }
 
-    // Check for time conflicts for this teacher
-    const existingSchedule = await Schedule.findOne({
-      teacher: teacherId,
-      dayOfWeek,
-      $or: [
-        { startTime: { $lt: endTime }, endTime: { $gt: startTime } }
-      ]
-    });
-
-    if (existingSchedule) {
+    // Check for teacher time conflicts (same teacher, overlapping time on same day)
+    const teacherConflict = await checkTeacherTimeConflict(teacherId, dayOfWeek, startTime, endTime);
+    if (teacherConflict) {
+      const teacherName = teacherConflict.teacher?.name || 'Teacher';
       return res.status(400).json({ 
-        message: `Time conflict: Teacher already has a schedule on ${dayOfWeek} from ${existingSchedule.startTime} to ${existingSchedule.endTime}` 
+        message: `Time conflict: ${teacherName} already has ${teacherConflict.subject} on ${dayOfWeek} from ${teacherConflict.startTime} to ${teacherConflict.endTime} (${teacherConflict.classGrade} Section ${teacherConflict.classSection})` 
+      });
+    }
+
+    // Check for section time conflicts (same class already has a lesson at this time)
+    const sectionConflict = await checkSectionTimeConflict(classGrade, classSection, dayOfWeek, startTime, endTime);
+    if (sectionConflict) {
+      return res.status(400).json({ 
+        message: `Time conflict: ${classGrade} Section ${classSection} already has ${sectionConflict.subject} on ${dayOfWeek} from ${sectionConflict.startTime} to ${sectionConflict.endTime}` 
       });
     }
 
@@ -189,6 +223,9 @@ export const createWeeklyScheduleTemplate = async (req, res) => {
       });
     }
 
+    // Collect IDs of existing schedules for this grade-section (they'll be deleted, so exclude from conflict check)
+    const existingScheduleIds = (await Schedule.find({ classGrade, classSection }).select('_id')).map(s => s._id);
+
     for (const day of schedule) {
       for (const period of day.periods) {
         const teacher = await UserModel.findById(period.teacher);
@@ -203,6 +240,39 @@ export const createWeeklyScheduleTemplate = async (req, res) => {
           return res.status(400).json({ 
             message: `Teacher ${teacher.name} does not teach ${period.subject}` 
           });
+        }
+
+        // Check teacher time conflict against OTHER grade-sections' schedules
+        const conflictQuery = {
+          teacher: period.teacher,
+          dayOfWeek: day.dayOfWeek,
+          startTime: { $lt: period.endTime },
+          endTime: { $gt: period.startTime }
+        };
+        if (existingScheduleIds.length > 0) {
+          conflictQuery._id = { $nin: existingScheduleIds };
+        }
+        const teacherConflict = await Schedule.findOne(conflictQuery);
+        if (teacherConflict) {
+          return res.status(400).json({ 
+            message: `Time conflict: ${teacher.name} already teaches ${teacherConflict.subject} on ${day.dayOfWeek} from ${teacherConflict.startTime} to ${teacherConflict.endTime} (${teacherConflict.classGrade} Section ${teacherConflict.classSection})` 
+          });
+        }
+      }
+
+      // Also check for duplicate time slots within the same day of the template
+      const periods = day.periods;
+      for (let i = 0; i < periods.length; i++) {
+        for (let j = i + 1; j < periods.length; j++) {
+          if (periods[i].startTime < periods[j].endTime && periods[i].endTime > periods[j].startTime) {
+            // Same teacher at overlapping times within same template day
+            if (periods[i].teacher.toString() === periods[j].teacher.toString()) {
+              const teacher = await UserModel.findById(periods[i].teacher);
+              return res.status(400).json({ 
+                message: `Time conflict within template: ${teacher?.name || 'Teacher'} is assigned to both ${periods[i].subject} (${periods[i].startTime}-${periods[i].endTime}) and ${periods[j].subject} (${periods[j].startTime}-${periods[j].endTime}) on ${day.dayOfWeek}` 
+              });
+            }
+          }
         }
       }
     }
@@ -755,24 +825,28 @@ export const updateSchedule = async (req, res) => {
       }
     }
 
-    // Check for time conflicts if time is being changed
-    if (dayOfWeek || startTime || endTime) {
+    // Check for time conflicts if time, day, grade or section is being changed
+    if (dayOfWeek || startTime || endTime || classGrade || classSection) {
       const newDay = dayOfWeek || schedule.dayOfWeek;
       const newStart = startTime || schedule.startTime;
       const newEnd = endTime || schedule.endTime;
+      const newGrade = classGrade || schedule.classGrade;
+      const newSection = classSection || schedule.classSection;
 
-      const conflict = await Schedule.findOne({
-        _id: { $ne: id },
-        teacher: schedule.teacher,
-        dayOfWeek: newDay,
-        $or: [
-          { startTime: { $lt: newEnd }, endTime: { $gt: newStart } }
-        ]
-      });
-
-      if (conflict) {
+      // Check teacher time conflict
+      const teacherConflict = await checkTeacherTimeConflict(schedule.teacher, newDay, newStart, newEnd, id);
+      if (teacherConflict) {
+        const teacher = await UserModel.findById(schedule.teacher);
         return res.status(400).json({ 
-          message: `Time conflict: Teacher already has a schedule on ${newDay} from ${conflict.startTime} to ${conflict.endTime}` 
+          message: `Time conflict: ${teacher?.name || 'Teacher'} already has ${teacherConflict.subject} on ${newDay} from ${teacherConflict.startTime} to ${teacherConflict.endTime} (${teacherConflict.classGrade} Section ${teacherConflict.classSection})` 
+        });
+      }
+
+      // Check section time conflict
+      const sectionConflict = await checkSectionTimeConflict(newGrade, newSection, newDay, newStart, newEnd, id);
+      if (sectionConflict) {
+        return res.status(400).json({ 
+          message: `Time conflict: ${newGrade} Section ${newSection} already has ${sectionConflict.subject} on ${newDay} from ${sectionConflict.startTime} to ${sectionConflict.endTime}` 
         });
       }
     }

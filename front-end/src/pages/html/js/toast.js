@@ -30,6 +30,7 @@
         display: flex;
         flex-direction: column;
         gap: 10px;
+        min-width: 320px;
         max-width: 400px;
         pointer-events: none;
       }
@@ -44,8 +45,10 @@
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05);
         animation: toastSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         pointer-events: auto;
+        min-width: 320px;
         max-width: 100%;
         word-wrap: break-word;
+        overflow-wrap: break-word;
       }
 
       .toast.hiding {
@@ -88,7 +91,7 @@
 
       .toast-content {
         flex: 1;
-        min-width: 0;
+        min-width: 200px;
       }
 
       .toast-title {
@@ -188,7 +191,14 @@
         #toast-container {
           left: 10px;
           right: 10px;
+          min-width: auto;
           max-width: none;
+        }
+        .toast {
+          min-width: auto;
+        }
+        .toast-content {
+          min-width: 0;
         }
       }
     `;

@@ -91,7 +91,7 @@
       
       <div class="form-group">
         <label for="academicYear">Academic Year</label>
-        <input type="text" id="academicYear" value="2024-2025" placeholder="2024-2025">
+        <input type="text" id="academicYear" value="2025-2026" placeholder="2025-2026">
       </div>
     </div>
     
@@ -279,8 +279,7 @@
         await loadExistingTemplates();
         editMode = false;
         editingTemplate = null;
-        initializeSchedule();
-        checkExisting();
+        setTimeout(() => window.location.href = 'admin-dashboard.html', 1500);
       } catch (err) {
         showAlert('Error deleting template: ' + (err.response?.data?.message || err.message), 'error');
       }
@@ -488,8 +487,28 @@
         }
       }
       
-      if (schedule.length === 0) {
+      if (schedule.length === 0 && !editMode) {
         showAlert('Please add at least one period to the schedule', 'error');
+        return;
+      }
+
+      // In edit mode with no periods — confirm and delete the template
+      if (schedule.length === 0 && editMode && editingTemplate) {
+        if (!confirm('You removed all periods. This will delete the entire schedule template. Continue?')) return;
+        try {
+          document.getElementById('submitBtn').disabled = true;
+          document.getElementById('submitBtn').textContent = 'Deleting...';
+          await axios.delete(`${API_URL}/schedules/template/${editingTemplate._id}`);
+          showAlert(`Schedule template deleted successfully for ${classGrade} Section ${classSection}!`, 'success');
+          await loadExistingTemplates();
+          editMode = false;
+          editingTemplate = null;
+        setTimeout(() => window.location.href = 'admin-dashboard.html', 1500);
+        } catch (err) {
+          showAlert('Error deleting template: ' + (err.response?.data?.message || err.message), 'error');
+          document.getElementById('submitBtn').disabled = false;
+          document.getElementById('submitBtn').textContent = 'Update Schedule Template';
+        }
         return;
       }
       
@@ -509,7 +528,7 @@
         await loadExistingTemplates();
         editMode = false;
         editingTemplate = null;
-        setTimeout(() => location.reload(), 2000);
+        setTimeout(() => window.location.href = 'admin-dashboard.html', 1500);
         
       } catch (err) {
         showAlert('Error: ' + (err.response?.data?.message || err.message), 'error');

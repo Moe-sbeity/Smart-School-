@@ -1226,6 +1226,11 @@ async function handleCreateSchedule(e) {
       showAlert('error', 'Please fill all fields in each schedule');
       return;
     }
+
+    if (startTime >= endTime) {
+      showAlert('error', `${subject} (${dayOfWeek}): End time must be after start time`);
+      return;
+    }
     
     schedules.push({
       teacherId,
@@ -1236,6 +1241,18 @@ async function handleCreateSchedule(e) {
       classGrade,
       classSection: section
     });
+  }
+
+  // Client-side: check for time conflicts within the batch itself
+  for (let i = 0; i < schedules.length; i++) {
+    for (let j = i + 1; j < schedules.length; j++) {
+      const a = schedules[i];
+      const b = schedules[j];
+      if (a.dayOfWeek === b.dayOfWeek && a.startTime < b.endTime && a.endTime > b.startTime) {
+        showAlert('error', `Time conflict in your form: "${a.subject}" and "${b.subject}" overlap on ${a.dayOfWeek} (${a.startTime}-${a.endTime} vs ${b.startTime}-${b.endTime})`);
+        return;
+      }
+    }
   }
   
   const submitBtn = document.querySelector('#scheduleForm button[type="submit"]');
