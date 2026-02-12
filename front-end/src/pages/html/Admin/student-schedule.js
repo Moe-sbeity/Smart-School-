@@ -252,30 +252,7 @@ window.handleQuickEnroll = async function() {
         return;
     }
     
-    // Check if template exists
-    let hasTemplate = false;
-    try {
-        const templateRes = await axios.get(API_URL + '/schedules/template/' + grade + '/' + section);
-        hasTemplate = templateRes.data && templateRes.data.template;
-    } catch (error) {
-        hasTemplate = false;
-    }
-    
-    if (!hasTemplate) {
-        // No template - offer to just assign grade/section without enrolling
-        const assignOnly = confirm(
-            'No schedule template found for ' + formatClassGrade(grade) + ' Section ' + section + '.\n\n' +
-            'Do you want to assign this section anyway (without enrolling in classes)?\n\n' +
-            'Click OK to assign section only, or Cancel to go back.'
-        );
-        
-        if (assignOnly) {
-            await assignSectionOnly(selectedStudent._id, grade, section);
-            displayStudentInfo();
-        }
-        return;
-    }
-    
+    // Confirm the section change
     const confirmMsg = selectedStudent.classSection
         ? 'Re-enroll student in ' + formatClassGrade(grade) + ' Section ' + section + '?'
         : 'Enroll student in ' + formatClassGrade(grade) + ' Section ' + section + '?';

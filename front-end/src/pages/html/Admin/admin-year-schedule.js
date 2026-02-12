@@ -55,6 +55,15 @@ function setupEventListeners() {
     window.location.href = '../login.html';
   });
 
+  // Add Grade Button
+  document.getElementById('addGradeBtn')?.addEventListener('click', openAddGradeDataModal);
+
+  // Configure Terms Button
+  document.getElementById('configureTermsBtn')?.addEventListener('click', openTermSettingsModal);
+
+  // Edit Settings Button
+  document.getElementById('editSettingsBtn')?.addEventListener('click', openAssessmentSettingsModal);
+
   // Grade Data Form
   document.getElementById('gradeDataForm')?.addEventListener('submit', handleGradeDataSubmit);
   
@@ -115,43 +124,63 @@ async function loadAcademicYearSettings() {
     document.getElementById('currentYear').textContent = currentAcademicYear;
   } catch (error) {
     console.error('Error loading academic year settings:', error);
-    // Use defaults if API fails
-    academicYearSettings = getDefaultSettings();
+    // Use empty defaults if API fails
+    academicYearSettings = getDefaultSettings(currentAcademicYear);
   }
 }
 
-// Default settings fallback
-function getDefaultSettings() {
+// Load academic year settings for a SPECIFIC year (used when changing year dropdown)
+async function loadAcademicYearSettingsForYear(year) {
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  
+  try {
+    const response = await axios.get(`${API_URL}/academic-year/${year}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    
+    academicYearSettings = response.data.settings || response.data;
+    currentAcademicYear = year;
+  } catch (error) {
+    console.error(`Error loading settings for ${year}:`, error);
+    // Use empty defaults for non-existent years
+    academicYearSettings = getDefaultSettings(year);
+  }
+}
+
+// Default settings fallback - returns empty/zero values for years with no data
+function getDefaultSettings(year) {
   return {
-    academicYear: '2025-2026',
-    numberOfTerms: 6,
-    currentTerm: 3,
-    terms: [
-      { termNumber: 1, name: 'Term 1', startMonth: 'September', endMonth: 'October' },
-      { termNumber: 2, name: 'Term 2', startMonth: 'November', endMonth: 'December' },
-      { termNumber: 3, name: 'Term 3', startMonth: 'January', endMonth: 'February' },
-      { termNumber: 4, name: 'Term 4', startMonth: 'March', endMonth: 'April' },
-      { termNumber: 5, name: 'Term 5', startMonth: 'May', endMonth: 'June' },
-      { termNumber: 6, name: 'Term 6', startMonth: 'July', endMonth: 'August' }
-    ],
+    academicYear: year || currentAcademicYear || '2025-2026',
+    numberOfTerms: 0,
+    currentTerm: 0,
+    terms: [],
+    gradeSettings: [],
     assessmentSettings: {
-      maxExamsPerTerm: 10,
-      maxQuizzesPerTerm: 15,
-      maxAssignmentsPerTerm: 30,
-      examWeight: 40,
-      quizWeight: 20,
-      assignmentWeight: 40
+      maxExamsPerTerm: 0,
+      maxQuizzesPerTerm: 0,
+      maxAssignmentsPerTerm: 0,
+      examWeight: 0,
+      quizWeight: 0,
+      assignmentWeight: 0
     },
     statistics: {
-      totalExams: 30,
-      totalQuizzes: 28,
-      totalAssignments: 114,
-      averageAttendance: 93
+      totalExams: 0,
+      totalQuizzes: 0,
+      totalAssignments: 0,
+      avgAttendance: 0,
+      averageAttendance: 0
     }
   };
 }
 
 // Load grades
+// All available grades from schema
+const ALL_AVAILABLE_GRADES = [
+  'kg1', 'kg2',
+  'grade1', 'grade2', 'grade3', 'grade4', 'grade5', 'grade6',
+  'grade7', 'grade8', 'grade9', 'grade10', 'grade11', 'grade12'
+];
+
 async function loadGrades() {
   const token = localStorage.getItem('token') || sessionStorage.getItem('token');
   
@@ -164,12 +193,18 @@ async function loadGrades() {
     const gradeList = response.data.data || response.data;
     // Convert grade strings to objects with grade property for consistency
     grades = Array.isArray(gradeList) ? gradeList.map(g => typeof g === 'string' ? { grade: g } : g) : [];
+    
+    // If no grades from API, use all available grades
+    if (grades.length === 0) {
+      grades = ALL_AVAILABLE_GRADES.map(g => ({ grade: g }));
+    }
+    
     populateGradeFilter();
     populateGradeSelect();
   } catch (error) {
     console.error('Error loading grades:', error);
-    // Use sample grades
-    grades = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(g => ({ grade: g }));
+    // Use all available grades from schema
+    grades = ALL_AVAILABLE_GRADES.map(g => ({ grade: g }));
     populateGradeFilter();
     populateGradeSelect();
   }
@@ -229,8 +264,7 @@ function populateGradeFilter() {
   const filterGrade = document.getElementById('filterGrade');
   filterGrade.innerHTML = '<option value="">All Grades</option>';
   
-  grades.forEach(g => {
-    const grade = g.grade || g;
+  ALL_AVAILABLE_GRADES.forEach(grade => {
     const option = document.createElement('option');
     option.value = grade;
     option.textContent = formatGradeLabel(grade);
@@ -238,20 +272,33 @@ function populateGradeFilter() {
   });
 }
 
-// Populate grade select in modal
-function populateGradeSelect() {
+// Populate grade select in modal (for editing - shows all grades)
+function populateGradeSelect(forAdding = false) {
   const gradeSelect = document.getElementById('gradeSelect');
   if (!gradeSelect) return;
   
   gradeSelect.innerHTML = '<option value="">-- Select Grade --</option>';
   
-  grades.forEach(g => {
-    const grade = g.grade || g;
+  // Get list of grades to show
+  let gradesToShow = ALL_AVAILABLE_GRADES;
+  
+  // If adding new grade, filter out already added grades
+  if (forAdding) {
+    const addedGrades = gradeStats.map(s => String(s.grade).toLowerCase());
+    gradesToShow = ALL_AVAILABLE_GRADES.filter(g => !addedGrades.includes(g.toLowerCase()));
+  }
+  
+  gradesToShow.forEach(grade => {
     const option = document.createElement('option');
     option.value = grade;
     option.textContent = formatGradeLabel(grade);
     gradeSelect.appendChild(option);
   });
+  
+  // If no grades available to add
+  if (forAdding && gradesToShow.length === 0) {
+    gradeSelect.innerHTML = '<option value="">All grades already added</option>';
+  }
 }
 
 // Render grade cards
@@ -306,8 +353,21 @@ function renderGradeCards() {
 // Render terms
 function renderTerms() {
   const container = document.getElementById('termsContainer');
-  const terms = academicYearSettings?.terms || getDefaultSettings().terms;
-  const currentTerm = academicYearSettings?.currentTerm || 3;
+  const terms = academicYearSettings?.terms || [];
+  const currentTerm = academicYearSettings?.currentTerm || 0;
+  
+  if (!terms || terms.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <i class="fas fa-calendar-alt"></i>
+        <p>No terms configured for this academic year</p>
+        <button class="btn btn-primary btn-sm" onclick="openTermSettingsModal()">
+          <i class="fas fa-plus"></i> Configure Terms
+        </button>
+      </div>
+    `;
+    return;
+  }
   
   container.innerHTML = terms.map(term => `
     <div class="term-card ${term.termNumber === currentTerm ? 'term-active' : ''}" 
@@ -330,7 +390,10 @@ function renderTerms() {
 
 // Update stats summary
 function updateStatsSummary() {
-  // Calculate from gradeStats if available
+  // Use API statistics from the loaded year settings
+  const stats = academicYearSettings?.statistics || {};
+  
+  // If gradeStats has data, calculate totals from it
   if (gradeStats && gradeStats.length > 0) {
     const totalExams = gradeStats.reduce((sum, s) => sum + (s.exams || 0), 0);
     const totalQuizzes = gradeStats.reduce((sum, s) => sum + (s.quizzes || 0), 0);
@@ -340,19 +403,19 @@ function updateStatsSummary() {
     document.getElementById('totalQuizzes').textContent = totalQuizzes;
     document.getElementById('totalAssignments').textContent = totalAssignments;
   } else {
-    const stats = academicYearSettings?.statistics || getDefaultSettings().statistics;
+    // Use stats from the API response for this specific year, default to 0
     document.getElementById('totalExams').textContent = stats.totalExams || 0;
     document.getElementById('totalQuizzes').textContent = stats.totalQuizzes || 0;
     document.getElementById('totalAssignments').textContent = stats.totalAssignments || 0;
   }
   
-  const avgAttendance = academicYearSettings?.statistics?.avgAttendance || academicYearSettings?.statistics?.averageAttendance || 0;
+  const avgAttendance = stats.avgAttendance || stats.averageAttendance || 0;
   document.getElementById('avgAttendance').textContent = `${avgAttendance}%`;
 }
 
 // Update assessment settings display
 function updateAssessmentSettingsDisplay() {
-  const settings = academicYearSettings?.assessmentSettings || getDefaultSettings().assessmentSettings;
+  const settings = academicYearSettings?.assessmentSettings || { maxExamsPerTerm: 0, maxQuizzesPerTerm: 0, maxAssignmentsPerTerm: 0, examWeight: 0, quizWeight: 0, assignmentWeight: 0 };
   
   document.getElementById('maxExamsPerTerm').textContent = settings.maxExamsPerTerm || 10;
   document.getElementById('maxQuizzesPerTerm').textContent = settings.maxQuizzesPerTerm || 15;
@@ -374,7 +437,8 @@ async function changeAcademicYear() {
   
   document.getElementById('currentYear').textContent = year;
   
-  await loadAcademicYearSettings();
+  // Load settings for the SELECTED year (not /current which always returns the active year)
+  await loadAcademicYearSettingsForYear(year);
   await loadGradeStats();
   
   renderGradeCards();
@@ -407,13 +471,36 @@ async function selectTerm(termNumber) {
 
 // Grade Data Modal
 function openAddGradeDataModal() {
-  document.getElementById('gradeModalTitle').innerHTML = '<i class="fas fa-plus"></i> Add Grade Data';
-  document.getElementById('editGradeId').value = '';
-  document.getElementById('gradeSelect').value = '';
-  document.getElementById('gradeExams').value = 0;
-  document.getElementById('gradeQuizzes').value = 0;
-  document.getElementById('gradeTasks').value = 0;
-  document.getElementById('gradeDataModal').classList.add('active');
+  const modal = document.getElementById('gradeDataModal');
+  if (!modal) {
+    console.error('gradeDataModal element not found');
+    return;
+  }
+  
+  const titleEl = document.getElementById('gradeModalTitle');
+  if (titleEl) {
+    titleEl.innerHTML = '<i class="fas fa-plus"></i> Add Grade Data';
+  }
+  
+  const editGradeId = document.getElementById('editGradeId');
+  if (editGradeId) editGradeId.value = '';
+  
+  // Populate with only available grades (not already added)
+  populateGradeSelect(true);
+  
+  const gradeSelect = document.getElementById('gradeSelect');
+  if (gradeSelect) gradeSelect.value = '';
+  
+  const gradeExams = document.getElementById('gradeExams');
+  if (gradeExams) gradeExams.value = 0;
+  
+  const gradeQuizzes = document.getElementById('gradeQuizzes');
+  if (gradeQuizzes) gradeQuizzes.value = 0;
+  
+  const gradeTasks = document.getElementById('gradeTasks');
+  if (gradeTasks) gradeTasks.value = 0;
+  
+  modal.classList.add('active');
 }
 
 function openEditGradeModal(grade) {
@@ -421,6 +508,10 @@ function openEditGradeModal(grade) {
   
   document.getElementById('gradeModalTitle').innerHTML = `<i class="fas fa-graduation-cap"></i> Edit ${formatGradeLabel(grade)} Data`;
   document.getElementById('editGradeId').value = grade;
+  
+  // Populate with all grades for editing
+  populateGradeSelect(false);
+  
   document.getElementById('gradeSelect').value = grade;
   document.getElementById('gradeExams').value = stat?.exams || 0;
   document.getElementById('gradeQuizzes').value = stat?.quizzes || 0;
@@ -694,10 +785,12 @@ function openAssessmentSettingsModal() {
   updateWeightTotal();
   document.getElementById('assessmentSettingsModal').classList.add('active');
 }
+window.openAssessmentSettingsModal = openAssessmentSettingsModal;
 
 function closeAssessmentSettingsModal() {
   document.getElementById('assessmentSettingsModal').classList.remove('active');
 }
+window.closeAssessmentSettingsModal = closeAssessmentSettingsModal;
 
 function updateWeightTotal() {
   const exam = parseInt(document.getElementById('settingsExamWeight').value) || 0;
@@ -740,8 +833,9 @@ async function handleAssessmentSettingsSubmit(e) {
 
 // Edit Stats Modal
 function openEditStatsModal(type) {
-  // Use the grade data modal to edit overall stats
-  alert(`Edit ${type}: This would open a modal to directly edit the ${type} count. For now, edit via grade data.`);
+  // Open assessment settings modal which allows editing limits
+  openAssessmentSettingsModal();
+  showToast(`Edit ${type} limits in Assessment Settings`, 'info');
 }
 
 // New Academic Year Modal
@@ -852,3 +946,19 @@ function showToast(message, type = 'info') {
     setTimeout(() => toast.remove(), 300);
   }, 3000);
 }
+
+// Make modal functions globally accessible for onclick handlers
+window.openAddGradeDataModal = openAddGradeDataModal;
+window.openEditGradeModal = openEditGradeModal;
+window.closeGradeDataModal = closeGradeDataModal;
+window.openTermSettingsModal = openTermSettingsModal;
+window.closeTermSettingsModal = closeTermSettingsModal;
+window.openEditTermModal = openEditTermModal;
+window.openEditStatsModal = openEditStatsModal;
+window.openNewYearModal = openNewYearModal;
+window.closeNewYearModal = closeNewYearModal;
+window.updateTermsCount = updateTermsCount;
+window.applyFilters = applyFilters;
+window.changeAcademicYear = changeAcademicYear;
+window.selectTerm = selectTerm;
+window.populateGradeSelect = populateGradeSelect;

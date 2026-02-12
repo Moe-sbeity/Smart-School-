@@ -368,42 +368,19 @@ export const enrollStudentInGradeSection = async (req, res) => {
       isActive: true
     });
 
-    if (!template) {
-      return res.status(404).json({ 
-        message: `No active schedule template found for ${classGrade} Section ${classSection}` 
-      });
-    }
+    // Remove student from any existing schedule entries (don't delete the schedule documents)
+    await Schedule.updateMany(
+      { student: studentId },
+      { $pull: { student: studentId } }
+    );
 
-    // Delete any existing schedules for this student
-    await Schedule.deleteMany({ student: studentId });
+    let enrolledCount = 0;
 
-    // Create individual schedule entries for each period
-    const createdSchedules = [];
-    
-    for (const day of template.schedule) {
-      for (const period of day.periods) {
-        // Check if schedule already exists for this teacher-day-period
-        let schedule = await Schedule.findOne({
-          teacher: period.teacher,
-          subject: period.subject,
-          dayOfWeek: day.dayOfWeek,
-          startTime: period.startTime,
-          endTime: period.endTime,
-          classGrade,
-          classSection
-        });
-
-        if (schedule) {
-          // Add student to existing schedule if not already there
-          if (!schedule.student.includes(studentId)) {
-            schedule.student.push(studentId);
-            await schedule.save();
-            createdSchedules.push(schedule);
-          }
-        } else {
-          // Create new schedule entry
-          schedule = new Schedule({
-            student: [studentId],
+    if (template) {
+      // === PATH 1: Use template to create schedules ===
+      for (const day of template.schedule) {
+        for (const period of day.periods) {
+          let schedule = await Schedule.findOne({
             teacher: period.teacher,
             subject: period.subject,
             dayOfWeek: day.dayOfWeek,
@@ -412,8 +389,38 @@ export const enrollStudentInGradeSection = async (req, res) => {
             classGrade,
             classSection
           });
+
+          if (schedule) {
+            if (!schedule.student.includes(studentId)) {
+              schedule.student.push(studentId);
+              await schedule.save();
+              enrolledCount++;
+            }
+          } else {
+            schedule = new Schedule({
+              student: [studentId],
+              teacher: period.teacher,
+              subject: period.subject,
+              dayOfWeek: day.dayOfWeek,
+              startTime: period.startTime,
+              endTime: period.endTime,
+              classGrade,
+              classSection
+            });
+            await schedule.save();
+            enrolledCount++;
+          }
+        }
+      }
+    } else {
+      // === PATH 2: No template - enroll using existing schedule entries for this section ===
+      const existingSchedules = await Schedule.find({ classGrade, classSection });
+      
+      for (const schedule of existingSchedules) {
+        if (!schedule.student.includes(studentId)) {
+          schedule.student.push(studentId);
           await schedule.save();
-          createdSchedules.push(schedule);
+          enrolledCount++;
         }
       }
     }
@@ -439,7 +446,7 @@ export const enrollStudentInGradeSection = async (req, res) => {
 
     res.status(200).json({
       message: `Student enrolled in ${classGrade} Section ${classSection} successfully`,
-      enrolledSubjects: createdSchedules.length,
+      enrolledSubjects: enrolledCount,
       student: {
         name: student.name,
         classGrade,
@@ -877,9 +884,35 @@ export const updateScheduleSettings = async (req, res) => {
 
     await settings.save();
 
+    // === Update ALL existing schedules with new time slots ===
+    const sessionSlots = settings.timeSlots.filter(s => !s.isBreak);
+    
+    // Get all unique grade-section-day combinations
+    const uniqueCombos = await Schedule.aggregate([
+      { $group: { _id: { classGrade: '$classGrade', classSection: '$classSection', dayOfWeek: '$dayOfWeek' } } }
+    ]);
+    
+    let updatedCount = 0;
+    for (const combo of uniqueCombos) {
+      const { classGrade, classSection, dayOfWeek } = combo._id;
+      
+      // Get all schedules for this combo, sorted by startTime
+      const daySchedules = await Schedule.find({ classGrade, classSection, dayOfWeek }).sort({ startTime: 1 });
+      
+      // Reassign times based on session order
+      for (let i = 0; i < daySchedules.length; i++) {
+        if (i < sessionSlots.length) {
+          daySchedules[i].startTime = sessionSlots[i].startTime;
+          daySchedules[i].endTime = sessionSlots[i].endTime;
+          await daySchedules[i].save();
+          updatedCount++;
+        }
+      }
+    }
+
     res.status(200).json({
       success: true,
-      message: 'Schedule settings updated successfully',
+      message: `Schedule settings updated. ${updatedCount} existing schedule entries updated with new times.`,
       settings: {
         sessionsPerDay: settings.sessionsPerDay,
         sessionDuration: settings.sessionDuration,

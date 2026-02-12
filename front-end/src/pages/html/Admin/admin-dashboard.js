@@ -207,6 +207,28 @@ const filterUsers = () => {
 searchInput.addEventListener("input", filterUsers);
 roleFilter.addEventListener("change", filterUsers);
 
+// Filter by role when clicking stat cards
+const filterByRole = (role) => {
+  // Update the role filter dropdown
+  roleFilter.value = role;
+  // Clear search
+  searchInput.value = '';
+  // Update filters and fetch
+  currentFilters.role = role;
+  currentFilters.search = '';
+  currentPage = 1;
+  fetchUsers(1, itemsPerPage);
+  
+  // Scroll to user management section
+  const userTable = document.querySelector('.users-table');
+  if (userTable) {
+    userTable.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+};
+
+// Make filterByRole globally accessible
+window.filterByRole = filterByRole;
+
 // Delete User
 const deleteUser = async (id, name) => {
   if (!confirm(`Are you sure you want to delete ${name}? This action cannot be undone.`)) return;
@@ -749,29 +771,51 @@ const showAnnouncementModal = (announcement) => {
 
 // Delete Announcement
 const deleteAnnouncement = async (announcementId) => {
-  if (!confirm('Are you sure you want to delete this announcement? This action cannot be undone.')) {
-    return;
-  }
-  
-  try {
-    const token = localStorage.getItem("token");
-    await axios.delete(`${API_URL}/admin-announcements/${announcementId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    showNotification('Announcement deleted successfully', 'success');
-    
-    // Close modal
-    const modal = document.querySelector('.modal-overlay');
-    if (modal) modal.remove();
-    
-    // Reload announcements
-    await fetchAnnouncements();
-  } catch (error) {
-    console.error('Error deleting announcement:', error);
-    showNotification('Failed to delete announcement', 'error');
-  }
+  // Show styled confirmation modal
+  const confirmOverlay = document.createElement('div');
+  confirmOverlay.className = 'modal-overlay';
+  confirmOverlay.innerHTML = `
+    <div class="modal-content" style="max-width: 420px;">
+      <div class="modal-header" style="background: linear-gradient(135deg, #dc3545, #c82333); border-radius: 12px 12px 0 0;">
+        <h3 style="color: white;"><i class="fas fa-exclamation-triangle"></i> Confirm Delete</h3>
+        <button class="modal-close" style="color: white;" onclick="this.closest('.modal-overlay').remove()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 16px; color: #333; margin-bottom: 10px;">Are you sure you want to delete this announcement?</p>
+        <p style="color: #888; font-size: 14px;">This action cannot be undone.</p>
+      </div>
+      <div class="modal-actions" style="justify-content: flex-end; padding: 15px 25px; border-top: 1px solid #eee;">
+        <button class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+        <button class="btn btn-danger" id="confirmDashboardDeleteBtn">
+          <i class="fas fa-trash"></i> Delete
+        </button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(confirmOverlay);
+
+  document.getElementById('confirmDashboardDeleteBtn').addEventListener('click', async () => {
+    confirmOverlay.remove();
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(`${API_URL}/admin-announcements/${announcementId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      showNotification('Announcement deleted successfully', 'success');
+
+      // Close detail modal if open
+      const detailModal = document.querySelector('.modal-overlay');
+      if (detailModal) detailModal.remove();
+
+      // Reload announcements
+      await fetchAnnouncements();
+    } catch (error) {
+      console.error('Error deleting announcement:', error);
+      showNotification('Failed to delete announcement', 'error');
+    }
+  });
 };
 
 // Initialize Dashboard
@@ -807,7 +851,6 @@ const initCharts = async () => {
   initStudentsByGradeChart();
   await initAttendanceOverviewChart();
   initTeachersBySubjectChart();
-  initAdmissionStatusChart();
 };
 
 // Students by Grade (Bar Chart)
@@ -816,7 +859,8 @@ const initStudentsByGradeChart = () => {
   if (!ctx) return;
 
   // Count students by classGrade
-  const students = users.filter(u => u.role === 'student');
+  const usersData = allUsersForStats.length > 0 ? allUsersForStats : users;
+  const students = usersData.filter(u => u.role === 'student');
   const gradeOrder = ['kg1', 'kg2', 'grade1', 'grade2', 'grade3', 'grade4', 'grade5', 'grade6', 'grade7', 'grade8', 'grade9', 'grade10', 'grade11', 'grade12'];
   const gradeLabels = ['KG1', 'KG2', 'G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'G7', 'G8', 'G9', 'G10', 'G11', 'G12'];
   
@@ -967,17 +1011,33 @@ const initTeachersBySubjectChart = () => {
   const ctx = document.getElementById('teachersBySubjectChart');
   if (!ctx) return;
 
-  const teachers = users.filter(u => u.role === 'teacher');
-  const subjects = ['Math', 'Physics', 'Chemistry', 'Biology', 'English', 'History', 'Geography', 'Computer', 'Arabic', 'French'];
+  const usersData = allUsersForStats.length > 0 ? allUsersForStats : users;
+  const teachers = usersData.filter(u => u.role === 'teacher');
+  
+  // Dynamically extract all unique subjects from teachers
+  const allSubjects = new Set();
+  teachers.forEach(t => {
+    if (t.subjects && Array.isArray(t.subjects)) {
+      t.subjects.forEach(s => allSubjects.add(s));
+    }
+  });
+  const subjects = Array.from(allSubjects).sort();
+  
+  // If no subjects found, show placeholder
+  if (subjects.length === 0) {
+    subjects.push('No Subjects');
+  }
   
   const subjectCounts = subjects.map(subject => {
     return teachers.filter(t => t.subjects && t.subjects.includes(subject)).length;
   });
 
-  const colors = [
+  const baseColors = [
     '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
     '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#84cc16'
   ];
+  // Extend colors if needed
+  const colors = subjects.map((_, i) => baseColors[i % baseColors.length]);
 
   new Chart(ctx, {
     type: 'bar',
@@ -1025,91 +1085,6 @@ const initTeachersBySubjectChart = () => {
   });
 };
 
-// Admission Status (Pie Chart)
-const initAdmissionStatusChart = () => {
-  const ctx = document.getElementById('admissionStatusChart');
-  if (!ctx) return;
-
-  // Count admissions by status
-  const statusCounts = {
-    pending: admissions.filter(a => a.status === 'pending').length,
-    reviewed: admissions.filter(a => a.status === 'reviewed').length,
-    accepted: admissions.filter(a => a.status === 'accepted').length,
-    rejected: admissions.filter(a => a.status === 'rejected').length,
-    missingDocs: admissions.filter(a => a.status === 'missing-docs').length
-  };
-
-  const total = Object.values(statusCounts).reduce((a, b) => a + b, 0);
-
-  if (total === 0) {
-    new Chart(ctx, {
-      type: 'pie',
-      data: {
-        labels: ['No Applications'],
-        datasets: [{
-          data: [1],
-          backgroundColor: ['#e2e8f0'],
-          borderWidth: 0
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } }
-      }
-    });
-    return;
-  }
-
-  new Chart(ctx, {
-    type: 'pie',
-    data: {
-      labels: ['Pending', 'Reviewed', 'Accepted', 'Rejected', 'Missing Docs'],
-      datasets: [{
-        data: [statusCounts.pending, statusCounts.reviewed, statusCounts.accepted, statusCounts.rejected, statusCounts.missingDocs],
-        backgroundColor: [
-          '#f59e0b',  // Pending - amber
-          '#3b82f6',  // Reviewed - blue
-          '#10b981',  // Accepted - green
-          '#ef4444',  // Rejected - red
-          '#8b5cf6'   // Missing Docs - purple
-        ],
-        borderColor: '#ffffff',
-        borderWidth: 3,
-        hoverOffset: 8
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'bottom',
-          labels: {
-            padding: 12,
-            usePointStyle: true,
-            pointStyle: 'circle',
-            font: { size: 10 }
-          }
-        },
-        tooltip: {
-          backgroundColor: '#1e293b',
-          titleFont: { size: 13, weight: '600' },
-          bodyFont: { size: 12 },
-          padding: 12,
-          cornerRadius: 8,
-          callbacks: {
-            label: function(context) {
-              const percentage = ((context.raw / total) * 100).toFixed(1);
-              return `${context.label}: ${context.raw} (${percentage}%)`;
-            }
-          }
-        }
-      }
-    }
-  });
-};
-
 // Make functions globally accessible for onclick handlers
 window.deleteUser = deleteUser;
 window.editUser = editUser;
@@ -1119,5 +1094,227 @@ window.updateAdmissionStatus = updateAdmissionStatus;
 window.deleteAdmission = deleteAdmission;
 window.viewAnnouncement = viewAnnouncement;
 window.deleteAnnouncement = deleteAnnouncement;
+
+// ===== Stats Modal Functions =====
+
+// Close stats modal
+const closeStatsModal = () => {
+  const modal = document.getElementById('statsModal');
+  if (modal) modal.remove();
+};
+window.closeStatsModal = closeStatsModal;
+
+// Show Grade Stats Modal
+const showGradeStatsModal = () => {
+  const usersData = allUsersForStats.length > 0 ? allUsersForStats : users;
+  const students = usersData.filter(u => u.role === 'student');
+  const gradeOrder = ['kg1', 'kg2', 'grade1', 'grade2', 'grade3', 'grade4', 'grade5', 'grade6', 'grade7', 'grade8', 'grade9', 'grade10', 'grade11', 'grade12'];
+  const gradeLabels = ['KG1', 'KG2', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'];
+  const sections = ['A', 'B', 'C', 'D', 'E', 'F'];
+  
+  const gradeCounts = gradeOrder.map((grade, index) => {
+    const gradeStudents = students.filter(s => s.classGrade === grade);
+    const sectionCounts = sections.map(section => ({
+      section,
+      count: gradeStudents.filter(s => s.classSection === section).length
+    })).filter(s => s.count > 0);
+    
+    return {
+      gradeKey: grade,
+      grade: gradeLabels[index],
+      count: gradeStudents.length,
+      sections: sectionCounts
+    };
+  }).filter(g => g.count > 0);
+  
+  const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+  
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.id = 'statsModal';
+  
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width: 550px;">
+      <div class="modal-header">
+        <h3><i class="fas fa-graduation-cap"></i> Students by Grade & Section</h3>
+        <button class="modal-close" onclick="closeStatsModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="stats-summary">
+          <div class="stats-total">
+            <span class="stats-total-value">${students.length}</span>
+            <span class="stats-total-label">Total Students</span>
+          </div>
+          <div class="stats-total">
+            <span class="stats-total-value">${gradeCounts.length}</span>
+            <span class="stats-total-label">Grades</span>
+          </div>
+        </div>
+        <div class="stats-list">
+          ${gradeCounts.map((g, i) => `
+            <div class="stats-item stats-item-expandable" onclick="this.classList.toggle('expanded')">
+              <div class="stats-item-main">
+                <span class="stats-item-label">
+                  <span class="stats-color-dot" style="background: ${colors[i % colors.length]};"></span>
+                  ${g.grade}
+                </span>
+                <span class="stats-item-value">${g.count} student${g.count !== 1 ? 's' : ''}</span>
+              </div>
+              <div class="stats-item-bar">
+                <div class="stats-item-bar-fill" style="width: ${(g.count / students.length * 100).toFixed(1)}%; background: ${colors[i % colors.length]};"></div>
+              </div>
+              <div class="stats-item-details">
+                ${g.sections.map(s => `
+                  <div class="stats-section-tag">
+                    <span class="stats-section-name">Section ${s.section}</span>
+                    <span class="stats-section-count">${s.count}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeStatsModal(); });
+};
+window.showGradeStatsModal = showGradeStatsModal;
+
+// Show Attendance Stats Modal
+const showAttendanceStatsModal = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const res = await axios.get(`${API_URL}/attendance/status-stats`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const stats = res.data.stats || { present: 0, absent: 0, late: 0, excused: 0 };
+    const total = stats.present + stats.absent + stats.late + stats.excused;
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.id = 'statsModal';
+    
+    const statItems = [
+      { label: 'Present', value: stats.present, color: '#10b981', icon: 'check-circle' },
+      { label: 'Absent', value: stats.absent, color: '#ef4444', icon: 'times-circle' },
+      { label: 'Late', value: stats.late, color: '#f59e0b', icon: 'clock' },
+      { label: 'Excused', value: stats.excused, color: '#3b82f6', icon: 'calendar-check' }
+    ];
+    
+    modal.innerHTML = `
+      <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+          <h3><i class="fas fa-calendar-check"></i> Attendance Overview</h3>
+          <button class="modal-close" onclick="closeStatsModal()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="stats-summary">
+            <div class="stats-total">
+              <span class="stats-total-value">${total.toLocaleString()}</span>
+              <span class="stats-total-label">Total Records</span>
+            </div>
+          </div>
+          <div class="stats-list">
+            ${statItems.map(s => `
+              <div class="stats-item">
+                <span class="stats-item-label"><i class="fas fa-${s.icon}" style="color: ${s.color}; margin-right: 8px;"></i>${s.label}</span>
+                <span class="stats-item-value">${s.value.toLocaleString()} <small style="color: #999;">(${total > 0 ? (s.value / total * 100).toFixed(1) : 0}%)</small></span>
+                <div class="stats-item-bar">
+                  <div class="stats-item-bar-fill" style="width: ${total > 0 ? (s.value / total * 100).toFixed(1) : 0}%; background: ${s.color};"></div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeStatsModal(); });
+  } catch (error) {
+    console.error('Error loading attendance stats:', error);
+    Toast.error('Failed to load attendance statistics');
+  }
+};
+window.showAttendanceStatsModal = showAttendanceStatsModal;
+
+// Show Subject Stats Modal
+const showSubjectStatsModal = () => {
+  const usersData = allUsersForStats.length > 0 ? allUsersForStats : users;
+  const teachers = usersData.filter(u => u.role === 'teacher');
+  
+  const allSubjects = new Set();
+  teachers.forEach(t => {
+    if (t.subjects && Array.isArray(t.subjects)) {
+      t.subjects.forEach(s => allSubjects.add(s));
+    }
+  });
+  const subjects = Array.from(allSubjects).sort();
+  
+  const subjectCounts = subjects.map(subject => ({
+    subject,
+    count: teachers.filter(t => t.subjects && t.subjects.includes(subject)).length,
+    teachers: teachers.filter(t => t.subjects && t.subjects.includes(subject)).map(t => t.name)
+  }));
+  
+  const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#84cc16'];
+  
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.id = 'statsModal';
+  
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width: 550px;">
+      <div class="modal-header">
+        <h3><i class="fas fa-chalkboard-teacher"></i> Teachers by Subject</h3>
+        <button class="modal-close" onclick="closeStatsModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="stats-summary">
+          <div class="stats-total">
+            <span class="stats-total-value">${teachers.length}</span>
+            <span class="stats-total-label">Total Teachers</span>
+          </div>
+          <div class="stats-total">
+            <span class="stats-total-value">${subjects.length}</span>
+            <span class="stats-total-label">Subjects</span>
+          </div>
+        </div>
+        <div class="stats-list">
+          ${subjectCounts.map((s, i) => `
+            <div class="stats-item stats-item-expandable" onclick="this.classList.toggle('expanded')">
+              <div class="stats-item-main">
+                <span class="stats-item-label">
+                  <span class="stats-color-dot" style="background: ${colors[i % colors.length]};"></span>
+                  ${s.subject}
+                </span>
+                <span class="stats-item-value">${s.count} teacher${s.count !== 1 ? 's' : ''}</span>
+              </div>
+              <div class="stats-item-bar">
+                <div class="stats-item-bar-fill" style="width: ${(s.count / teachers.length * 100).toFixed(1)}%; background: ${colors[i % colors.length]};"></div>
+              </div>
+              <div class="stats-item-details">
+                ${s.teachers.map(t => `<span class="stats-teacher-tag">${t}</span>`).join('')}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeStatsModal(); });
+};
+window.showSubjectStatsModal = showSubjectStatsModal;
 
 initDashboard();

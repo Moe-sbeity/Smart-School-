@@ -519,18 +519,36 @@ function resetForm() {
 document.getElementById('resetBtn').addEventListener('click', resetForm);
 
 // Delete announcement
-window.deleteAnnouncement = async function(id) {
-  if (!confirm('Are you sure you want to delete this announcement?')) return;
-  
+let pendingDeleteId = null;
+
+function openDeleteAnnouncementModal(id) {
+  pendingDeleteId = id;
+  document.getElementById('deleteAnnouncementModal').classList.add('active');
+}
+
+function closeDeleteAnnouncementModal() {
+  pendingDeleteId = null;
+  document.getElementById('deleteAnnouncementModal').classList.remove('active');
+}
+
+document.getElementById('confirmDeleteAnnouncementBtn').addEventListener('click', async () => {
+  if (!pendingDeleteId) return;
   try {
-    await axios.delete(`${API_URL}/admin-announcements/${id}`);
+    await axios.delete(`${API_URL}/admin-announcements/${pendingDeleteId}`);
     showAlert('success', 'Announcement deleted successfully!');
+    closeDeleteAnnouncementModal();
     loadAnnouncements();
   } catch (error) {
     console.error('Error deleting announcement:', error);
+    closeDeleteAnnouncementModal();
     showAlert('error', error.response?.data?.message || 'Failed to delete announcement');
   }
+});
+
+window.deleteAnnouncement = function(id) {
+  openDeleteAnnouncementModal(id);
 };
+window.closeDeleteAnnouncementModal = closeDeleteAnnouncementModal;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {

@@ -60,23 +60,23 @@
     </div>
 
     <section class="stats-grid">
-      <div class="stat-card">
+      <div class="stat-card stat-card-clickable" onclick="filterByRole('all')" title="Click to view all users">
         <div class="stat-value" id="total-users">0</div>
         <div class="stat-label">Total Users</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card stat-card-clickable" onclick="filterByRole('student')" title="Click to view students">
         <div class="stat-value" id="students">0</div>
         <div class="stat-label">Students</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card stat-card-clickable" onclick="filterByRole('teacher')" title="Click to view teachers">
         <div class="stat-value" id="teachers">0</div>
         <div class="stat-label">Teachers</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card stat-card-clickable" onclick="filterByRole('parent')" title="Click to view parents">
         <div class="stat-value" id="parents">0</div>
         <div class="stat-label">Parents</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card stat-card-clickable" onclick="filterByRole('admin')" title="Click to view admins">
         <div class="stat-value" id="admins">0</div>
         <div class="stat-label">Admins</div>
       </div>
@@ -89,7 +89,7 @@
         <div class="card chart-card">
           <div class="card-header">
             <h3>Students by Grade</h3>
-            <button class="icon-btn" title="Grade Stats"><i class="fas fa-graduation-cap"></i></button>
+            <button class="icon-btn" title="Grade Stats" onclick="showGradeStatsModal()"><i class="fas fa-graduation-cap"></i></button>
           </div>
           <div class="chart-container">
             <canvas id="studentsByGradeChart"></canvas>
@@ -100,7 +100,7 @@
         <div class="card chart-card">
           <div class="card-header">
             <h3>Attendance Overview</h3>
-            <button class="icon-btn" title="Attendance Stats"><i class="fas fa-calendar-check"></i></button>
+            <button class="icon-btn" title="Attendance Stats" onclick="showAttendanceStatsModal()"><i class="fas fa-calendar-check"></i></button>
           </div>
           <div class="chart-container">
             <canvas id="attendanceOverviewChart"></canvas>
@@ -111,21 +111,10 @@
         <div class="card chart-card">
           <div class="card-header">
             <h3>Teachers by Subject</h3>
-            <button class="icon-btn" title="Subject Stats"><i class="fas fa-chalkboard-teacher"></i></button>
+            <button class="icon-btn" title="Subject Stats" onclick="showSubjectStatsModal()"><i class="fas fa-chalkboard-teacher"></i></button>
           </div>
           <div class="chart-container">
             <canvas id="teachersBySubjectChart"></canvas>
-          </div>
-        </div>
-
-        <!-- Admission Status -->
-        <div class="card chart-card">
-          <div class="card-header">
-            <h3>Admission Applications</h3>
-            <button class="icon-btn" title="Admission Stats"><i class="fas fa-user-graduate"></i></button>
-          </div>
-          <div class="chart-container">
-            <canvas id="admissionStatusChart"></canvas>
           </div>
         </div>
       </div>
@@ -136,7 +125,6 @@
       <div class="card">
         <div class="card-header">
           <h3>User Management</h3>
-          <button class="icon-btn" title="Filter users"><i class="fas fa-users-cog"></i></button>
         </div>
         <div class="controls">
           <div class="filters">
@@ -172,18 +160,6 @@
       </div>
 
       <div class="bottom-cards-grid">
-        <div class="card">
-          <div class="card-header">
-            <h3>Admissions Overview</h3>
-            <button class="icon-btn" title="Admissions Settings"><i class="fas fa-cogs"></i></button>
-          </div>
-          <div class="admissions-list">
-            <div class="loading-placeholder">
-              Loading admissions...
-            </div>
-          </div>
-        </div>
-
         <div class="card">
           <div class="card-header">
             <h3>Recent Announcements</h3>

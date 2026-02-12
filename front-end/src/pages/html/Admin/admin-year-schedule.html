@@ -65,7 +65,7 @@
     <section class="card data-by-grade-section">
       <div class="section-header">
         <h2><i class="fas fa-graduation-cap"></i> Data by Grade</h2>
-        <button class="btn btn-primary btn-sm" onclick="openAddGradeDataModal()">
+        <button class="btn btn-primary btn-sm" id="addGradeBtn">
           <i class="fas fa-plus"></i> Add Grade
         </button>
       </div>
@@ -131,7 +131,7 @@
     <section class="terms-section">
       <div class="terms-header">
         <h3>Academic Terms</h3>
-        <button class="btn btn-outline btn-sm" onclick="openTermSettingsModal()">
+        <button class="btn btn-outline btn-sm" id="configureTermsBtn">
           <i class="fas fa-cog"></i> Configure Terms
         </button>
       </div>
@@ -144,7 +144,7 @@
     <section class="card assessment-settings-section">
       <div class="section-header">
         <h2><i class="fas fa-sliders-h"></i> Assessment Settings</h2>
-        <button class="btn btn-outline btn-sm" onclick="openAssessmentSettingsModal()">
+        <button class="btn btn-outline btn-sm" id="editSettingsBtn">
           <i class="fas fa-edit"></i> Edit Settings
         </button>
       </div>
@@ -353,5 +353,185 @@
 
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script src="admin-year-schedule.js"></script>
+  <script>
+    // Fallback: Ensure all buttons work
+    document.addEventListener('DOMContentLoaded', function() {
+      
+      // Helper: format grade label
+      function fmtGrade(g) {
+        return g.startsWith('kg') ? g.toUpperCase().replace('KG', 'KG ') : 'Grade ' + g.replace('grade', '');
+      }
+      const allGrades = ['kg1','kg2','grade1','grade2','grade3','grade4','grade5','grade6','grade7','grade8','grade9','grade10','grade11','grade12'];
+
+      // ===== ADD GRADE BUTTON =====
+      const addGradeBtn = document.getElementById('addGradeBtn');
+      if (addGradeBtn) {
+        addGradeBtn.addEventListener('click', function() {
+          const modal = document.getElementById('gradeDataModal');
+          if (!modal) return;
+          const title = document.getElementById('gradeModalTitle');
+          if (title) title.innerHTML = '<i class="fas fa-plus"></i> Add Grade Data';
+          const gradeSelect = document.getElementById('gradeSelect');
+          if (gradeSelect) {
+            gradeSelect.innerHTML = '<option value="">-- Select Grade --</option>';
+            allGrades.forEach(g => {
+              const opt = document.createElement('option');
+              opt.value = g;
+              opt.textContent = fmtGrade(g);
+              gradeSelect.appendChild(opt);
+            });
+          }
+          const exams = document.getElementById('gradeExams');
+          const quizzes = document.getElementById('gradeQuizzes');
+          const tasks = document.getElementById('gradeTasks');
+          if (exams) exams.value = 0;
+          if (quizzes) quizzes.value = 0;
+          if (tasks) tasks.value = 0;
+          modal.classList.add('active');
+        });
+      }
+
+      // ===== CONFIGURE TERMS BUTTON =====
+      const configureTermsBtn = document.getElementById('configureTermsBtn');
+      if (configureTermsBtn) {
+        configureTermsBtn.addEventListener('click', function() {
+          const modal = document.getElementById('termSettingsModal');
+          if (!modal) return;
+          // Update numberOfTerms dropdown to match current config
+          const numTerms = document.getElementById('numberOfTerms');
+          if (numTerms) {
+            // Generate term config fields
+            const count = parseInt(numTerms.value) || 6;
+            const container = document.getElementById('termsConfigContainer');
+            if (container) {
+              const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+              let html = '';
+              for (let i = 1; i <= count; i++) {
+                html += `
+                  <div class="term-config-item">
+                    <h4>Term ${i}</h4>
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" id="termName_${i}" value="Term ${i}" placeholder="Term name">
+                      </div>
+                      <div class="form-group">
+                        <label>Start Month</label>
+                        <select id="termStart_${i}">
+                          ${months.map(m => '<option value="' + m + '">' + m + '</option>').join('')}
+                        </select>
+                      </div>
+                      <div class="form-group">
+                        <label>End Month</label>
+                        <select id="termEnd_${i}">
+                          ${months.map(m => '<option value="' + m + '">' + m + '</option>').join('')}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }
+              container.innerHTML = html;
+            }
+          }
+          modal.classList.add('active');
+        });
+      }
+
+      // ===== EDIT SETTINGS BUTTON =====
+      const editSettingsBtn = document.getElementById('editSettingsBtn');
+      if (editSettingsBtn) {
+        editSettingsBtn.addEventListener('click', function() {
+          const modal = document.getElementById('assessmentSettingsModal');
+          if (!modal) return;
+          // Read current display values and populate form
+          const fields = [
+            { display: 'maxExamsPerTerm', input: 'settingsMaxExams', strip: false },
+            { display: 'maxQuizzesPerTerm', input: 'settingsMaxQuizzes', strip: false },
+            { display: 'maxAssignmentsPerTerm', input: 'settingsMaxAssignments', strip: false },
+            { display: 'examWeight', input: 'settingsExamWeight', strip: true },
+            { display: 'quizWeight', input: 'settingsQuizWeight', strip: true },
+            { display: 'assignmentWeight', input: 'settingsAssignmentWeight', strip: true }
+          ];
+          fields.forEach(f => {
+            const displayEl = document.getElementById(f.display);
+            const inputEl = document.getElementById(f.input);
+            if (displayEl && inputEl) {
+              let val = displayEl.textContent.trim();
+              if (f.strip) val = val.replace('%', '');
+              inputEl.value = parseInt(val) || 0;
+            }
+          });
+          // Update weight total
+          const exam = parseInt(document.getElementById('settingsExamWeight')?.value) || 0;
+          const quiz = parseInt(document.getElementById('settingsQuizWeight')?.value) || 0;
+          const assign = parseInt(document.getElementById('settingsAssignmentWeight')?.value) || 0;
+          const totalSpan = document.getElementById('weightTotal');
+          if (totalSpan) {
+            totalSpan.textContent = exam + quiz + assign;
+            totalSpan.style.color = (exam + quiz + assign === 100) ? '#2e7d32' : '#c62828';
+          }
+          modal.classList.add('active');
+        });
+      }
+
+      // ===== CLOSE MODAL HANDLERS (overlay + X buttons) =====
+      document.querySelectorAll('.modal-overlay, .modal-close').forEach(el => {
+        el.addEventListener('click', function() {
+          const modal = this.closest('.modal');
+          if (modal) modal.classList.remove('active');
+        });
+      });
+
+      // ===== CANCEL BUTTON HANDLERS =====
+      document.querySelectorAll('.modal .btn-secondary').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const modal = this.closest('.modal');
+          if (modal) modal.classList.remove('active');
+        });
+      });
+
+      // ===== NUMBER OF TERMS CHANGE =====
+      const numTermsSelect = document.getElementById('numberOfTerms');
+      if (numTermsSelect) {
+        numTermsSelect.addEventListener('change', function() {
+          const count = parseInt(this.value) || 6;
+          const currentTermSelect = document.getElementById('currentTermSelect');
+          if (currentTermSelect) {
+            currentTermSelect.innerHTML = '';
+            for (let i = 1; i <= count; i++) {
+              const opt = document.createElement('option');
+              opt.value = i;
+              opt.textContent = 'Term ' + i;
+              currentTermSelect.appendChild(opt);
+            }
+          }
+          // Re-trigger config UI
+          if (configureTermsBtn) configureTermsBtn.click();
+          // Re-open modal since click closes/opens
+          const modal = document.getElementById('termSettingsModal');
+          if (modal) modal.classList.add('active');
+        });
+      }
+
+      // ===== WEIGHT INPUT LIVE UPDATE =====
+      ['settingsExamWeight', 'settingsQuizWeight', 'settingsAssignmentWeight'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener('input', function() {
+            const exam = parseInt(document.getElementById('settingsExamWeight')?.value) || 0;
+            const quiz = parseInt(document.getElementById('settingsQuizWeight')?.value) || 0;
+            const assign = parseInt(document.getElementById('settingsAssignmentWeight')?.value) || 0;
+            const totalSpan = document.getElementById('weightTotal');
+            if (totalSpan) {
+              totalSpan.textContent = exam + quiz + assign;
+              totalSpan.style.color = (exam + quiz + assign === 100) ? '#2e7d32' : '#c62828';
+            }
+          });
+        }
+      });
+
+    });
+  </script>
 </body>
 </html>

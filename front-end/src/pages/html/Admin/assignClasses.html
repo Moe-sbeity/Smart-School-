@@ -99,6 +99,7 @@
     
     let teachers = [];
     let scheduleData = {};
+    let scheduleSettings = { timeSlots: [] };
 
     // Initialize
     async function init() {
@@ -107,8 +108,20 @@
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       }
       
+      await loadScheduleSettings();
       await fetchTeachers();
       initializeSchedule();
+    }
+
+    async function loadScheduleSettings() {
+      try {
+        const res = await axios.get(`${API_URL}/schedules/settings`);
+        if (res.data.success) {
+          scheduleSettings = res.data.settings;
+        }
+      } catch (err) {
+        console.error('Error loading schedule settings, using defaults');
+      }
     }
 
     async function fetchTeachers() {
@@ -170,13 +183,44 @@
     }
 
     function getDefaultStartTime(periodNum) {
-      const baseHour = 7 + periodNum;
-      return `${baseHour.toString().padStart(2, '0')}:00`;
+      // Use time slots from schedule settings API
+      const sessionSlots = (scheduleSettings.timeSlots || []).filter(s => !s.isBreak);
+      if (periodNum <= sessionSlots.length) {
+        return sessionSlots[periodNum - 1].startTime;
+      }
+      // Fallback: calculate from settings
+      const startMinutes = parseTimeToMinutes(scheduleSettings.dayStartTime || '08:00');
+      const duration = scheduleSettings.sessionDuration || 50;
+      const breakAfter = scheduleSettings.breakAfterSession || 4;
+      const breakDur = scheduleSettings.breakDuration || 30;
+      let offset = (periodNum - 1) * duration;
+      if (periodNum > breakAfter) offset += breakDur;
+      return formatMinutes(startMinutes + offset);
     }
 
     function getDefaultEndTime(periodNum) {
-      const baseHour = 8 + periodNum;
-      return `${baseHour.toString().padStart(2, '0')}:00`;
+      const sessionSlots = (scheduleSettings.timeSlots || []).filter(s => !s.isBreak);
+      if (periodNum <= sessionSlots.length) {
+        return sessionSlots[periodNum - 1].endTime;
+      }
+      const startMinutes = parseTimeToMinutes(scheduleSettings.dayStartTime || '08:00');
+      const duration = scheduleSettings.sessionDuration || 50;
+      const breakAfter = scheduleSettings.breakAfterSession || 4;
+      const breakDur = scheduleSettings.breakDuration || 30;
+      let offset = (periodNum - 1) * duration + duration;
+      if (periodNum > breakAfter) offset += breakDur;
+      return formatMinutes(startMinutes + offset);
+    }
+
+    function parseTimeToMinutes(time) {
+      const [h, m] = (time || '08:00').split(':').map(Number);
+      return h * 60 + m;
+    }
+
+    function formatMinutes(totalMinutes) {
+      const h = Math.floor(totalMinutes / 60);
+      const m = totalMinutes % 60;
+      return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
     }
 
     window.updateTeachers = function(day, periodNum) {
