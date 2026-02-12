@@ -153,7 +153,7 @@
         <div id="dashboardView" class="hidden">
             <!-- Stats Cards -->
             <div class="stats-grid">
-                <div class="stat-card">
+                <div class="stat-card clickable" onclick="window.location.href='./student-subjects.html'">
                     <div class="stat-header">
                         <span class="stat-label">Total Subjects</span>
                         <div class="stat-icon icon-subjects">
@@ -161,8 +161,9 @@
                         </div>
                     </div>
                     <div class="stat-value" id="totalSubjects">0</div>
+                    <div class="stat-change link">View Subjects →</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card clickable" onclick="window.location.href='./student-tasks.html?filter=pending'">
                     <div class="stat-header">
                         <span class="stat-label">Pending Tasks</span>
                         <div class="stat-icon icon-tasks">
@@ -170,7 +171,7 @@
                         </div>
                     </div>
                     <div class="stat-value" id="pendingTasks">0</div>
-                    <div class="stat-change positive" id="tasksChange">Due this week</div>
+                    <div class="stat-change link">View Pending →</div>
                 </div>
                 <div class="stat-card clickable" onclick="window.location.href='./student-grades.html'">
                     <div class="stat-header">
@@ -182,7 +183,7 @@
                     <div class="stat-value" id="avgGrade">--</div>
                     <div class="stat-change link">View All Grades →</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card clickable" onclick="window.location.href='./student-tasks.html?filter=completed'">
                     <div class="stat-header">
                         <span class="stat-label">Completed</span>
                         <div class="stat-icon icon-completed">
@@ -190,6 +191,7 @@
                         </div>
                     </div>
                     <div class="stat-value" id="completedTasks">0</div>
+                    <div class="stat-change link">View Completed →</div>
                 </div>
             </div>
 

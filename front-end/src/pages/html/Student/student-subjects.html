@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Subjects - Smart School</title>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <link rel="stylesheet" href="student-subjects.css">
+    <script src="../js/toast.js"></script>
+</head>
+<body>
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <div class="logo">
+            <h1 class="logo-link">
+                <span class="logo-icon">SS</span>
+                <span class="logo-text">Smart School</span>
+            </h1>
+        </div>
+        <div class="nav-right">
+            <a href="student-dashboard.html" class="nav-link">
+                <i data-lucide="home"></i> Dashboard
+            </a>
+            <a href="student-attendance.html" class="nav-link">
+                <i data-lucide="clipboard-check"></i> Attendance
+            </a>
+            <a href="student-schedule.html" class="nav-link">
+                <i data-lucide="calendar"></i> Schedule
+            </a>
+            <a href="student-grades.html" class="nav-link">
+                <i data-lucide="award"></i> Grades
+            </a>
+            <div class="user-menu" id="userMenuContainer">
+                <div class="user-avatar" id="userAvatar">S</div>
+                <div>
+                    <div class="user-name" id="userName">Student</div>
+                    <div class="user-role">Student</div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="header-left">
+                <h1><i data-lucide="book-open"></i> My Subjects</h1>
+                <p class="header-subtitle">All your enrolled subjects with schedule and teacher info</p>
+            </div>
+            <div class="header-right">
+                <a href="student-dashboard.html" class="btn btn-back">
+                    <i data-lucide="arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon icon-total">
+                    <i data-lucide="book"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="totalSubjects">0</div>
+                    <div class="stat-label">Total Subjects</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon icon-classes">
+                    <i data-lucide="calendar-clock"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="totalClasses">0</div>
+                    <div class="stat-label">Classes / Week</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon icon-teachers">
+                    <i data-lucide="users"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="totalTeachers">0</div>
+                    <div class="stat-label">Teachers</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon icon-pending">
+                    <i data-lucide="clipboard-list"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="totalPending">0</div>
+                    <div class="stat-label">Pending Tasks</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Loading your subjects...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="error" class="error-message hidden"></div>
+
+        <!-- Subjects Grid -->
+        <div id="subjectsContainer" class="subjects-container hidden"></div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state hidden">
+            <i data-lucide="book-open"></i>
+            <h3>No Subjects Yet</h3>
+            <p>You haven't been enrolled in any subjects yet.</p>
+        </div>
+    </div>
+
+    <script src="student-subjects.js"></script>
+</body>
+</html>

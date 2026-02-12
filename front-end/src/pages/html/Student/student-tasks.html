@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Tasks - Smart School</title>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <link rel="stylesheet" href="student-tasks.css">
+    <script src="../js/toast.js"></script>
+</head>
+<body>
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <div class="logo">
+            <h1 class="logo-link">
+                <span class="logo-icon">SS</span>
+                <span class="logo-text">Smart School</span>
+            </h1>
+        </div>
+        <div class="nav-right">
+            <a href="student-dashboard.html" class="nav-link">
+                <i data-lucide="home"></i> Dashboard
+            </a>
+            <a href="student-attendance.html" class="nav-link">
+                <i data-lucide="clipboard-check"></i> Attendance
+            </a>
+            <a href="student-schedule.html" class="nav-link">
+                <i data-lucide="calendar"></i> Schedule
+            </a>
+            <a href="student-grades.html" class="nav-link">
+                <i data-lucide="award"></i> Grades
+            </a>
+            <div class="user-menu" id="userMenuContainer">
+                <div class="user-avatar" id="userAvatar">S</div>
+                <div>
+                    <div class="user-name" id="userName">Student</div>
+                    <div class="user-role">Student</div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="header-left">
+                <h1 id="pageTitle"><i data-lucide="clipboard-list"></i> My Tasks</h1>
+                <p class="header-subtitle" id="pageSubtitle">View all your assignments and quizzes</p>
+            </div>
+            <div class="header-right">
+                <a href="student-dashboard.html" class="btn btn-back">
+                    <i data-lucide="arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="stats-grid">
+            <div class="stat-card" id="cardAll">
+                <div class="stat-icon icon-all">
+                    <i data-lucide="layers"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="totalAll">0</div>
+                    <div class="stat-label">All Tasks</div>
+                </div>
+            </div>
+            <div class="stat-card" id="cardPending">
+                <div class="stat-icon icon-pending">
+                    <i data-lucide="clock"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="totalPending">0</div>
+                    <div class="stat-label">Pending</div>
+                </div>
+            </div>
+            <div class="stat-card" id="cardCompleted">
+                <div class="stat-icon icon-completed">
+                    <i data-lucide="check-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="totalCompleted">0</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+            </div>
+            <div class="stat-card" id="cardOverdue">
+                <div class="stat-icon icon-overdue">
+                    <i data-lucide="alert-triangle"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="totalOverdue">0</div>
+                    <div class="stat-label">Overdue</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-section">
+            <div class="filter-tabs">
+                <button class="filter-tab" data-filter="all" id="filterAll">All</button>
+                <button class="filter-tab" data-filter="pending" id="filterPending">Pending</button>
+                <button class="filter-tab" data-filter="completed" id="filterCompleted">Completed</button>
+                <button class="filter-tab" data-filter="overdue" id="filterOverdue">Overdue</button>
+            </div>
+            <div class="filter-selects">
+                <div class="filter-select">
+                    <label for="typeFilter">Type:</label>
+                    <select id="typeFilter">
+                        <option value="">All Types</option>
+                        <option value="assignment">Assignments</option>
+                        <option value="quiz">Quizzes</option>
+                    </select>
+                </div>
+                <div class="filter-select">
+                    <label for="subjectFilter">Subject:</label>
+                    <select id="subjectFilter">
+                        <option value="">All Subjects</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Loading your tasks...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="error" class="error-message hidden"></div>
+
+        <!-- Tasks List -->
+        <div id="tasksContainer" class="tasks-container hidden"></div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state hidden">
+            <i data-lucide="check-circle"></i>
+            <h3 id="emptyTitle">No Tasks Found</h3>
+            <p id="emptyText">No tasks match your current filters.</p>
+        </div>
+    </div>
+
+    <script src="student-tasks.js"></script>
+</body>
+</html>

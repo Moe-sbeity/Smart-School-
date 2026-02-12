@@ -348,6 +348,15 @@ async function loadStudentData() {
         }
 
         await loadDashboard();
+
+        // Check if we need to open a specific task (coming from tasks page)
+        const openTaskId = sessionStorage.getItem('openTaskId');
+        const openTaskSubject = sessionStorage.getItem('openTaskSubject');
+        if (openTaskId && openTaskSubject) {
+            sessionStorage.removeItem('openTaskId');
+            sessionStorage.removeItem('openTaskSubject');
+            viewTaskDetail(openTaskId, openTaskSubject);
+        }
     } catch (error) {
         console.error('Error loading student data:', error);
         showError('Failed to load student data: ' + error.message);
