@@ -11,6 +11,7 @@ let allAnnouncements = [];
 let adminAnnouncements = [];
 let currentAnnouncement = null;
 let currentFilter = 'all';
+let academicYearSettings = null; // Store academic year settings with terms
 
 // Get token
 const getToken = () => localStorage.getItem('token');
@@ -444,12 +445,14 @@ function renderDashboard() {
     document.getElementById('completedTasks').innerHTML = `<i data-lucide="check-circle"></i> ${completedTasks.length} done`;
     document.getElementById('avgGrade').textContent = avgGrade;
 
-    // Update notification count - only count unread admin announcements
+    // Update notification count - count unread admin + teacher announcements
     const unreadAdminAnnouncements = adminAnnouncements.filter(a => !a.isViewed).length;
+    const unreadTeacherAnnouncements = allAnnouncements.filter(a => a.type === 'announcement' && !a.hasViewed).length;
+    const totalUnread = unreadAdminAnnouncements + unreadTeacherAnnouncements;
     const notificationCount = document.getElementById('notificationCount');
     if (notificationCount) {
-        notificationCount.textContent = unreadAdminAnnouncements;
-        notificationCount.style.display = unreadAdminAnnouncements > 0 ? 'flex' : 'none';
+        notificationCount.textContent = totalUnread;
+        notificationCount.style.display = totalUnread > 0 ? 'flex' : 'none';
     }
 
     // Render today's schedule
@@ -460,6 +463,9 @@ function renderDashboard() {
 
     // Render upcoming tasks
     renderUpcomingTasks();
+
+    // Render teacher announcements section
+    renderTeacherAnnouncementsSection();
 
     // Render admin announcements section
     renderAdminAnnouncementsSection();
@@ -765,6 +771,146 @@ function renderSubjectPerformanceChart() {
 
 // ============================================================================
 // END STUDENT CHARTS FUNCTIONS
+// ============================================================================
+
+// ============================================================================
+// TEACHER ANNOUNCEMENTS SECTION
+// ============================================================================
+
+function renderTeacherAnnouncementsSection() {
+    const container = document.getElementById('teacherAnnouncementsList');
+    if (!container) return;
+
+    // Filter only teacher announcements (type: 'announcement') from allAnnouncements
+    const teacherAnnouncements = allAnnouncements.filter(a => a.type === 'announcement');
+
+    // Sort by date, newest first
+    teacherAnnouncements.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    const unreadCount = teacherAnnouncements.filter(a => !a.hasViewed).length;
+
+    // Update the card header with unread count
+    const card = document.getElementById('teacherAnnouncementsCard');
+    if (card) {
+        const header = card.querySelector('.card-header');
+        if (header) {
+            header.innerHTML = `
+                <h2 class="card-title">
+                    <i data-lucide="megaphone"></i>
+                    Teacher Announcements
+                    ${unreadCount > 0 ? `<span class="due-badge urgent" style="margin-left: 10px;">${unreadCount} New</span>` : ''}
+                </h2>
+                ${teacherAnnouncements.length > 5 ? `
+                    <a href="#" class="view-all-link" onclick="viewAllTeacherAnnouncements(); return false;">
+                        View All (${teacherAnnouncements.length})
+                        <i data-lucide="arrow-right"></i>
+                    </a>
+                ` : ''}
+            `;
+        }
+    }
+
+    if (teacherAnnouncements.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i data-lucide="inbox"></i>
+                <p>No teacher announcements</p>
+            </div>
+        `;
+        return;
+    }
+
+    const recent = teacherAnnouncements.slice(0, 5);
+    container.innerHTML = recent.map(ann => {
+        const hasAttachments = ann.attachments && ann.attachments.length > 0;
+        const teacherName = ann.teacher?.name || 'Teacher';
+        const dateStr = new Date(ann.createdAt).toLocaleDateString();
+
+        return `
+            <div class="assignment-item" onclick="viewTeacherAnnouncementFromDashboard('${ann._id}', '${ann.subject}')">
+                <div class="assignment-header">
+                    <div class="assignment-title">
+                        <i data-lucide="megaphone" style="color: #4f46e5;"></i>
+                        ${ann.title}
+                        ${hasAttachments ? '<i data-lucide="paperclip" style="width: 16px; height: 16px; color: var(--text-secondary);"></i>' : ''}
+                    </div>
+                    ${!ann.hasViewed ? '<span class="due-badge urgent">New</span>' : ''}
+                </div>
+                <p style="color: var(--text-secondary); margin: 8px 0; font-size: 0.9rem;">${ann.description || ''}</p>
+                <div class="assignment-meta">
+                    <span>
+                        <i data-lucide="user" style="width: 14px; height: 14px;"></i>
+                        ${teacherName}
+                    </span>
+                    <span>
+                        <i data-lucide="book" style="width: 14px; height: 14px;"></i>
+                        ${ann.subject}
+                    </span>
+                    <span>${dateStr}</span>
+                    <span class="due-badge normal">${ann.priority || 'normal'}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// View a teacher announcement from the dashboard - navigates to the subject view
+function viewTeacherAnnouncementFromDashboard(announcementId, subject) {
+    // Navigate to subject view which has the announcements tab
+    viewSubject(subject).then(() => {
+        // Switch to announcements tab
+        const announcementsTabBtn = document.querySelector('.tab');
+        if (announcementsTabBtn) {
+            announcementsTabBtn.click();
+        }
+        // Open the specific announcement
+        viewAnnouncement(announcementId);
+    });
+}
+
+// View all teacher announcements
+function viewAllTeacherAnnouncements() {
+    const teacherAnnouncements = allAnnouncements.filter(a => a.type === 'announcement');
+    
+    document.getElementById('dashboardView').classList.add('hidden');
+
+    let allTeacherView = document.getElementById('allTeacherAnnouncementsView');
+    if (!allTeacherView) {
+        allTeacherView = document.createElement('div');
+        allTeacherView.id = 'allTeacherAnnouncementsView';
+        document.querySelector('.container').appendChild(allTeacherView);
+    }
+
+    allTeacherView.classList.remove('hidden');
+    allTeacherView.innerHTML = `
+        <button class="back-btn" onclick="backFromTeacherAnnouncements()">
+            <i data-lucide="arrow-left"></i>
+            Back to Dashboard
+        </button>
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i data-lucide="megaphone"></i>
+                    All Teacher Announcements
+                </h2>
+            </div>
+            <div id="allTeacherAnnouncementsContent"></div>
+        </div>
+    `;
+
+    const content = document.getElementById('allTeacherAnnouncementsContent');
+    renderAnnouncementsList(teacherAnnouncements, 'allTeacherAnnouncementsContent');
+    lucide.createIcons();
+}
+
+function backFromTeacherAnnouncements() {
+    const view = document.getElementById('allTeacherAnnouncementsView');
+    if (view) view.classList.add('hidden');
+    document.getElementById('dashboardView').classList.remove('hidden');
+}
+
+// ============================================================================
+// END TEACHER ANNOUNCEMENTS SECTION
 // ============================================================================
 
 // NEW: Render admin announcements section (keeping your existing implementation)
@@ -1946,6 +2092,11 @@ function showNotifications() {
         .filter(a => !a.isViewed)
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     
+    // Get unread teacher announcements (type: 'announcement') - sorted newest first
+    const unreadTeacherAnnouncements = allAnnouncements
+        .filter(a => a.type === 'announcement' && !a.hasViewed)
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
     // Get non-submitted assignments and quizzes - sorted by due date (soonest first)
     const nonSubmittedAssignments = allAnnouncements
         .filter(a => a.type === 'assignment' && !a.hasSubmitted)
@@ -1971,7 +2122,7 @@ function showNotifications() {
         .filter(a => (a.type === 'assignment' || a.type === 'quiz') && !a.hasSubmitted && new Date(a.createdAt) > oneDayAgo)
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-    const totalNotifications = unreadAdminAnnouncements.length + nonSubmittedAssignments.length + nonSubmittedQuizzes.length + recentlyGraded.length + newlyPostedTasks.length;
+    const totalNotifications = unreadAdminAnnouncements.length + unreadTeacherAnnouncements.length + nonSubmittedAssignments.length + nonSubmittedQuizzes.length + recentlyGraded.length + newlyPostedTasks.length;
 
     // Create notification panel content
     let notificationContent = '';
@@ -2013,6 +2164,22 @@ function showNotifications() {
                             <div class="notification-content">
                                 <p class="notification-title">${a.title}</p>
                                 <p class="notification-time">${new Date(a.createdAt).toLocaleDateString()}</p>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : ''}
+            ${unreadTeacherAnnouncements.length > 0 ? `
+                <div class="notification-section">
+                    <h4><i data-lucide="user-check"></i> Teacher Announcements</h4>
+                    ${unreadTeacherAnnouncements.map(a => `
+                        <div class="notification-item new-task" onclick="viewTeacherAnnouncementFromDashboard('${a._id}', '${a.subject}'); closeNotificationPanel();">
+                            <div class="notification-icon" style="background: #eef2ff;">
+                                <i data-lucide="megaphone" style="color: #4f46e5;"></i>
+                            </div>
+                            <div class="notification-content">
+                                <p class="notification-title">${a.title} <span style="background: #4f46e5; color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">NEW</span></p>
+                                <p class="notification-time">${a.subject} - ${a.teacher?.name || 'Teacher'} - ${new Date(a.createdAt).toLocaleDateString()}</p>
                             </div>
                         </div>
                     `).join('')}
@@ -2088,7 +2255,7 @@ function showNotifications() {
             <h3>Notifications</h3>
             <button onclick="closeNotificationPanel()" class="notification-close">&times;</button>
         </div>
-        ${unreadAdminAnnouncements.length > 0 ? `
+        ${(unreadAdminAnnouncements.length > 0 || unreadTeacherAnnouncements.length > 0) ? `
         <div class="notification-actions">
             <button onclick="markAllAsRead()" class="mark-all-read-btn">
                 <i data-lucide="check-check"></i>
@@ -2111,9 +2278,10 @@ function showNotifications() {
 
 // Mark all announcements as read
 async function markAllAsRead() {
-    const unreadAdminAnnouncements = adminAnnouncements.filter(a => !a.isViewed);
+    const unreadAdmin = adminAnnouncements.filter(a => !a.isViewed);
+    const unreadTeacher = allAnnouncements.filter(a => a.type === 'announcement' && !a.hasViewed);
     
-    if (unreadAdminAnnouncements.length === 0) {
+    if (unreadAdmin.length === 0 && unreadTeacher.length === 0) {
         if (typeof Toast !== 'undefined') {
             Toast.info('No unread announcements');
         }
@@ -2121,16 +2289,25 @@ async function markAllAsRead() {
     }
 
     try {
-        // Mark each announcement as viewed
-        const promises = unreadAdminAnnouncements.map(a => 
-            apiCall(`/admin-announcements/${a._id}/view`, 'POST')
-        );
+        const promises = [];
+
+        // Mark admin announcements as viewed
+        unreadAdmin.forEach(a => {
+            promises.push(apiCall(`/admin-announcements/${a._id}/view`, 'POST'));
+        });
+
+        // Mark teacher announcements as viewed by opening them (this triggers the viewedBy update)
+        unreadTeacher.forEach(a => {
+            promises.push(apiCall(`/announcements/${a._id}`));
+        });
+
         await Promise.all(promises);
         
         // Update local state
-        unreadAdminAnnouncements.forEach(a => a.isViewed = true);
+        unreadAdmin.forEach(a => a.isViewed = true);
+        unreadTeacher.forEach(a => a.hasViewed = true);
         
-        // Update notification count - hide badge since all announcements are read
+        // Update notification count
         const notificationCount = document.getElementById('notificationCount');
         if (notificationCount) {
             notificationCount.textContent = '0';

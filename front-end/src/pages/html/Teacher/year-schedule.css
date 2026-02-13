@@ -674,6 +674,25 @@ body {
     color: #991b1b;
 }
 
+.status-grading {
+    background: #e0e7ff;
+    color: #3730a3;
+}
+
+.item-avg {
+    background: #ecfdf5;
+    color: #065f46;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    font-weight: 600;
+}
+
+.item-submissions {
+    color: #6366f1;
+    font-weight: 500;
+}
+
 .empty-state {
     text-align: center;
     padding: 30px;

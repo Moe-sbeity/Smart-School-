@@ -78,6 +78,9 @@
                     <button class="filter-btn" onclick="filterMessages('grade')">
                         <i class="fas fa-users"></i> Grade/School
                     </button>
+                    <button class="filter-btn" onclick="filterMessages('teacher')">
+                        <i class="fas fa-chalkboard-teacher"></i> Teacher
+                    </button>
                     <button class="filter-btn" onclick="filterMessages('unread')">
                         <i class="fas fa-envelope"></i> Unread
                     </button>
@@ -103,6 +106,17 @@
                         <span id="gradeCount" class="badge badge-grade">0</span>
                     </div>
                     <div id="gradeMessages"></div>
+                </div>
+
+                <div id="teacherSection" class="announcement-section" style="display: none;">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <i class="fas fa-chalkboard-teacher" style="color: #059669;"></i>
+                            Teacher Announcements & Assignments
+                        </div>
+                        <span id="teacherCount" class="badge" style="background: #d1fae5; color: #059669;">0</span>
+                    </div>
+                    <div id="teacherMessages"></div>
                 </div>
 
                 <div id="noMessages" class="empty-state" style="display: none;">

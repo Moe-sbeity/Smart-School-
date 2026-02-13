@@ -852,10 +852,49 @@ export const getChildGrades = async (req, res) => {
   }
 };
 
+// Get child's teacher announcements (for parent dashboard)
+export const getChildAnnouncements = async (req, res) => {
+  try {
+    const parentId = req.userId;
+    const { childId } = req.params;
+
+    // Verify parent-child relationship
+    const parent = await UserModel.findById(parentId);
+    if (!parent || parent.role !== 'parent') {
+      return res.status(403).json({ message: 'Access denied. Parents only.' });
+    }
+
+    const isParentOfChild = parent.children.some(
+      child => child.toString() === childId
+    );
+
+    if (!isParentOfChild) {
+      return res.status(403).json({ message: 'You can only view your own children\'s announcements' });
+    }
+
+    const announcements = await Announcement.find({
+      targetStudents: childId,
+      status: 'published'
+    })
+      .populate('teacher', 'name email')
+      .sort({ createdAt: -1 })
+      .limit(20);
+
+    res.status(200).json({
+      announcements: announcements,
+      count: announcements.length
+    });
+  } catch (error) {
+    console.error('Error fetching child announcements:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
 // Get all school-wide announcements for year schedule (teacher view)
 export const getYearScheduleData = async (req, res) => {
   try {
     const { academicYear } = req.query;
+    const teacherId = req.userId;
     
     // Parse academic year to get date range (e.g., "2025-2026" -> Sep 2025 to Aug 2026)
     let startYear = 2025;
@@ -869,19 +908,28 @@ export const getYearScheduleData = async (req, res) => {
     const yearStart = new Date(`${startYear}-09-01`);
     const yearEnd = new Date(`${endYear}-08-31`);
     
-    // Get all announcements for the academic year
-    const announcements = await Announcement.find({
+    // Build query — filter by teacher if the user is a teacher
+    const user = await UserModel.findById(teacherId);
+    const query = {
       status: 'published',
       $or: [
         { dueDate: { $gte: yearStart, $lte: yearEnd } },
         { createdAt: { $gte: yearStart, $lte: yearEnd } }
       ]
-    })
+    };
+    
+    // Teachers only see their own announcements; admins see all
+    if (user && user.role === 'teacher') {
+      query.teacher = teacherId;
+    }
+    
+    // Get announcements for the academic year
+    const announcements = await Announcement.find(query)
       .populate('teacher', 'name email subjects')
       .populate('targetStudents', 'name classGrade classSection')
       .sort({ dueDate: 1 });
     
-    // Get submission stats for each announcement
+    // Get submission stats for each announcement (including grade averages)
     const announcementsWithStats = await Promise.all(
       announcements.map(async (announcement) => {
         const submissionCount = await Submission.countDocuments({
@@ -892,12 +940,38 @@ export const getYearScheduleData = async (req, res) => {
           status: 'graded'
         });
         
-        // Extract unique grades from target students
-        const grades = [...new Set(
-          announcement.targetStudents
-            .map(s => s.classGrade)
-            .filter(g => g)
-        )];
+        // Get grade statistics from graded submissions
+        const gradeStats = await Submission.aggregate([
+          { $match: { announcement: announcement._id, status: 'graded', grade: { $exists: true, $ne: null } } },
+          { $group: {
+            _id: null,
+            avgGrade: { $avg: '$grade' },
+            highestGrade: { $max: '$grade' },
+            lowestGrade: { $min: '$grade' },
+            totalGraded: { $sum: 1 }
+          }}
+        ]);
+        
+        const stats = gradeStats[0] || { avgGrade: null, highestGrade: null, lowestGrade: null, totalGraded: 0 };
+        const avgPercentage = stats.avgGrade !== null && announcement.totalPoints > 0
+          ? Math.round((stats.avgGrade / announcement.totalPoints) * 100)
+          : null;
+        const highestPercentage = stats.highestGrade !== null && announcement.totalPoints > 0
+          ? Math.round((stats.highestGrade / announcement.totalPoints) * 100)
+          : null;
+        const lowestPercentage = stats.lowestGrade !== null && announcement.totalPoints > 0
+          ? Math.round((stats.lowestGrade / announcement.totalPoints) * 100)
+          : null;
+        
+        // Use targetGrades from the model first; fall back to extracting from students
+        let grades = announcement.targetGrades || [];
+        if (grades.length === 0) {
+          grades = [...new Set(
+            announcement.targetStudents
+              .map(s => s.classGrade)
+              .filter(g => g)
+          )];
+        }
         
         return {
           _id: announcement._id,
@@ -914,7 +988,16 @@ export const getYearScheduleData = async (req, res) => {
           targetGrades: grades,
           submissionCount,
           gradedCount,
-          totalStudents: announcement.targetStudents.length
+          totalStudents: announcement.targetStudents.length,
+          avgGrade: stats.avgGrade !== null ? Math.round(stats.avgGrade * 10) / 10 : null,
+          avgPercentage,
+          highestGrade: stats.highestGrade,
+          highestPercentage,
+          lowestGrade: stats.lowestGrade,
+          lowestPercentage,
+          submissionRate: announcement.targetStudents.length > 0
+            ? Math.round((submissionCount / announcement.targetStudents.length) * 100)
+            : 0
         };
       })
     );
@@ -922,7 +1005,8 @@ export const getYearScheduleData = async (req, res) => {
     // Group by grade
     const byGrade = {};
     announcementsWithStats.forEach(a => {
-      a.targetGrades.forEach(grade => {
+      const grades = a.targetGrades && a.targetGrades.length > 0 ? a.targetGrades : ['unassigned'];
+      grades.forEach(grade => {
         if (!byGrade[grade]) {
           byGrade[grade] = {
             exams: [],
@@ -930,7 +1014,7 @@ export const getYearScheduleData = async (req, res) => {
             assignments: []
           };
         }
-        if (a.type === 'quiz' && a.totalPoints >= 50) {
+        if (a.type === 'quiz' && a.totalPoints > 50) {
           byGrade[grade].exams.push(a);
         } else if (a.type === 'quiz') {
           byGrade[grade].quizzes.push(a);
@@ -946,7 +1030,7 @@ export const getYearScheduleData = async (req, res) => {
       if (!bySubject[a.subject]) {
         bySubject[a.subject] = { exams: 0, quizzes: 0, assignments: 0 };
       }
-      if (a.type === 'quiz' && a.totalPoints >= 50) {
+      if (a.type === 'quiz' && a.totalPoints > 50) {
         bySubject[a.subject].exams++;
       } else if (a.type === 'quiz') {
         bySubject[a.subject].quizzes++;
@@ -956,8 +1040,8 @@ export const getYearScheduleData = async (req, res) => {
     });
     
     // Count totals
-    const exams = announcementsWithStats.filter(a => a.type === 'quiz' && a.totalPoints >= 50);
-    const quizzes = announcementsWithStats.filter(a => a.type === 'quiz' && a.totalPoints < 50);
+    const exams = announcementsWithStats.filter(a => a.type === 'quiz' && a.totalPoints > 50);
+    const quizzes = announcementsWithStats.filter(a => a.type === 'quiz' && a.totalPoints <= 50);
     const assignments = announcementsWithStats.filter(a => a.type === 'assignment');
     
     res.status(200).json({

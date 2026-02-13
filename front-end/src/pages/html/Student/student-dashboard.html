@@ -189,6 +189,9 @@
                 </div>
             </div>
 
+            <!-- Term Results Section -->
+            <div id="termResultsSection" class="term-results-section"></div>
+
             <!-- Student Charts Section -->
             <div class="student-charts-section">
                 <div class="student-charts-grid">
@@ -252,7 +255,7 @@
                     </div>
                 </div>
 
-                <!-- Right Column - Upcoming Tasks -->
+                <!-- Right Column - Upcoming Tasks & Teacher Announcements -->
                 <div>
                     <div class="card">
                         <div class="card-header">
@@ -271,6 +274,17 @@
                             <button class="filter-btn" onclick="filterTasks('quiz')">Quizzes</button>
                         </div>
                         <div id="upcomingTasks"></div>
+                    </div>
+
+                    <!-- Teacher Announcements -->
+                    <div class="card" style="margin-top: 24px;" id="teacherAnnouncementsCard">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i data-lucide="megaphone"></i>
+                                Teacher Announcements
+                            </h2>
+                        </div>
+                        <div id="teacherAnnouncementsList"></div>
                     </div>
                 </div>
             </div>

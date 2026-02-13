@@ -82,9 +82,16 @@
             try {
                 const data = await apiCall('/schedules/my-classes');
                 teacherClasses = data.classes || [];
+                console.log('Teacher classes loaded:', teacherClasses);
                 
+                if (teacherClasses.length === 0) {
+                    console.warn('No classes found for this teacher. Ensure schedules are assigned.');
+                    showMessage('No classes assigned to you yet. Please contact admin.', 'info');
+                    return;
+                }
+
                 // Get unique grades
-                const grades = [...new Set(teacherClasses.map(c => c.grade))];
+                const grades = [...new Set(teacherClasses.map(c => c.grade))].filter(Boolean);
                 
                 // Sort grades naturally
                 grades.sort((a, b) => {
@@ -107,6 +114,7 @@
                 });
             } catch (error) {
                 console.error('Error loading teacher classes:', error);
+                showMessage('Failed to load your assigned classes: ' + error.message, 'error');
             }
         }
 

@@ -116,16 +116,17 @@ router.get('/parent/child/:childId/summary', protectRoute, async (req, res) => {
     const subjects = [...new Set(schedules.map(s => s.subject))];
 
     // Get announcements and calculate grades
+    // Use targetStudents to find assignments for this child (same as student endpoint)
     const announcements = await AnnouncementModel.find({
-      targetGrade: child.classGrade,
-      targetSection: child.classSection,
-      announcementType: 'assignment'
+      targetStudents: childId,
+      type: { $in: ['assignment', 'quiz'] },
+      status: 'published'
     });
 
-    // Get submissions for this student
+    // Get submissions for this student (with populated announcement for totalPoints)
     const submissions = await SubmissionModel.find({
       student: childId
-    });
+    }).populate('announcement', 'totalPoints subject');
 
     // Calculate grades
     let totalGrades = 0;
@@ -133,7 +134,8 @@ router.get('/parent/child/:childId/summary', protectRoute, async (req, res) => {
     
     submissions.forEach(sub => {
       if (sub.grade !== undefined && sub.grade !== null) {
-        const percentage = (sub.grade / (sub.totalPoints || 100)) * 100;
+        const totalPoints = sub.announcement?.totalPoints || 100;
+        const percentage = (sub.grade / totalPoints) * 100;
         totalGrades += percentage;
         gradesCount++;
       }
@@ -142,11 +144,15 @@ router.get('/parent/child/:childId/summary', protectRoute, async (req, res) => {
     const overallAverage = gradesCount > 0 ? Math.round(totalGrades / gradesCount) : 0;
     const totalSubmissions = submissions.length;
     
-    // Count pending assignments
-    const submittedAnnouncementIds = submissions.map(s => s.announcement?.toString());
+    // Count pending assignments (not yet submitted, and not past due)
+    const submittedAnnouncementIds = submissions.map(s => s.announcement?._id?.toString() || s.announcement?.toString());
     const pendingAssignments = announcements.filter(a => {
-      const dueDate = new Date(a.dueDate);
-      return !submittedAnnouncementIds.includes(a._id.toString()) && dueDate >= new Date();
+      const isSubmitted = submittedAnnouncementIds.includes(a._id.toString());
+      if (isSubmitted) return false;
+      // If no due date, it's still pending
+      if (!a.dueDate) return true;
+      // If due date is in the future, it's still pending
+      return new Date(a.dueDate) >= new Date();
     }).length;
 
     res.json({

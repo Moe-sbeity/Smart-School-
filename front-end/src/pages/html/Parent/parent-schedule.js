@@ -234,7 +234,15 @@
                 document.getElementById('contentContainer').style.display = 'block';
             } catch (error) {
                 console.error('Error loading schedule data:', error);
-                showAlert('error', 'Failed to load schedule data. Please try again.');
+                document.getElementById('scheduleSummary').innerHTML = '';
+                document.getElementById('weekSchedule').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><i class="fas fa-calendar-week"></i></div>
+                        <h3>No Schedule Available</h3>
+                        <p>This student doesn't have any classes scheduled yet. The schedule will appear here once it's set up by the school.</p>
+                    </div>
+                `;
+                document.getElementById('contentContainer').style.display = 'block';
             }
         }
 

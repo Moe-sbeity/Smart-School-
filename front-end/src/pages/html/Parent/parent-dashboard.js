@@ -394,6 +394,13 @@
 
                 document.getElementById('contentContainer').classList.remove('hidden');
 
+                // Load teacher announcements for this child (non-blocking)
+                try {
+                    await loadChildTeacherAnnouncements(childId);
+                } catch (annError) {
+                    console.error('Error loading teacher announcements:', annError);
+                }
+
                 // Render charts with child data (non-blocking)
                 try {
                     await renderParentCharts(childId, summary.summary);
@@ -403,9 +410,127 @@
 
             } catch (error) {
                 console.error('Error loading child data:', error);
-                showAlert('error', 'Failed to load student data. Please try again.');
+                document.getElementById('contentContainer').classList.remove('hidden');
+                document.getElementById('summarySection').innerHTML = '';
+                document.getElementById('scheduleContent').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><i class="fas fa-chart-bar"></i></div>
+                        <h3>No Data Available</h3>
+                        <p>This student doesn't have any data yet. Data will appear here once attendance is recorded and assignments are graded.</p>
+                    </div>
+                `;
             }
         }
+
+        // ============================================================================
+        // TEACHER ANNOUNCEMENTS FOR PARENT
+        // ============================================================================
+
+        async function loadChildTeacherAnnouncements(childId) {
+            const container = document.getElementById('parentTeacherAnnouncementsList');
+            if (!container) return;
+
+            try {
+                const token = getAuthToken();
+                const response = await axios.get(`${API_URL}/announcements/parent/child/${childId}/announcements`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                const announcements = response.data.announcements || [];
+                renderParentTeacherAnnouncements(announcements);
+            } catch (error) {
+                console.error('Error loading child teacher announcements:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><i class="fas fa-exclamation-circle"></i></div>
+                        <p>Could not load announcements</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderParentTeacherAnnouncements(announcements) {
+            const container = document.getElementById('parentTeacherAnnouncementsList');
+            if (!container) return;
+
+            if (announcements.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><i class="fas fa-inbox"></i></div>
+                        <h3>No Announcements</h3>
+                        <p>No teacher announcements for your child at this time.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Separate by type
+            const teacherAnnouncements = announcements.filter(a => a.type === 'announcement');
+            const assignments = announcements.filter(a => a.type === 'assignment');
+            const quizzes = announcements.filter(a => a.type === 'quiz');
+
+            container.innerHTML = `
+                ${teacherAnnouncements.length > 0 ? `
+                    <div style="margin-bottom: 16px;">
+                        <h4 style="color: var(--primary-color, #4f46e5); margin-bottom: 12px; font-size: 0.95rem;">
+                            <i class="fas fa-megaphone"></i> Announcements (${teacherAnnouncements.length})
+                        </h4>
+                        ${teacherAnnouncements.slice(0, 5).map(ann => renderParentAnnouncementItem(ann)).join('')}
+                    </div>
+                ` : ''}
+                ${assignments.length > 0 ? `
+                    <div style="margin-bottom: 16px;">
+                        <h4 style="color: #4f46e5; margin-bottom: 12px; font-size: 0.95rem;">
+                            <i class="fas fa-file-alt"></i> Assignments (${assignments.length})
+                        </h4>
+                        ${assignments.slice(0, 5).map(ann => renderParentAnnouncementItem(ann)).join('')}
+                    </div>
+                ` : ''}
+                ${quizzes.length > 0 ? `
+                    <div style="margin-bottom: 16px;">
+                        <h4 style="color: #7c3aed; margin-bottom: 12px; font-size: 0.95rem;">
+                            <i class="fas fa-question-circle"></i> Quizzes (${quizzes.length})
+                        </h4>
+                        ${quizzes.slice(0, 5).map(ann => renderParentAnnouncementItem(ann)).join('')}
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        function renderParentAnnouncementItem(ann) {
+            const teacherName = ann.teacher?.name || 'Teacher';
+            const dateStr = new Date(ann.createdAt).toLocaleDateString();
+            const icon = ann.type === 'quiz' ? 'fa-question-circle' :
+                         ann.type === 'assignment' ? 'fa-file-alt' : 'fa-bullhorn';
+            const dueStr = ann.dueDate ? `Due: ${new Date(ann.dueDate).toLocaleDateString()}` : '';
+
+            return `
+                <div class="announcement-item" style="padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 8px; background: var(--card-bg, #fff);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; margin-bottom: 4px;">
+                                <i class="fas ${icon}" style="margin-right: 6px;"></i>
+                                ${ann.title}
+                            </div>
+                            ${ann.description ? `<p style="color: #64748b; font-size: 0.9rem; margin: 4px 0;">${ann.description}</p>` : ''}
+                            <div style="display: flex; gap: 16px; font-size: 0.85rem; color: #94a3b8; margin-top: 6px;">
+                                <span><i class="fas fa-user"></i> ${teacherName}</span>
+                                <span><i class="fas fa-book"></i> ${ann.subject}</span>
+                                <span><i class="fas fa-calendar"></i> ${dateStr}</span>
+                                ${dueStr ? `<span><i class="fas fa-clock"></i> ${dueStr}</span>` : ''}
+                            </div>
+                        </div>
+                        <span style="font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; background: ${ann.priority === 'high' ? '#fef2f2' : ann.priority === 'medium' ? '#fffbeb' : '#f0fdf4'}; color: ${ann.priority === 'high' ? '#ef4444' : ann.priority === 'medium' ? '#f59e0b' : '#22c55e'};">
+                            ${ann.priority || 'normal'}
+                        </span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ============================================================================
+        // END TEACHER ANNOUNCEMENTS FOR PARENT
+        // ============================================================================
 
         function logout() {
             localStorage.removeItem('token');

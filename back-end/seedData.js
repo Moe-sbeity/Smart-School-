@@ -39,51 +39,51 @@ const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 // ============================================================================
 const STUDENTS_DATA = [
   // Section A - 15 students
-  { name: 'Ahmad Hassan', email: 'ahmad.hassan@student.school.com', gender: 'male', classSection: 'A', dob: '2008-03-15' },
-  { name: 'Sara Ahmed', email: 'sara.ahmed@student.school.com', gender: 'female', classSection: 'A', dob: '2008-05-22' },
-  { name: 'Mohammed Ali', email: 'mohammed.ali@student.school.com', gender: 'male', classSection: 'A', dob: '2008-01-10' },
-  { name: 'Fatima Khalil', email: 'fatima.khalil@student.school.com', gender: 'female', classSection: 'A', dob: '2008-07-08' },
-  { name: 'Omar Ibrahim', email: 'omar.ibrahim@student.school.com', gender: 'male', classSection: 'A', dob: '2008-09-25' },
-  { name: 'Layla Mahmoud', email: 'layla.mahmoud@student.school.com', gender: 'female', classSection: 'A', dob: '2008-11-14' },
-  { name: 'Youssef Karim', email: 'youssef.karim@student.school.com', gender: 'male', classSection: 'A', dob: '2008-02-28' },
-  { name: 'Nour Hassan', email: 'nour.hassan@student.school.com', gender: 'female', classSection: 'A', dob: '2008-04-17' },
-  { name: 'Khaled Saleh', email: 'khaled.saleh@student.school.com', gender: 'male', classSection: 'A', dob: '2008-06-03' },
-  { name: 'Mariam Adel', email: 'mariam.adel@student.school.com', gender: 'female', classSection: 'A', dob: '2008-08-19' },
-  { name: 'Ali Mostafa', email: 'ali.mostafa@student.school.com', gender: 'male', classSection: 'A', dob: '2008-10-30' },
-  { name: 'Hana Faisal', email: 'hana.faisal@student.school.com', gender: 'female', classSection: 'A', dob: '2008-12-05' },
-  { name: 'Tamer Nabil', email: 'tamer.nabil@student.school.com', gender: 'male', classSection: 'A', dob: '2008-01-22' },
-  { name: 'Dina Samir', email: 'dina.samir@student.school.com', gender: 'female', classSection: 'A', dob: '2008-03-09' },
-  { name: 'Rami Fouad', email: 'rami.fouad@student.school.com', gender: 'male', classSection: 'A', dob: '2008-05-27' },
+  { name: 'Ahmad Hassan', email: 'ahmad.hassan@student.com', gender: 'male', classSection: 'A', dob: '2008-03-15' },
+  { name: 'Sara Ahmed', email: 'sara.ahmed@student.com', gender: 'female', classSection: 'A', dob: '2008-05-22' },
+  { name: 'Mohammed Ali', email: 'mohammed.ali@student.com', gender: 'male', classSection: 'A', dob: '2008-01-10' },
+  { name: 'Fatima Khalil', email: 'fatima.khalil@student.com', gender: 'female', classSection: 'A', dob: '2008-07-08' },
+  { name: 'Omar Ibrahim', email: 'omar.ibrahim@student.com', gender: 'male', classSection: 'A', dob: '2008-09-25' },
+  { name: 'Layla Mahmoud', email: 'layla.mahmoud@student.com', gender: 'female', classSection: 'A', dob: '2008-11-14' },
+  { name: 'Youssef Karim', email: 'youssef.karim@student.com', gender: 'male', classSection: 'A', dob: '2008-02-28' },
+  { name: 'Nour Hassan', email: 'nour.hassan@student.com', gender: 'female', classSection: 'A', dob: '2008-04-17' },
+  { name: 'Khaled Saleh', email: 'khaled.saleh@student.com', gender: 'male', classSection: 'A', dob: '2008-06-03' },
+  { name: 'Mariam Adel', email: 'mariam.adel@student.com', gender: 'female', classSection: 'A', dob: '2008-08-19' },
+  { name: 'Ali Mostafa', email: 'ali.mostafa@student.com', gender: 'male', classSection: 'A', dob: '2008-10-30' },
+  { name: 'Hana Faisal', email: 'hana.faisal@student.com', gender: 'female', classSection: 'A', dob: '2008-12-05' },
+  { name: 'Tamer Nabil', email: 'tamer.nabil@student.com', gender: 'male', classSection: 'A', dob: '2008-01-22' },
+  { name: 'Dina Samir', email: 'dina.samir@student.com', gender: 'female', classSection: 'A', dob: '2008-03-09' },
+  { name: 'Rami Fouad', email: 'rami.fouad@student.com', gender: 'male', classSection: 'A', dob: '2008-05-27' },
   
   // Section B - 15 students
-  { name: 'Yasmine Tarek', email: 'yasmine.tarek@student.school.com', gender: 'female', classSection: 'B', dob: '2008-02-11' },
-  { name: 'Hassan Amr', email: 'hassan.amr@student.school.com', gender: 'male', classSection: 'B', dob: '2008-04-28' },
-  { name: 'Salma Walid', email: 'salma.walid@student.school.com', gender: 'female', classSection: 'B', dob: '2008-06-15' },
-  { name: 'Karim Hossam', email: 'karim.hossam@student.school.com', gender: 'male', classSection: 'B', dob: '2008-08-02' },
-  { name: 'Aya Mohamed', email: 'aya.mohamed@student.school.com', gender: 'female', classSection: 'B', dob: '2008-10-19' },
-  { name: 'Mahmoud Sayed', email: 'mahmoud.sayed@student.school.com', gender: 'male', classSection: 'B', dob: '2008-12-06' },
-  { name: 'Rania Essam', email: 'rania.essam@student.school.com', gender: 'female', classSection: 'B', dob: '2008-01-23' },
-  { name: 'Ahmed Sherif', email: 'ahmed.sherif@student.school.com', gender: 'male', classSection: 'B', dob: '2008-03-12' },
-  { name: 'Lina Ashraf', email: 'lina.ashraf@student.school.com', gender: 'female', classSection: 'B', dob: '2008-05-29' },
-  { name: 'Mostafa Ayman', email: 'mostafa.ayman@student.school.com', gender: 'male', classSection: 'B', dob: '2008-07-16' },
-  { name: 'Jana Hazem', email: 'jana.hazem@student.school.com', gender: 'female', classSection: 'B', dob: '2008-09-03' },
-  { name: 'Ziad Tamer', email: 'ziad.tamer@student.school.com', gender: 'male', classSection: 'B', dob: '2008-11-20' },
-  { name: 'Malak Hesham', email: 'malak.hesham@student.school.com', gender: 'female', classSection: 'B', dob: '2008-02-07' },
-  { name: 'Adham Ramy', email: 'adham.ramy@student.school.com', gender: 'male', classSection: 'B', dob: '2008-04-24' },
-  { name: 'Nada Saeed', email: 'nada.saeed@student.school.com', gender: 'female', classSection: 'B', dob: '2008-06-11' }
+  { name: 'Yasmine Tarek', email: 'yasmine.tarek@student.com', gender: 'female', classSection: 'B', dob: '2008-02-11' },
+  { name: 'Hassan Amr', email: 'hassan.amr@student.com', gender: 'male', classSection: 'B', dob: '2008-04-28' },
+  { name: 'Salma Walid', email: 'salma.walid@student.com', gender: 'female', classSection: 'B', dob: '2008-06-15' },
+  { name: 'Karim Hossam', email: 'karim.hossam@student.com', gender: 'male', classSection: 'B', dob: '2008-08-02' },
+  { name: 'Aya Mohamed', email: 'aya.mohamed@student.com', gender: 'female', classSection: 'B', dob: '2008-10-19' },
+  { name: 'Mahmoud Sayed', email: 'mahmoud.sayed@student.com', gender: 'male', classSection: 'B', dob: '2008-12-06' },
+  { name: 'Rania Essam', email: 'rania.essam@student.com', gender: 'female', classSection: 'B', dob: '2008-01-23' },
+  { name: 'Ahmed Sherif', email: 'ahmed.sherif@student.com', gender: 'male', classSection: 'B', dob: '2008-03-12' },
+  { name: 'Lina Ashraf', email: 'lina.ashraf@student.com', gender: 'female', classSection: 'B', dob: '2008-05-29' },
+  { name: 'Mostafa Ayman', email: 'mostafa.ayman@student.com', gender: 'male', classSection: 'B', dob: '2008-07-16' },
+  { name: 'Jana Hazem', email: 'jana.hazem@student.com', gender: 'female', classSection: 'B', dob: '2008-09-03' },
+  { name: 'Ziad Tamer', email: 'ziad.tamer@student.com', gender: 'male', classSection: 'B', dob: '2008-11-20' },
+  { name: 'Malak Hesham', email: 'malak.hesham@student.com', gender: 'female', classSection: 'B', dob: '2008-02-07' },
+  { name: 'Adham Ramy', email: 'adham.ramy@student.com', gender: 'male', classSection: 'B', dob: '2008-04-24' },
+  { name: 'Nada Saeed', email: 'nada.saeed@student.com', gender: 'female', classSection: 'B', dob: '2008-06-11' }
 ];
 
 // ============================================================================
 // TEACHER DATA
 // ============================================================================
 const TEACHERS_DATA = [
-  { name: 'Dr. Ahmed Mansour', email: 'ahmed.mansour@teacher.school.com', gender: 'male', subjects: ['Math'] },
-  { name: 'Dr. Heba Youssef', email: 'heba.youssef@teacher.school.com', gender: 'female', subjects: ['Physics'] },
-  { name: 'Dr. Tarek Ismail', email: 'tarek.ismail@teacher.school.com', gender: 'male', subjects: ['Chemistry'] },
-  { name: 'Dr. Mona Abdel-Rahman', email: 'mona.abdelrahman@teacher.school.com', gender: 'female', subjects: ['Biology'] },
-  { name: 'Ms. Sarah Williams', email: 'sarah.williams@teacher.school.com', gender: 'female', subjects: ['English'] },
-  { name: 'Mr. Mahmoud Fahmy', email: 'mahmoud.fahmy@teacher.school.com', gender: 'male', subjects: ['Arabic'] },
-  { name: 'Dr. Karim Helal', email: 'karim.helal@teacher.school.com', gender: 'male', subjects: ['Computer Science'] }
+  { name: 'Dr. Ahmed Mansour', email: 't.mansour@teacher.com', gender: 'male', subjects: ['Math'] },
+  { name: 'Dr. Heba Youssef', email: 't.youssef@teacher.com', gender: 'female', subjects: ['Physics'] },
+  { name: 'Dr. Tarek Ismail', email: 't.ismail@teacher.com', gender: 'male', subjects: ['Chemistry'] },
+  { name: 'Dr. Mona Abdel-Rahman', email: 't.abdelrahman@teacher.com', gender: 'female', subjects: ['Biology'] },
+  { name: 'Ms. Sarah Williams', email: 't.williams@teacher.com', gender: 'female', subjects: ['English'] },
+  { name: 'Mr. Mahmoud Fahmy', email: 't.fahmy@teacher.com', gender: 'male', subjects: ['Arabic'] },
+  { name: 'Dr. Karim Helal', email: 't.helal@teacher.com', gender: 'male', subjects: ['Computer Science'] }
 ];
 
 // ============================================================================
@@ -270,7 +270,7 @@ async function createStudentsAndParents() {
   for (const studentData of STUDENTS_DATA) {
     // Create parent first
     const parentName = studentData.name.split(' ')[1] + ' Family';
-    const parentEmail = studentData.email.replace('@student.', '.parent@');
+    const parentEmail = studentData.email.replace('@student.com', '.parent@parent.com');
     
     const parent = new UserModel({
       name: parentName,

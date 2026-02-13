@@ -228,7 +228,16 @@
                 document.getElementById('contentContainer').style.display = 'block';
             } catch (error) {
                 console.error('Error loading grades data:', error);
-                showAlert('error', 'Failed to load grades data. Please try again.');
+                // Show friendly empty state instead of error when no data or API fails
+                document.getElementById('gradesOverview').innerHTML = '';
+                document.getElementById('subjectsContainer').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><i class="fas fa-graduation-cap"></i></div>
+                        <h3>No Grades Available</h3>
+                        <p>This student doesn't have any graded assignments yet. Grades will appear here once teachers grade their submissions.</p>
+                    </div>
+                `;
+                document.getElementById('contentContainer').style.display = 'block';
             }
         }
 

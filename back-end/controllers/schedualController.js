@@ -172,30 +172,50 @@ export const getTeacherAssignedClasses = async (req, res) => {
   try {
     const teacherId = req.userId;
 
-    // Get all schedules for this teacher
-    const schedules = await Schedule.find({ teacher: teacherId });
-
-    // Extract unique grades and sections
-    const gradesSet = new Set();
-    const sectionsSet = new Set();
+    // Extract unique grades and sections from multiple sources
     const classesSet = new Set();
 
+    // Source 1: Schedule collection (individual period entries)
+    const schedules = await Schedule.find({ teacher: teacherId });
     schedules.forEach(schedule => {
-      gradesSet.add(schedule.classGrade);
-      sectionsSet.add(schedule.classSection);
-      classesSet.add(`${schedule.classGrade}-${schedule.classSection}`);
+      if (schedule.classGrade && schedule.classSection) {
+        classesSet.add(`${schedule.classGrade}-${schedule.classSection}`);
+      }
+    });
+
+    // Source 2: ClassGrade collection (teacher-class assignments)
+    const classGrades = await ClassGradeModel.find({ teacher: teacherId });
+    classGrades.forEach(cg => {
+      if (cg.classGrade && cg.classSection) {
+        classesSet.add(`${cg.classGrade}-${cg.classSection}`);
+      }
+    });
+
+    // Source 3: WeeklyScheduleTemplate collection (templates where teacher has periods)
+    const templates = await WeeklyScheduleTemplate.find({
+      'schedule.periods.teacher': teacherId,
+      isActive: true
+    });
+    templates.forEach(template => {
+      if (template.classGrade && template.classSection) {
+        classesSet.add(`${template.classGrade}-${template.classSection}`);
+      }
     });
 
     // Convert to sorted arrays
     const gradeOrder = ['kg1', 'kg2', 'grade1', 'grade2', 'grade3', 'grade4', 'grade5', 'grade6', 'grade7', 'grade8', 'grade9', 'grade10', 'grade11', 'grade12'];
     const sectionOrder = ['A', 'B', 'C', 'D', 'E', 'F'];
 
-    const grades = Array.from(gradesSet).sort((a, b) => gradeOrder.indexOf(a) - gradeOrder.indexOf(b));
-    const sections = Array.from(sectionsSet).sort((a, b) => sectionOrder.indexOf(a) - sectionOrder.indexOf(b));
     const classes = Array.from(classesSet).map(c => {
       const [grade, section] = c.split('-');
       return { grade, section };
     });
+
+    const gradesSet = new Set(classes.map(c => c.grade));
+    const sectionsSet = new Set(classes.map(c => c.section));
+
+    const grades = Array.from(gradesSet).sort((a, b) => gradeOrder.indexOf(a) - gradeOrder.indexOf(b));
+    const sections = Array.from(sectionsSet).sort((a, b) => sectionOrder.indexOf(a) - sectionOrder.indexOf(b));
 
     res.status(200).json({
       grades,

@@ -219,7 +219,17 @@
                 document.getElementById('contentContainer').style.display = 'block';
             } catch (error) {
                 console.error('Error loading attendance data:', error);
-                showAlert('error', 'Failed to load attendance data. Please try again.');
+                document.getElementById('statsSection').innerHTML = '';
+                document.getElementById('attendanceTable').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><i class="fas fa-clipboard-check"></i></div>
+                        <h3>No Attendance Records</h3>
+                        <p>This student doesn't have any attendance records yet. Records will appear here once attendance is taken by teachers.</p>
+                    </div>
+                `;
+                const paginationContainer = document.getElementById('paginationContainer');
+                if (paginationContainer) paginationContainer.style.display = 'none';
+                document.getElementById('contentContainer').style.display = 'block';
             }
         }
 

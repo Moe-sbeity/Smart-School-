@@ -48,7 +48,7 @@ async function loadStudents() {
     try {
         console.log('Loading students...');
         
-        const response = await axios.get(API_URL + '/users/students');
+        const response = await axios.get(API_URL + '/users/students?limit=1000');
         
         console.log('Students response:', response.data);
         allStudents = response.data.students || [];

@@ -10,6 +10,7 @@ import {
   gradeSubmission,
   getAnnouncementSubmissions,
   getChildGrades,
+  getChildAnnouncements,
   getYearScheduleData,
   upload,
   uploadSubmission,
@@ -31,7 +32,9 @@ router.post('/:announcementId/submit', protectRoute, uploadSubmission.array('fil
 
 router.get('/student', protectRoute, getStudentAnnouncements);
 
-router.get('/:id', protectRoute, getAnnouncementById);
 router.get('/parent/child/:childId/grades', protectRoute, getChildGrades);
+router.get('/parent/child/:childId/announcements', protectRoute, getChildAnnouncements);
+
+router.get('/:id', protectRoute, getAnnouncementById);
 
 export default router;
